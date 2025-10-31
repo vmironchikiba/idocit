@@ -1,0 +1,3604 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "FastAPI",
+        "version": "0.1.0"
+    },
+    "paths": {
+        "/api/login": {
+            "post": {
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Login",
+                "description": "Handles user login.\nAccepts form data with `username` and `password`.",
+                "operationId": "login_api_login_post",
+                "requestBody": {
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Body_login_api_login_post"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserToken"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/logout": {
+            "post": {
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Logout",
+                "description": "Handles user logout.",
+                "operationId": "logout_api_logout_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/LogoutRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/token/refresh": {
+            "post": {
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Refresh",
+                "description": "Refresh access token using a Bearer refresh token in the Authorization header.\n\nExpects header:  Authorization: Bearer <refresh_token>\nReturns: UserToken JSON (access_token, token_type, refresh_token, expires_in)",
+                "operationId": "refresh_api_token_refresh_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/components/schemas/RefreshTokenRequest"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "title": "Body"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/token/status": {
+            "get": {
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Token Status",
+                "description": "Return validity info for a presented access token.\n\nAuthorization: Bearer <access_token>\nResponse: {\"active\": bool, \"exp\": <int>|None, ...}\nReturns 401 if header missing or malformed.",
+                "operationId": "token_status_api_token_status_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/langgraph/stream": {
+            "post": {
+                "tags": [
+                    "langgraph"
+                ],
+                "summary": "Stream Langgraph Agent",
+                "description": "SSE stream for LangGraph: sends events as they are ready.\nEach event is a block in the form:\n  event: <name>\n  data: <json>\n\nEvents:\n  - node_started/node_finished/node_update (technical statuses)\n  - token (partial generation tokens)\n  - final (final message with full_text and categories)\n  - error (on exceptions)",
+                "operationId": "stream_langgraph_agent_api_langgraph_stream_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GeneratePayload"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/users/me": {
+            "get": {
+                "tags": [
+                    "users"
+                ],
+                "summary": "Read Current User",
+                "operationId": "read_current_user_api_users_me_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/KeycloakUser"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/components": {
+            "get": {
+                "tags": [
+                    "component"
+                ],
+                "summary": "Get Components",
+                "operationId": "get_components_api_components_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "component"
+                ],
+                "summary": "Set Component",
+                "operationId": "set_component_api_components_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SetComponentPayload"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/get_component": {
+            "post": {
+                "tags": [
+                    "component"
+                ],
+                "summary": "Get Component",
+                "operationId": "get_component_api_get_component_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GetComponentPayload"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/get_production": {
+            "get": {
+                "tags": [
+                    "app-status"
+                ],
+                "summary": "Get Production",
+                "operationId": "get_production_api_get_production_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/get_status": {
+            "get": {
+                "tags": [
+                    "app-status"
+                ],
+                "summary": "Get Status",
+                "operationId": "get_status_api_get_status_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/reset": {
+            "get": {
+                "tags": [
+                    "reset"
+                ],
+                "summary": "Reset Verba",
+                "operationId": "reset_verba_api_reset_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/reset_cache": {
+            "get": {
+                "tags": [
+                    "reset"
+                ],
+                "summary": "Reset Cache",
+                "operationId": "reset_cache_api_reset_cache_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/reset_schema": {
+            "post": {
+                "tags": [
+                    "reset"
+                ],
+                "summary": "Reset Schema",
+                "operationId": "reset_schema_api_admin_reset_schema_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ResetSchemaPayload"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/data": {
+            "post": {
+                "tags": [
+                    "data"
+                ],
+                "summary": "Admin Load Data",
+                "operationId": "admin_load_data_api_admin_data_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AdminLoadPayload"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/data": {
+            "post": {
+                "tags": [
+                    "data"
+                ],
+                "summary": "Load Data",
+                "operationId": "load_data_api_data_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/LoadPayload"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/data/job": {
+            "get": {
+                "tags": [
+                    "data"
+                ],
+                "summary": "List Jobs",
+                "description": "List recent upload tasks for current user (last 3 days).",
+                "operationId": "list_jobs_api_data_job_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/data/job/{job_id}": {
+            "get": {
+                "tags": [
+                    "data"
+                ],
+                "summary": "Get Job Status",
+                "description": "Get the status of a background job. Prefer DB-backed record, fallback to in-memory tracker.",
+                "operationId": "get_job_status_api_data_job__job_id__get",
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "job_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Job Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/data/job/{job_id}/cancel": {
+            "post": {
+                "tags": [
+                    "data"
+                ],
+                "summary": "Cancel Job",
+                "description": "Cancel an in-flight upload task. Processed files keep status; others become Canceled.",
+                "operationId": "cancel_job_api_data_job__job_id__cancel_post",
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "job_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Job Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/export": {
+            "get": {
+                "tags": [
+                    "import-export"
+                ],
+                "summary": "Admin Export Data",
+                "operationId": "admin_export_data_api_admin_export_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/zip": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/import": {
+            "post": {
+                "tags": [
+                    "import-export"
+                ],
+                "summary": "Admin Import Data",
+                "operationId": "admin_import_data_api_admin_import_post",
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Body_admin_import_data_api_admin_import_post"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Imports tenant data from a ZIP file.",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/query": {
+            "post": {
+                "tags": [
+                    "query"
+                ],
+                "summary": "Query",
+                "operationId": "query_api_query_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/QueryPayload"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/query": {
+            "post": {
+                "tags": [
+                    "query"
+                ],
+                "summary": "Admin Query",
+                "operationId": "admin_query_api_admin_query_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AdminQueryPayload"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/suggestions": {
+            "post": {
+                "tags": [
+                    "suggestions"
+                ],
+                "summary": "Suggestions",
+                "operationId": "suggestions_api_suggestions_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/QueryPayload"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/reset_suggestion": {
+            "get": {
+                "tags": [
+                    "suggestions"
+                ],
+                "summary": "Reset Suggestion",
+                "operationId": "reset_suggestion_api_reset_suggestion_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/get_document": {
+            "post": {
+                "tags": [
+                    "document"
+                ],
+                "summary": "Get Document",
+                "operationId": "get_document_api_get_document_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GetDocumentPayload"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/get_all_documents": {
+            "post": {
+                "tags": [
+                    "document"
+                ],
+                "summary": "Get All Documents",
+                "operationId": "get_all_documents_api_get_all_documents_post",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/get_all_documents": {
+            "post": {
+                "tags": [
+                    "document"
+                ],
+                "summary": "Get All Documents Admin",
+                "operationId": "get_all_documents_admin_api_admin_get_all_documents_post",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/search_documents": {
+            "post": {
+                "tags": [
+                    "document"
+                ],
+                "summary": "Search Documents",
+                "operationId": "search_documents_api_search_documents_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SearchQueryPayload"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/documents": {
+            "put": {
+                "tags": [
+                    "document"
+                ],
+                "summary": "Update Documents",
+                "operationId": "update_documents_api_documents_put",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateDocumentsPayload"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/delete_document": {
+            "post": {
+                "tags": [
+                    "document"
+                ],
+                "summary": "Delete Document",
+                "operationId": "delete_document_api_delete_document_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GetDocumentPayload"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/delete_documents": {
+            "post": {
+                "tags": [
+                    "document"
+                ],
+                "summary": "Delete Documents",
+                "operationId": "delete_documents_api_delete_documents_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DeleteDocumentsPayload"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/presets": {
+            "get": {
+                "tags": [
+                    "preset"
+                ],
+                "summary": "Get All Presets",
+                "operationId": "get_all_presets_api_presets_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "preset"
+                ],
+                "summary": "Create Preset",
+                "operationId": "create_preset_api_presets_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreatePresetPayload"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "preset"
+                ],
+                "summary": "Delete Presets",
+                "operationId": "delete_presets_api_presets_delete",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DeletePresetsPayload"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/presets/{preset_id}": {
+            "put": {
+                "tags": [
+                    "preset"
+                ],
+                "summary": "Update Preset",
+                "operationId": "update_preset_api_presets__preset_id__put",
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "preset_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Preset Id"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdatePresetPayload"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "get": {
+                "tags": [
+                    "preset"
+                ],
+                "summary": "Get Preset",
+                "operationId": "get_preset_api_presets__preset_id__get",
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "preset_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Preset Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/configs": {
+            "get": {
+                "tags": [
+                    "config"
+                ],
+                "summary": "Get Global Config",
+                "operationId": "get_global_config_api_admin_configs_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "config"
+                ],
+                "summary": "Save Global Config",
+                "operationId": "save_global_config_api_admin_configs_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SaveGlobalConfigPayload"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/get_all_doc_types": {
+            "get": {
+                "tags": [
+                    "doc-type"
+                ],
+                "summary": "Get All Doc Types",
+                "operationId": "get_all_doc_types_api_get_all_doc_types_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/category-types": {
+            "get": {
+                "tags": [
+                    "category-type"
+                ],
+                "summary": "Get Category Types",
+                "operationId": "get_category_types_api_category_types_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/categories": {
+            "get": {
+                "tags": [
+                    "category"
+                ],
+                "summary": "Get Categories",
+                "operationId": "get_categories_api_categories_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "category"
+                ],
+                "summary": "Create Category",
+                "operationId": "create_category_api_categories_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateCategoryPayload"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "category"
+                ],
+                "summary": "Delete Categories",
+                "operationId": "delete_categories_api_categories_delete",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DeleteCategoriesPayload"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/categories/{category_id}": {
+            "get": {
+                "tags": [
+                    "category"
+                ],
+                "summary": "Get Category",
+                "operationId": "get_category_api_categories__category_id__get",
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "category_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Category Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "category"
+                ],
+                "summary": "Update Category",
+                "operationId": "update_category_api_categories__category_id__put",
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "category_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Category Id"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateCategoryPayload"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/execute/python": {
+            "post": {
+                "tags": [
+                    "execute"
+                ],
+                "summary": "Execute Python",
+                "operationId": "execute_python_api_execute_python_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ExecutePythonPayload"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/onedrive/auth_uri": {
+            "get": {
+                "tags": [
+                    "onedrive"
+                ],
+                "summary": "Authorize",
+                "operationId": "authorize_api_onedrive_auth_uri_get",
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "redirect_url",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Redirect Url"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/onedrive/auth/callback": {
+            "get": {
+                "tags": [
+                    "onedrive"
+                ],
+                "summary": "Callback",
+                "operationId": "callback_api_onedrive_auth_callback_get",
+                "parameters": [
+                    {
+                        "name": "state",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "State"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/onedrive/read_files": {
+            "post": {
+                "tags": [
+                    "onedrive"
+                ],
+                "summary": "Onedrive Read Files",
+                "operationId": "onedrive_read_files_api_onedrive_read_files_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OneDriveReadFilesPayload"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/feedback": {
+            "post": {
+                "tags": [
+                    "feedback"
+                ],
+                "summary": "Submit Feedback",
+                "operationId": "submit_feedback_api_feedback_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/FeedbackPayload"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/feedback/stats": {
+            "get": {
+                "tags": [
+                    "feedback"
+                ],
+                "summary": "Get Feedback Stats",
+                "operationId": "get_feedback_stats_api_feedback_stats_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/chat/completions": {
+            "post": {
+                "tags": [
+                    "OpenAI"
+                ],
+                "summary": "Chat Completions",
+                "operationId": "chat_completions_api_v1_chat_completions_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ChatCompletionRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/models": {
+            "get": {
+                "tags": [
+                    "OpenAI"
+                ],
+                "summary": "Get Models",
+                "operationId": "get_models_api_v1_models_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/keys": {
+            "get": {
+                "tags": [
+                    "api-keys"
+                ],
+                "summary": "List Keys",
+                "operationId": "list_keys_api_keys_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "api-keys"
+                ],
+                "summary": "Create Key",
+                "operationId": "create_key_api_keys_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateKeyRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/keys/{key_id}": {
+            "delete": {
+                "tags": [
+                    "api-keys"
+                ],
+                "summary": "Revoke Key",
+                "operationId": "revoke_key_api_keys__key_id__delete",
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "key_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Key Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/chats": {
+            "get": {
+                "tags": [
+                    "chat"
+                ],
+                "summary": "List Chats",
+                "operationId": "list_chats_api_chats_get",
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 500,
+                            "title": "Limit"
+                        }
+                    },
+                    {
+                        "name": "offset",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 0,
+                            "title": "Offset"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/chats/{chat_id}": {
+            "get": {
+                "tags": [
+                    "chat"
+                ],
+                "summary": "Get Chat",
+                "operationId": "get_chat_api_chats__chat_id__get",
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "chat_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Chat Id"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 500,
+                            "title": "Limit"
+                        }
+                    },
+                    {
+                        "name": "before_sequence",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "Before Sequence"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "chat"
+                ],
+                "summary": "Delete Chat",
+                "operationId": "delete_chat_api_chats__chat_id__delete",
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "chat_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Chat Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/chats/{chat_id}/export": {
+            "get": {
+                "tags": [
+                    "chat"
+                ],
+                "summary": "Export Chat",
+                "operationId": "export_chat_api_chats__chat_id__export_get",
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "chat_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Chat Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/chats/search": {
+            "get": {
+                "tags": [
+                    "chat"
+                ],
+                "summary": "Search Chats",
+                "operationId": "search_chats_api_chats_search_get",
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Q"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 20,
+                            "title": "Limit"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "UserToken": {
+                "type": "object",
+                "required": [
+                    "access_token",
+                    "token_type",
+                    "refresh_token",
+                    "expires_in"
+                ],
+                "properties": {
+                    "access_token": {
+                        "type": "string"
+                    },
+                    "token_type": {
+                        "type": "string"
+                    },
+                    "refresh_token": {
+                        "type": "string"
+                    },
+                    "expires_in": {
+                        "type": "integer"
+                    }
+                }
+            },
+            "AdminLoadPayload": {
+                "properties": {
+                    "preset_id": {
+                        "type": "integer",
+                        "title": "Preset Id"
+                    },
+                    "embedder": {
+                        "type": "string",
+                        "title": "Embedder"
+                    },
+                    "fileBytes": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Filebytes"
+                    },
+                    "fileNames": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Filenames"
+                    },
+                    "filePath": {
+                        "type": "string",
+                        "title": "Filepath"
+                    },
+                    "maxDepth": {
+                        "type": "integer",
+                        "title": "Maxdepth"
+                    },
+                    "allowSubdomains": {
+                        "type": "boolean",
+                        "title": "Allowsubdomains"
+                    },
+                    "category_id": {
+                        "type": "integer",
+                        "title": "Category Id"
+                    },
+                    "confluence_url": {
+                        "type": "string",
+                        "title": "Confluence Url"
+                    },
+                    "confluence_username": {
+                        "type": "string",
+                        "title": "Confluence Username"
+                    },
+                    "confluence_password": {
+                        "type": "string",
+                        "title": "Confluence Password"
+                    },
+                    "confluence_space_key": {
+                        "type": "string",
+                        "title": "Confluence Space Key"
+                    },
+                    "descriptions": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "anyOf": [
+                                        {
+                                            "type": "string"
+                                        },
+                                        {
+                                            "type": "null"
+                                        }
+                                    ]
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Descriptions"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "preset_id",
+                    "embedder",
+                    "fileNames",
+                    "maxDepth",
+                    "allowSubdomains",
+                    "category_id"
+                ],
+                "title": "AdminLoadPayload"
+            },
+            "AdminQueryPayload": {
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "title": "Query"
+                    },
+                    "embedder": {
+                        "type": "string",
+                        "title": "Embedder"
+                    },
+                    "retriever": {
+                        "type": "string",
+                        "title": "Retriever"
+                    },
+                    "generator": {
+                        "type": "string",
+                        "title": "Generator"
+                    },
+                    "document_types": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Document Types",
+                        "default": []
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "query",
+                    "embedder",
+                    "retriever",
+                    "generator"
+                ],
+                "title": "AdminQueryPayload"
+            },
+            "Body_admin_import_data_api_admin_import_post": {
+                "properties": {
+                    "file": {
+                        "type": "string",
+                        "format": "binary",
+                        "title": "File"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "file"
+                ],
+                "title": "Body_admin_import_data_api_admin_import_post"
+            },
+            "Body_login_api_login_post": {
+                "properties": {
+                    "grant_type": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "pattern": "password"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Grant Type"
+                    },
+                    "username": {
+                        "type": "string",
+                        "title": "Username"
+                    },
+                    "password": {
+                        "type": "string",
+                        "title": "Password"
+                    },
+                    "scope": {
+                        "type": "string",
+                        "title": "Scope",
+                        "default": ""
+                    },
+                    "client_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Client Id"
+                    },
+                    "client_secret": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Client Secret"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "username",
+                    "password"
+                ],
+                "title": "Body_login_api_login_post"
+            },
+            "ChatCompletionRequest": {
+                "properties": {
+                    "model": {
+                        "type": "string",
+                        "title": "Model"
+                    },
+                    "messages": {
+                        "items": {
+                            "$ref": "#/components/schemas/ChatMessage"
+                        },
+                        "type": "array",
+                        "title": "Messages"
+                    },
+                    "stream": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Stream",
+                        "default": true
+                    },
+                    "extra_params": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/VerbaOptions"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "model",
+                    "messages"
+                ],
+                "title": "ChatCompletionRequest"
+            },
+            "ChatMessage": {
+                "properties": {
+                    "role": {
+                        "type": "string",
+                        "title": "Role",
+                        "default": "user"
+                    },
+                    "content": {
+                        "type": "string",
+                        "title": "Content"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "content"
+                ],
+                "title": "ChatMessage"
+            },
+            "ConversationItem": {
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "title": "Type"
+                    },
+                    "content": {
+                        "type": "string",
+                        "title": "Content"
+                    },
+                    "typewriter": {
+                        "type": "boolean",
+                        "title": "Typewriter"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "type",
+                    "content",
+                    "typewriter"
+                ],
+                "title": "ConversationItem"
+            },
+            "CreateCategoryPayload": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
+                    },
+                    "description": {
+                        "type": "string",
+                        "title": "Description"
+                    },
+                    "category_type_id": {
+                        "type": "integer",
+                        "title": "Category Type Id"
+                    },
+                    "action_script": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Action Script"
+                    },
+                    "retriever": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Retriever"
+                    },
+                    "generator": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Generator"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "name",
+                    "description",
+                    "category_type_id"
+                ],
+                "title": "CreateCategoryPayload"
+            },
+            "CreateKeyRequest": {
+                "properties": {
+                    "tenant": {
+                        "type": "string",
+                        "title": "Tenant"
+                    },
+                    "role": {
+                        "type": "string",
+                        "title": "Role",
+                        "default": "user"
+                    },
+                    "scopes": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Scopes"
+                    },
+                    "expires_in_days": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Expires In Days"
+                    },
+                    "test": {
+                        "type": "boolean",
+                        "title": "Test",
+                        "default": false
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "tenant"
+                ],
+                "title": "CreateKeyRequest"
+            },
+            "CreatePresetPayload": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
+                    },
+                    "description": {
+                        "type": "string",
+                        "title": "Description"
+                    },
+                    "reader": {
+                        "type": "string",
+                        "title": "Reader"
+                    },
+                    "chunker": {
+                        "type": "string",
+                        "title": "Chunker"
+                    },
+                    "units": {
+                        "type": "integer",
+                        "title": "Units"
+                    },
+                    "overlap": {
+                        "type": "integer",
+                        "title": "Overlap"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "name",
+                    "description",
+                    "reader",
+                    "chunker",
+                    "units",
+                    "overlap"
+                ],
+                "title": "CreatePresetPayload"
+            },
+            "DeleteCategoriesPayload": {
+                "properties": {
+                    "category_ids": {
+                        "items": {
+                            "type": "integer"
+                        },
+                        "type": "array",
+                        "title": "Category Ids"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "category_ids"
+                ],
+                "title": "DeleteCategoriesPayload"
+            },
+            "DeleteDocumentsPayload": {
+                "properties": {
+                    "documents": {
+                        "additionalProperties": true,
+                        "type": "object",
+                        "title": "Documents"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "documents"
+                ],
+                "title": "DeleteDocumentsPayload"
+            },
+            "DeletePresetsPayload": {
+                "properties": {
+                    "preset_ids": {
+                        "items": {
+                            "type": "integer"
+                        },
+                        "type": "array",
+                        "title": "Preset Ids"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "preset_ids"
+                ],
+                "title": "DeletePresetsPayload"
+            },
+            "ExecutePythonPayload": {
+                "properties": {
+                    "script": {
+                        "type": "string",
+                        "title": "Script"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "script"
+                ],
+                "title": "ExecutePythonPayload"
+            },
+            "FeedbackPayload": {
+                "properties": {
+                    "trace_id": {
+                        "type": "string",
+                        "title": "Trace Id"
+                    },
+                    "satisfaction": {
+                        "type": "integer",
+                        "title": "Satisfaction"
+                    },
+                    "comment": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Comment"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "trace_id",
+                    "satisfaction"
+                ],
+                "title": "FeedbackPayload"
+            },
+            "GeneratePayload": {
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "title": "Query"
+                    },
+                    "query_related_categories": {
+                        "items": {
+                            "$ref": "#/components/schemas/QueryRelatedCategoryPayload"
+                        },
+                        "type": "array",
+                        "title": "Query Related Categories"
+                    },
+                    "conversation": {
+                        "items": {
+                            "$ref": "#/components/schemas/ConversationItem"
+                        },
+                        "type": "array",
+                        "title": "Conversation"
+                    },
+                    "generator": {
+                        "type": "string",
+                        "title": "Generator",
+                        "default": ""
+                    },
+                    "embedder": {
+                        "type": "string",
+                        "title": "Embedder",
+                        "default": ""
+                    },
+                    "language": {
+                        "type": "string",
+                        "title": "Language",
+                        "default": ""
+                    },
+                    "session_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Session Id"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "query",
+                    "query_related_categories",
+                    "conversation"
+                ],
+                "title": "GeneratePayload"
+            },
+            "GetComponentPayload": {
+                "properties": {
+                    "component": {
+                        "type": "string",
+                        "title": "Component"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "component"
+                ],
+                "title": "GetComponentPayload"
+            },
+            "GetDocumentPayload": {
+                "properties": {
+                    "document_id": {
+                        "type": "string",
+                        "title": "Document Id"
+                    },
+                    "embedder": {
+                        "type": "string",
+                        "title": "Embedder",
+                        "default": ""
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "document_id"
+                ],
+                "title": "GetDocumentPayload"
+            },
+            "HTTPValidationError": {
+                "properties": {
+                    "detail": {
+                        "items": {
+                            "$ref": "#/components/schemas/ValidationError"
+                        },
+                        "type": "array",
+                        "title": "Detail"
+                    }
+                },
+                "type": "object",
+                "title": "HTTPValidationError"
+            },
+            "KeycloakUser": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Id"
+                    },
+                    "username": {
+                        "type": "string",
+                        "title": "Username"
+                    },
+                    "email": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Email"
+                    },
+                    "role": {
+                        "type": "string",
+                        "title": "Role"
+                    },
+                    "tenant": {
+                        "type": "string",
+                        "title": "Tenant"
+                    },
+                    "is_onedrive_authorized": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Is Onedrive Authorized"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "username",
+                    "email",
+                    "role",
+                    "tenant",
+                    "is_onedrive_authorized"
+                ],
+                "title": "KeycloakUser"
+            },
+            "LoadPayload": {
+                "properties": {
+                    "preset_id": {
+                        "type": "integer",
+                        "title": "Preset Id"
+                    },
+                    "fileBytes": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Filebytes"
+                    },
+                    "fileNames": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Filenames"
+                    },
+                    "filePath": {
+                        "type": "string",
+                        "title": "Filepath"
+                    },
+                    "maxDepth": {
+                        "type": "integer",
+                        "title": "Maxdepth"
+                    },
+                    "allowSubdomains": {
+                        "type": "boolean",
+                        "title": "Allowsubdomains"
+                    },
+                    "category_id": {
+                        "type": "integer",
+                        "title": "Category Id"
+                    },
+                    "confluence_url": {
+                        "type": "string",
+                        "title": "Confluence Url"
+                    },
+                    "confluence_username": {
+                        "type": "string",
+                        "title": "Confluence Username"
+                    },
+                    "confluence_password": {
+                        "type": "string",
+                        "title": "Confluence Password"
+                    },
+                    "confluence_space_key": {
+                        "type": "string",
+                        "title": "Confluence Space Key"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "preset_id",
+                    "fileNames",
+                    "maxDepth",
+                    "allowSubdomains",
+                    "category_id"
+                ],
+                "title": "LoadPayload"
+            },
+            "LogoutRequest": {
+                "properties": {
+                    "refresh_token": {
+                        "type": "string",
+                        "title": "Refresh Token"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "refresh_token"
+                ],
+                "title": "LogoutRequest"
+            },
+            "OneDriveReadFilesPayload": {
+                "properties": {
+                    "preset_id": {
+                        "type": "integer",
+                        "title": "Preset Id"
+                    },
+                    "category_id": {
+                        "type": "integer",
+                        "title": "Category Id"
+                    },
+                    "path": {
+                        "type": "string",
+                        "title": "Path"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "preset_id",
+                    "category_id",
+                    "path"
+                ],
+                "title": "OneDriveReadFilesPayload"
+            },
+            "QueryPayload": {
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "title": "Query"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "query"
+                ],
+                "title": "QueryPayload"
+            },
+            "QueryRelatedCategoryPayload": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
+                    },
+                    "description": {
+                        "type": "string",
+                        "title": "Description"
+                    },
+                    "context": {
+                        "type": "string",
+                        "title": "Context"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "name",
+                    "description",
+                    "context"
+                ],
+                "title": "QueryRelatedCategoryPayload"
+            },
+            "RefreshTokenRequest": {
+                "properties": {
+                    "refresh_token": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Refresh Token"
+                    }
+                },
+                "type": "object",
+                "title": "RefreshTokenRequest"
+            },
+            "ResetSchemaPayload": {
+                "properties": {
+                    "schema_names": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Schema Names"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "schema_names"
+                ],
+                "title": "ResetSchemaPayload"
+            },
+            "SaveGlobalConfigPayload": {
+                "properties": {
+                    "reader": {
+                        "type": "string",
+                        "title": "Reader",
+                        "default": ""
+                    },
+                    "chunker": {
+                        "type": "string",
+                        "title": "Chunker",
+                        "default": ""
+                    },
+                    "embedder": {
+                        "type": "string",
+                        "title": "Embedder",
+                        "default": ""
+                    },
+                    "retriever": {
+                        "type": "string",
+                        "title": "Retriever",
+                        "default": ""
+                    },
+                    "generator": {
+                        "type": "string",
+                        "title": "Generator",
+                        "default": ""
+                    },
+                    "enable_cache": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Enable Cache",
+                        "default": false
+                    },
+                    "preferred_languages": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Preferred Languages"
+                    },
+                    "default_language": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Default Language"
+                    },
+                    "CONVERSATION_SUMMARY_PERCENT": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Conversation Summary Percent"
+                    },
+                    "CONVERSATION_SUMMARY_MESSAGE_LIMIT": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Conversation Summary Message Limit"
+                    }
+                },
+                "type": "object",
+                "title": "SaveGlobalConfigPayload"
+            },
+            "SearchQueryPayload": {
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "title": "Query"
+                    },
+                    "doc_type": {
+                        "type": "string",
+                        "title": "Doc Type"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "query",
+                    "doc_type"
+                ],
+                "title": "SearchQueryPayload"
+            },
+            "SetComponentPayload": {
+                "properties": {
+                    "component": {
+                        "type": "string",
+                        "title": "Component"
+                    },
+                    "selected_component": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "integer"
+                            }
+                        ],
+                        "title": "Selected Component"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "component",
+                    "selected_component"
+                ],
+                "title": "SetComponentPayload"
+            },
+            "UpdateCategoryPayload": {
+                "properties": {
+                    "name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Name"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Description"
+                    },
+                    "category_type_id": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Category Type Id"
+                    },
+                    "action_script": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Action Script"
+                    },
+                    "retriever": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Retriever"
+                    },
+                    "generator": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Generator"
+                    }
+                },
+                "type": "object",
+                "title": "UpdateCategoryPayload"
+            },
+            "UpdateDocumentsPayload": {
+                "properties": {
+                    "ids": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Ids"
+                    },
+                    "category_id": {
+                        "type": "integer",
+                        "title": "Category Id"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "ids",
+                    "category_id"
+                ],
+                "title": "UpdateDocumentsPayload"
+            },
+            "UpdatePresetPayload": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
+                    },
+                    "description": {
+                        "type": "string",
+                        "title": "Description"
+                    },
+                    "reader": {
+                        "type": "string",
+                        "title": "Reader"
+                    },
+                    "chunker": {
+                        "type": "string",
+                        "title": "Chunker"
+                    },
+                    "units": {
+                        "type": "integer",
+                        "title": "Units"
+                    },
+                    "overlap": {
+                        "type": "integer",
+                        "title": "Overlap"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "name",
+                    "description",
+                    "reader",
+                    "chunker",
+                    "units",
+                    "overlap"
+                ],
+                "title": "UpdatePresetPayload"
+            },
+            "ValidationError": {
+                "properties": {
+                    "loc": {
+                        "items": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ]
+                        },
+                        "type": "array",
+                        "title": "Location"
+                    },
+                    "msg": {
+                        "type": "string",
+                        "title": "Message"
+                    },
+                    "type": {
+                        "type": "string",
+                        "title": "Error Type"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "loc",
+                    "msg",
+                    "type"
+                ],
+                "title": "ValidationError"
+            },
+            "VerbaOptions": {
+                "properties": {
+                    "tenant": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Tenant"
+                    },
+                    "language": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Language"
+                    },
+                    "chat_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Chat Id"
+                    },
+                    "embedder": {
+                        "title": "Embedder"
+                    },
+                    "generator": {
+                        "title": "Generator"
+                    },
+                    "retriever": {
+                        "title": "Retriever"
+                    }
+                },
+                "type": "object",
+                "title": "VerbaOptions"
+            }
+        },
+        "securitySchemes": {
+            "OAuth2PasswordBearer": {
+                "type": "oauth2",
+                "flows": {
+                    "password": {
+                        "scopes": {},
+                        "tokenUrl": "/api/login"
+                    }
+                }
+            }
+        }
+    }
+}
