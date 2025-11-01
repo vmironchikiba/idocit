@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:idocit/common/models/in_app_toast_data.dart';
 import 'package:idocit/common/models/service/failure.dart';
 import 'package:idocit/common/usecases/core_update_in_app_toast.dart';
@@ -8,7 +9,9 @@ import 'package:idocit/common/widgets/buttons/text_button.dart';
 import 'package:idocit/common/widgets/input_fields/input_validators.dart';
 import 'package:idocit/common/widgets/input_fields/text_input_field.dart';
 import 'package:idocit/common/widgets/texts.dart';
+import 'package:idocit/common/widgets/wrappers/content_wrapper.dart';
 import 'package:idocit/constants/errors.dart';
+import 'package:idocit/constants/image.dart';
 import 'package:idocit/constants/sizes.dart';
 import 'package:idocit/constants/style.dart';
 import 'package:idocit/features/authentication/domain/models/login_data.dart';
@@ -218,82 +221,89 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          Column(
+      body: ContentWrapper(
+        child: ContentWrapper(
+          padding: EdgeInsets.only(
+            left: ContentWrapper.defaultPadding.left,
+            right: ContentWrapper.defaultPadding.right,
+          ),
+          child: Column(
             children: [
-              IdocItText(text: 'Login', style: Theme.of(context).textTheme.headlineLarge, textAlign: TextAlign.center),
-              const SizedBox(height: 12.0),
-              IdocItRichText(
-                span: TextSpan(
-                  children: const [
-                    TextSpan(text: 'Enter your data to Authorization in\n'),
-                    TextSpan(
-                      text: 'IdocIt.',
-                      style: TextStyle(fontWeight: FontWeight.w700),
+              Column(
+                children: [
+                  SvgPicture.asset(ImageConstants.igIdocIt, height: 112, width: 112),
+                  const SizedBox(height: 12.0),
+                  IdocItRichText(
+                    span: TextSpan(
+                      children: const [
+                        TextSpan(text: 'Welcome to '),
+                        TextSpan(
+                          text: 'IdocIt.',
+                          style: TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                      ],
+                      style: Theme.of(context).textTheme.bodyMedium,
                     ),
-                  ],
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                textAlign: TextAlign.center,
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: SizeConstants.isSmallDevice() ? 24.0 : 40.0),
+                  IdocItTextInputField(
+                    controller: _emailController,
+                    focusNode: _emailFocusNode,
+                    hintText: 'Username',
+                    errorText: _errorEmailMessage,
+                    keyboardType: TextInputType.emailAddress,
+                    inputAction: TextInputAction.next,
+                    onChanged: (_) {
+                      _clearEmailErrorMessage();
+                    },
+                    onEditingComplete: () {
+                      FocusScope.of(context).requestFocus(_passwordFocusNode);
+                    },
+                    onFocusChange: (value) {
+                      if (!value) {
+                        _isValidEmail();
+                      }
+                    },
+                    onClear: () {
+                      _clearEmailErrorMessage(isHardClear: true);
+                    },
+                  ),
+                  const SizedBox(height: 12.0),
+                  IdocItTextInputField(
+                    controller: _passwordController,
+                    focusNode: _passwordFocusNode,
+                    hintText: 'Password',
+                    errorText: _errorPasswordMessage,
+                    isProtectedField: true,
+                    onChanged: (_) {
+                      _clearPasswordErrorMessage();
+                    },
+                    onEditingComplete: () {
+                      FocusScope.of(context).unfocus();
+                    },
+                    onFocusChange: (value) {
+                      if (!value) {
+                        _isValidPassword();
+                      }
+                    },
+                    onClear: () {
+                      _clearPasswordErrorMessage(isHardClear: true);
+                    },
+                  ),
+                  const SizedBox(height: 12.0),
+                ],
               ),
-              SizedBox(height: SizeConstants.isSmallDevice() ? 24.0 : 40.0),
-              IdocItTextInputField(
-                controller: _emailController,
-                focusNode: _emailFocusNode,
-                hintText: 'Email',
-                errorText: _errorEmailMessage,
-                keyboardType: TextInputType.emailAddress,
-                inputAction: TextInputAction.next,
-                onChanged: (_) {
-                  _clearEmailErrorMessage();
-                },
-                onEditingComplete: () {
-                  FocusScope.of(context).requestFocus(_passwordFocusNode);
-                },
-                onFocusChange: (value) {
-                  if (!value) {
-                    _isValidEmail();
-                  }
-                },
-                onClear: () {
-                  _clearEmailErrorMessage(isHardClear: true);
-                },
+              const SizedBox(height: 24.0),
+              IdocItTextButton(
+                contentText: 'Log In',
+                callback: () => _onLogInHandler(context),
+                isBlocked: !_isButtonEnabled,
+                withProgress: _isRequestInProgress,
               ),
-              const SizedBox(height: 12.0),
-              IdocItTextInputField(
-                controller: _passwordController,
-                focusNode: _passwordFocusNode,
-                hintText: 'Password',
-                errorText: _errorPasswordMessage,
-                isProtectedField: true,
-                onChanged: (_) {
-                  _clearPasswordErrorMessage();
-                },
-                onEditingComplete: () {
-                  FocusScope.of(context).unfocus();
-                },
-                onFocusChange: (value) {
-                  if (!value) {
-                    _isValidPassword();
-                  }
-                },
-                onClear: () {
-                  _clearPasswordErrorMessage(isHardClear: true);
-                },
-              ),
-              const SizedBox(height: 12.0),
             ],
           ),
-          const SizedBox(height: 24.0),
-          TextButton(onPressed: () => _onLogInHandler(context), child: Text('Log in')),
-          IdocItTextButton(
-            contentText: 'Start Saving!',
-            callback: () => _onLogInHandler(context),
-            isBlocked: !_isButtonEnabled,
-            withProgress: _isRequestInProgress,
-          ),
-        ],
+        ),
       ),
     );
   }

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:idocit/common/blocs/core_bloc.dart';
+import 'package:idocit/common/providers/theme_provider.dart';
 import 'package:idocit/common/services/navigator.dart';
+import 'package:idocit/constants/theme.dart';
 import 'package:idocit/features/authentication/domain/bloc/auth_bloc.dart';
 import 'package:idocit/common/models/service/shared_preferences_datasource.dart';
 import 'package:idocit/common/models/service/usecase.dart';
@@ -14,6 +16,7 @@ import 'package:idocit/features/dashboard/screens/dashboard_screen.dart';
 import 'package:idocit/features/screen_builder.dart';
 import 'package:idocit/idocit/lib/api.dart';
 import 'package:idocit/injection_container.dart';
+import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,40 +51,47 @@ class _IDocItAppState extends State<IDocItApp> {
         BlocProvider.value(value: locator<CoreBloc>()),
         BlocProvider.value(value: locator<AuthBloc>()),
       ],
-      child: MaterialApp(
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [Locale('en', 'EN')],
-        initialRoute: ScreenBuilder.routeName,
-        routes: {ScreenBuilder.routeName: (context) => ScreenBuilder()},
-        onGenerateRoute: (settings) {
-          switch (settings.name) {
-            case LoginScreen.routeName:
-              return NavigatorService.getPageRoute(
-                LoginScreen(isFromResetDialog: settings.arguments is bool ? settings.arguments as bool : false),
-              );
-            case DashboardScreen.routeName:
-              return NavigatorService.getPageRoute(const DashboardScreen());
-            default:
-              return null;
-          }
-        },
-        builder: (context, widget) {
-          return Stack(
-            children: <Widget>[
-              if (widget != null) Positioned.fill(child: widget),
-              // const SafeArea(
-              //   child: InAppNotificationBackground(),
-              // ),
-              // const Positioned.fill(
-              //   child: InAppFailureBackground(),
-              // ),
-              // if (locator<DeviceService>().currentBuildMode() != BuildMode.prod)
-              //   const Positioned(bottom: 0.0, right: 0.0, child: FootprintBuildVersionBanner()),
+      child: MultiProvider(
+        providers: [ChangeNotifierProvider.value(value: locator<ThemeProvider>())],
+        builder: (context, _) {
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            theme: ThemeConstants.getTheme(context.watch<ThemeProvider>().type),
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
             ],
+            supportedLocales: const [Locale('en', 'EN')],
+            initialRoute: ScreenBuilder.routeName,
+            routes: {ScreenBuilder.routeName: (context) => ScreenBuilder()},
+            onGenerateRoute: (settings) {
+              switch (settings.name) {
+                case LoginScreen.routeName:
+                  return NavigatorService.getPageRoute(
+                    LoginScreen(isFromResetDialog: settings.arguments is bool ? settings.arguments as bool : false),
+                  );
+                case DashboardScreen.routeName:
+                  return NavigatorService.getPageRoute(const DashboardScreen());
+                default:
+                  return null;
+              }
+            },
+            builder: (context, widget) {
+              return Stack(
+                children: <Widget>[
+                  if (widget != null) Positioned.fill(child: widget),
+                  // const SafeArea(
+                  //   child: InAppNotificationBackground(),
+                  // ),
+                  // const Positioned.fill(
+                  //   child: InAppFailureBackground(),
+                  // ),
+                  // if (locator<DeviceService>().currentBuildMode() != BuildMode.prod)
+                  //   const Positioned(bottom: 0.0, right: 0.0, child: FootprintBuildVersionBanner()),
+                ],
+              );
+            },
           );
         },
       ),

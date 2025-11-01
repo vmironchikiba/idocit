@@ -181,4 +181,6 @@ class ImageConstants {
   /// Custom LF GIF-s
   static const igSplashLogoGIF = 'assets/gifs/ig_splash_logo.gif';
   static const igProgressGIF = 'assets/gifs/ig_progress.gif';
+  static const icSplashLogoSvg = 'assets/icons/logo/ic_splash_logo.svg';
+  static const igIdocIt = 'assets/icons/idocit.svg';
 }

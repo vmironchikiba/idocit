@@ -602,7 +602,7 @@ class _InputFieldHintState extends State<_InputFieldHint> {
     final defaultRightPosition = widget.suffixIconSize > 0.0 ? widget.suffixIconSize + 8.0 : 16.0;
 
     final maxHintWidth = widget.textFieldSize - defaultLeftPosition - defaultRightPosition;
-    final hintWidth = _getHintTextSize() > maxHintWidth ? maxHintWidth : _getHintTextSize();
+    final hintWidth = 80.0; // _getHintTextSize() > maxHintWidth ? maxHintWidth : _getHintTextSize();
 
     return Positioned(
       top: SizeConstants.defaultPadding,
