@@ -8,7 +8,7 @@ abstract class AsyncValidator<Params> {
   Future<String?> call(Params inputValue);
 }
 
-class EmailValidator extends Validator<String> {
+class UserValidator extends Validator<String> {
   @override
   String? call(String? inputValue) {
     if (inputValue == null || inputValue.isEmpty) {

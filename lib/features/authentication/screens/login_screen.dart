@@ -30,13 +30,13 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _emailController = TextEditingController();
+  final _userController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  final _emailFocusNode = FocusNode();
+  final _userFocusNode = FocusNode();
   final _passwordFocusNode = FocusNode();
 
-  String? _errorEmailMessage;
+  String? _errorUserMessage;
   String? _errorPasswordMessage;
 
   bool _showPasswordSuccessMessage = false;
@@ -47,7 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    _emailController.addListener(_checkButtonDisability);
+    _userController.addListener(_checkButtonDisability);
     _passwordController.addListener(_checkButtonDisability);
 
     if (widget.isFromResetDialog) {
@@ -64,16 +64,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    _emailController.removeListener(_checkButtonDisability);
+    _userController.removeListener(_checkButtonDisability);
     _passwordController.removeListener(_checkButtonDisability);
     super.dispose();
   }
 
   void _checkButtonDisability() {
     final isEnabled =
-        _emailController.value.text.isNotEmpty &&
+        _userController.value.text.isNotEmpty &&
         _passwordController.value.text.isNotEmpty &&
-        EmailValidator().call(_emailController.value.text) == null &&
+        UserValidator().call(_userController.value.text) == null &&
         PasswordValidator().call(_passwordController.value.text) == null;
 
     if (_isButtonEnabled != isEnabled) {
@@ -83,10 +83,10 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _clearEmailErrorMessage({bool isHardClear = false}) {
-    if (_errorEmailMessage != null && (_emailFocusNode.hasFocus || isHardClear)) {
+  void _clearUserErrorMessage({bool isHardClear = false}) {
+    if (_errorUserMessage != null && (_userFocusNode.hasFocus || isHardClear)) {
       setState(() {
-        _errorEmailMessage = null;
+        _errorUserMessage = null;
       });
     }
   }
@@ -99,9 +99,9 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  bool _isValidEmail() {
-    _errorEmailMessage = EmailValidator().call(_emailController.value.text);
-    if (_errorEmailMessage != null) {
+  bool _isValidUser() {
+    _errorUserMessage = UserValidator().call(_userController.value.text);
+    if (_errorUserMessage != null) {
       setState(() {
         _isRequestInProgress = false;
       });
@@ -124,9 +124,9 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _resetErrorMessage() {
-    if (_errorEmailMessage != null || _errorPasswordMessage != null) {
+    if (_errorUserMessage != null || _errorPasswordMessage != null) {
       setState(() {
-        _errorEmailMessage = null;
+        _errorUserMessage = null;
         _errorPasswordMessage = null;
       });
     }
@@ -171,14 +171,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
     FocusScope.of(context).unfocus();
     _resetErrorMessage();
-    if (!_isValidEmail() || !_isValidPassword()) return;
+    if (!_isValidUser() || !_isValidPassword()) return;
 
     final response = await locator<AuthSignIn>().call(
-      LoginData(email: _emailController.value.text, password: _passwordController.value.text),
+      LoginData(email: _userController.value.text, password: _passwordController.value.text),
     );
 
     response.fold((failure) async {
-      if (failure is AuthFailure && failure.type == AuthErrorType.needConfirmEmail) {
+      if (failure is AuthFailure && failure.type == AuthErrorType.needConfirmUser) {
         await _onOpenConfirmCodeDialogHandler();
         return;
       }
@@ -248,25 +248,25 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   SizedBox(height: SizeConstants.isSmallDevice() ? 24.0 : 40.0),
                   IdocItTextInputField(
-                    controller: _emailController,
-                    focusNode: _emailFocusNode,
+                    controller: _userController,
+                    focusNode: _userFocusNode,
                     hintText: 'Username',
-                    errorText: _errorEmailMessage,
+                    errorText: _errorUserMessage,
                     keyboardType: TextInputType.emailAddress,
                     inputAction: TextInputAction.next,
                     onChanged: (_) {
-                      _clearEmailErrorMessage();
+                      _clearUserErrorMessage();
                     },
                     onEditingComplete: () {
                       FocusScope.of(context).requestFocus(_passwordFocusNode);
                     },
                     onFocusChange: (value) {
                       if (!value) {
-                        _isValidEmail();
+                        _isValidUser();
                       }
                     },
                     onClear: () {
-                      _clearEmailErrorMessage(isHardClear: true);
+                      _clearUserErrorMessage(isHardClear: true);
                     },
                   ),
                   const SizedBox(height: 12.0),

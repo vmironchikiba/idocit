@@ -23,7 +23,7 @@ extension CommonErrorExtension on CommonErrorType {
   }
 }
 
-enum AuthErrorType { badCredentials, badTokensData, needConfirmEmail, needConfirmPersonalData, needConfirmHome }
+enum AuthErrorType { badCredentials, badTokensData, needConfirmUser, needConfirmPersonalData, needConfirmHome }
 
 extension AuthErrorExtension on AuthErrorType {
   AuthFailure convertToFailure() {
@@ -34,8 +34,8 @@ extension AuthErrorExtension on AuthErrorType {
       case AuthErrorType.badTokensData:
         return const AuthFailure(message: 'Bad tokens data', type: AuthErrorType.badTokensData);
 
-      case AuthErrorType.needConfirmEmail:
-        return const AuthFailure(message: 'Need confirm email', type: AuthErrorType.needConfirmEmail);
+      case AuthErrorType.needConfirmUser:
+        return const AuthFailure(message: 'Need confirm user', type: AuthErrorType.needConfirmUser);
 
       case AuthErrorType.needConfirmPersonalData:
         return const AuthFailure(message: 'Need confirm personal data', type: AuthErrorType.needConfirmPersonalData);

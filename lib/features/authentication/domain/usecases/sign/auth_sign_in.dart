@@ -48,7 +48,7 @@ class AuthSignIn implements UseCase<Either<Failure, void>, LoginData> {
         LoggerService.logDebug('FAILURE: ${failure.message}');
 
         if (failure is HTTPFailure && failure.type == HttpErrorType.userNotConfirmed) {
-          return Left(AuthErrorType.needConfirmEmail.convertToFailure());
+          return Left(AuthErrorType.needConfirmUser.convertToFailure());
         }
         return Left(failure);
       },

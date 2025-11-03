@@ -2,6 +2,7 @@ import 'package:get_it/get_it.dart';
 import 'package:idocit/common/blocs/core_bloc.dart';
 import 'package:idocit/common/datasources/core_preferences_storage.dart';
 import 'package:idocit/common/services/network_listener.dart';
+import 'package:idocit/common/usecases/core_update_in_app_toast.dart';
 import 'package:idocit/features/authentication/domain/bloc/auth_bloc.dart';
 import 'package:idocit/common/providers/charles_provider.dart';
 import 'package:idocit/common/providers/theme_provider.dart';
@@ -9,8 +10,10 @@ import 'package:idocit/common/services/device.dart';
 import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/common/usecases/core_init.dart';
 import 'package:idocit/features/authentication/domain/datasources/auth_remote_datasource.dart';
+import 'package:idocit/features/authentication/domain/datasources/auth_secure_storage.dart';
 import 'package:idocit/features/authentication/domain/usecases/auth_update_status.dart';
 import 'package:idocit/features/authentication/domain/usecases/sign/auth_auto_sign_in.dart';
+import 'package:idocit/features/authentication/domain/usecases/sign/auth_sign_in.dart';
 import 'package:idocit/features/authentication/domain/usecases/user/auth_get_user_data.dart';
 import 'package:idocit/idocit/lib/api.dart';
 
@@ -49,7 +52,21 @@ void initLocator() {
   //     authRemoteDataSource: locator<AuthRemoteDataSource>(),
   //   ),
   // );
+
   locator.registerLazySingleton(() => AuthApi(ApiClient(basePath: 'https://ai-assistant.ibagroupit.com/idocit')));
+  locator.registerLazySingleton(() => AuthSecureStorage());
+
+  locator.registerLazySingleton(
+    () => AuthSignIn(
+      networkListenerService: locator<NetworkListenerService>(),
+      authBloc: locator<AuthBloc>(),
+      authRemoteDataSource: locator<AuthRemoteDataSource>(),
+      authSecureStorage: locator<AuthSecureStorage>(),
+      // authGetUserData: locator<AuthGetUserData>(),
+      // authUpdateStatus: locator<AuthUpdateStatus>(),
+      // userGetAllHomes: locator<UserGetAllHomes>(),
+    ),
+  );
   locator.registerLazySingleton(
     () => AuthAutoSignIn(
       authBloc: locator<AuthBloc>(),
@@ -58,4 +75,5 @@ void initLocator() {
     ),
   );
   locator.registerLazySingleton(() => AuthUpdateStatus(authBloc: locator<AuthBloc>()));
+  locator.registerLazySingleton(() => CoreUpdateInAppToast(coreBloc: locator<CoreBloc>()));
 }
