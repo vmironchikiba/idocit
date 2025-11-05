@@ -11,10 +11,13 @@ import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/common/usecases/core_init.dart';
 import 'package:idocit/features/authentication/domain/datasources/auth_remote_datasource.dart';
 import 'package:idocit/features/authentication/domain/datasources/auth_secure_storage.dart';
+import 'package:idocit/features/authentication/domain/usecases/auth_init.dart';
 import 'package:idocit/features/authentication/domain/usecases/auth_update_status.dart';
 import 'package:idocit/features/authentication/domain/usecases/sign/auth_auto_sign_in.dart';
 import 'package:idocit/features/authentication/domain/usecases/sign/auth_sign_in.dart';
 import 'package:idocit/features/authentication/domain/usecases/user/auth_get_user_data.dart';
+import 'package:idocit/features/idocit/domain/blocs/idocit/idocit_bloc.dart';
+import 'package:idocit/features/idocit/domain/usecases/idocit_init.dart';
 import 'package:idocit/idocit/lib/api.dart';
 
 final locator = GetIt.instance;
@@ -35,7 +38,14 @@ void initLocator() {
       charlesProvider: locator<CharlesProvider>(),
     ),
   );
+  locator.registerLazySingleton(() => IdocItBloc(IdocItState.initial()));
+  locator.registerLazySingleton(
+    () => IdocItInit(networkListenerService: locator<NetworkListenerService>(), idocItBloc: locator<IdocItBloc>()),
+  );
   locator.registerLazySingleton(() => AuthBloc(AuthState.initial()));
+  locator.registerLazySingleton(
+    () => AuthInit(networkListenerService: locator<NetworkListenerService>(), idocItInit: locator<IdocItInit>()),
+  );
   locator.registerLazySingleton(() => AuthRemoteDataSource());
 
   locator.registerLazySingleton(
@@ -52,8 +62,11 @@ void initLocator() {
   //     authRemoteDataSource: locator<AuthRemoteDataSource>(),
   //   ),
   // );
+  locator.registerLazySingleton(() => ApiClient(basePath: 'https://ai-assistant.ibagroupit.com/idocit'));
+  locator.registerLazySingleton(() => AuthApi(locator<ApiClient>()));
+  // locator.registerLazySingleton(() => AuthApi(locator<ApiClient>()));
+  locator.registerLazySingleton(() => UsersApi(locator<ApiClient>()));
 
-  locator.registerLazySingleton(() => AuthApi(ApiClient(basePath: 'https://ai-assistant.ibagroupit.com/idocit')));
   locator.registerLazySingleton(() => AuthSecureStorage());
 
   locator.registerLazySingleton(
@@ -62,8 +75,8 @@ void initLocator() {
       authBloc: locator<AuthBloc>(),
       authRemoteDataSource: locator<AuthRemoteDataSource>(),
       authSecureStorage: locator<AuthSecureStorage>(),
-      // authGetUserData: locator<AuthGetUserData>(),
-      // authUpdateStatus: locator<AuthUpdateStatus>(),
+      authGetUserData: locator<AuthGetUserData>(),
+      authUpdateStatus: locator<AuthUpdateStatus>(),
       // userGetAllHomes: locator<UserGetAllHomes>(),
     ),
   );

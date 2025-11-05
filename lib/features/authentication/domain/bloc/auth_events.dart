@@ -4,6 +4,12 @@ abstract class AuthBlocEvent {
   const AuthBlocEvent([List props = const []]) : super();
 }
 
+class UpdateUserDataEvent extends AuthBlocEvent {
+  final KeycloakUser? userData;
+
+  UpdateUserDataEvent({required this.userData}) : super([userData]);
+}
+
 class UpdateTokensDataEvent extends AuthBlocEvent {
   final UserToken userToken;
 

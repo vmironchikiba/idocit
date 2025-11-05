@@ -30,8 +30,8 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _userController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final _userController = TextEditingController(text: 'kaz_audit');
+  final _passwordController = TextEditingController(text: 'kaz_aud1t');
 
   final _userFocusNode = FocusNode();
   final _passwordFocusNode = FocusNode();

@@ -12,7 +12,7 @@ import 'package:idocit/common/services/device.dart';
 import 'package:idocit/common/services/network_listener.dart';
 import 'package:idocit/common/usecases/core_init.dart';
 import 'package:idocit/features/authentication/screens/login_screen.dart';
-import 'package:idocit/features/dashboard/screens/dashboard_screen.dart';
+import 'package:idocit/features/idocit/screens/idocit_screen.dart';
 import 'package:idocit/features/screen_builder.dart';
 import 'package:idocit/idocit/lib/api.dart';
 import 'package:idocit/injection_container.dart';
@@ -71,8 +71,8 @@ class _IDocItAppState extends State<IDocItApp> {
                   return NavigatorService.getPageRoute(
                     LoginScreen(isFromResetDialog: settings.arguments is bool ? settings.arguments as bool : false),
                   );
-                case DashboardScreen.routeName:
-                  return NavigatorService.getPageRoute(const DashboardScreen());
+                case IdocItScreen.routeName:
+                  return NavigatorService.getPageRoute(const IdocItScreen());
                 default:
                   return null;
               }

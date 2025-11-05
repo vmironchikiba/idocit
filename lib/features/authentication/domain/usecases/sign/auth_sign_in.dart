@@ -8,6 +8,9 @@ import 'package:idocit/common/models/service/usecase.dart';
 import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/common/services/network_listener.dart';
 import 'package:idocit/constants/errors.dart';
+import 'package:idocit/features/authentication/domain/usecases/auth_update_status.dart';
+import 'package:idocit/features/authentication/domain/usecases/user/auth_get_user_data.dart';
+import 'package:idocit/idocit/lib/api.dart';
 // import 'package:idocit/features/authentication/domain/datasources/auth_remote_datasource.dart';
 // import 'package:idocit/features/authentication/domain/datasources/auth_secure_storage.dart';
 // import 'package:idocit/features/authentication/domain/models/login_data.dart';
@@ -22,16 +25,16 @@ class AuthSignIn implements UseCase<Either<Failure, void>, LoginData> {
   final AuthBloc authBloc;
   final AuthRemoteDataSource authRemoteDataSource;
   final AuthSecureStorage authSecureStorage;
-  // final AuthGetUserData authGetUserData;
-  // final AuthUpdateStatus authUpdateStatus;
+  final AuthGetUserData authGetUserData;
+  final AuthUpdateStatus authUpdateStatus;
 
   const AuthSignIn({
     required this.networkListenerService,
     required this.authBloc,
     required this.authRemoteDataSource,
     required this.authSecureStorage,
-    // required this.authGetUserData,
-    // required this.authUpdateStatus,
+    required this.authGetUserData,
+    required this.authUpdateStatus,
   });
 
   @override
@@ -47,16 +50,73 @@ class AuthSignIn implements UseCase<Either<Failure, void>, LoginData> {
         LoggerService.logDebug('FAILURE: AuthSignIn: authRemoteDataSource.signIn()');
         LoggerService.logDebug('FAILURE: ${failure.message}');
 
-        if (failure is HTTPFailure && failure.type == HttpErrorType.userNotConfirmed) {
-          return Left(AuthErrorType.needConfirmUser.convertToFailure());
-        }
+        // if (failure is HTTPFailure && failure.type == HttpErrorType.userNotConfirmed) {
+        //   return Left(AuthErrorType.needConfirmEmail.convertToFailure());
+        // }
+
         return Left(failure);
       },
       (result) async {
         authBloc.add(UpdateTokensDataEvent(userToken: result));
+        KeycloakUser? userData;
+        Failure? userDataFailure;
 
-        await authSecureStorage.writeTokensData(result);
-        return Right(null);
+        final userDataResponse = await authGetUserData.call(NoParams());
+        userDataResponse.fold(
+          (failure) {
+            LoggerService.logDebug('FAILURE: AuthSignIn: authGetUserData.call()');
+            LoggerService.logDebug('FAILURE: ${failure.message}');
+            userDataFailure = failure;
+          },
+          (result) {
+            userData = result;
+          },
+        );
+
+        if (userDataFailure != null) {
+          return Left(userDataFailure!);
+        }
+
+        // if (!userData!.isConfirmed) {
+        //   authBloc.add(
+        //     UpdateSignUpDataEvent(
+        //       signUpData: SignUpData(
+        //         id: userData!.id,
+        //         email: data.email,
+        //         password: data.password,
+        //       ),
+        //     ),
+        //   );
+
+        //   return Left(AuthErrorType.needConfirmPersonalData.convertToFailure());
+        // }
+
+        authSecureStorage.writeTokensData(result);
+
+        // final homesResponse = await userGetAllHomes.call(NoParams());
+        // return homesResponse.fold(
+        //   (failure) {
+        //     LoggerService.logDebug('FAILURE: AuthSignIn: authRemoteDataSource.signIn()');
+        //     LoggerService.logDebug('FAILURE: ${failure.message}');
+
+        //     if (failure is HTTPFailure && failure.type == HttpErrorType.userNotConfirmed) {
+        //       return Left(AuthErrorType.needConfirmEmail.convertToFailure());
+        //     }
+
+        //     if (failure is AuthFailure && failure.type == AuthErrorType.needConfirmHome) {
+        //       return Left(failure);
+        //     }
+
+        //     return Left(failure);
+        //   },
+        //   (result) async {
+        if (withStatusUpdate) {
+          authUpdateStatus.call(AuthType.authenticated);
+        }
+
+        return const Right(null);
+        //   },
+        // );
       },
     );
   }

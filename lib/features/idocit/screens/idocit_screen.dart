@@ -7,18 +7,18 @@ import 'package:flutter/material.dart';
 // import 'package:idocit/features/authentication/domain/bloc/auth_bloc.dart';
 // import 'package:idocit/injection_container.dart';
 
-class DashboardScreen extends StatefulWidget {
-  static const routeName = '/dashboard';
+class IdocItScreen extends StatefulWidget {
+  static const routeName = '/idocit';
   static const routeTabNumber = 0;
   static const routeTabName = 'Home';
 
-  const DashboardScreen({Key? key}) : super(key: key);
+  const IdocItScreen({super.key});
 
   @override
-  State<DashboardScreen> createState() => _DashboardScreenState();
+  State<IdocItScreen> createState() => _IdocItScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> with AutomaticKeepAliveClientMixin<DashboardScreen> {
+class _IdocItScreenState extends State<IdocItScreen> with AutomaticKeepAliveClientMixin<IdocItScreen> {
   // bool _isRequestInProgress = false;
   // bool _isRefreshInProgress = false;
 
@@ -44,7 +44,7 @@ class _DashboardScreenState extends State<DashboardScreen> with AutomaticKeepAli
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return Scaffold(body: Center(child: Text('TODO DASHBOARD')));
+    return Scaffold(body: Center(child: Text('TODO IDOCIT')));
   }
 
   @override

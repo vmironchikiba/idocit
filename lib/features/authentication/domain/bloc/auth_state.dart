@@ -3,46 +3,36 @@ part of 'auth_bloc.dart';
 enum AuthType { unauthenticated, authenticated }
 
 class AuthState {
-  // final UserData? userData;
+  final KeycloakUser? userData;
   final UserToken? userToken;
-  // final SignUpData signUpData;
+  final SignUpData signUpData;
   final AuthType authType;
 
-  const AuthState({
-    // required this.userData,
-    required this.userToken,
-    // required this.signUpData,
-    required this.authType,
-  });
+  const AuthState({required this.userData, required this.userToken, required this.signUpData, required this.authType});
 
   factory AuthState.initial() {
     return const AuthState(
-      // userData: null,
+      userData: null,
       userToken: null,
-      // signUpData: SignUpData(),
+      signUpData: SignUpData(),
       authType: AuthType.unauthenticated,
     );
   }
 
-  // AuthState clearAdditionalData() {
-  //   return AuthState(
-  //     userData: userData,
-  //     tokensData: tokensData,
-  //     signUpData: const SignUpData(),
-  //     authType: AuthType.authenticated,
-  //   );
-  // }
-
-  AuthState update({
-    // UserData? userData,
-    UserToken? userToken,
-    // SignUpData? signUpData,
-    AuthType? authType,
-  }) {
+  AuthState clearAdditionalData() {
     return AuthState(
-      // userData: userData ?? this.userData,
+      userData: userData,
+      userToken: userToken,
+      signUpData: const SignUpData(),
+      authType: AuthType.authenticated,
+    );
+  }
+
+  AuthState update({KeycloakUser? userData, UserToken? userToken, SignUpData? signUpData, AuthType? authType}) {
+    return AuthState(
+      userData: userData ?? this.userData,
       userToken: userToken ?? this.userToken,
-      // signUpData: signUpData ?? this.signUpData,
+      signUpData: signUpData ?? this.signUpData,
       authType: authType ?? this.authType,
     );
   }

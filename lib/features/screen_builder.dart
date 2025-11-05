@@ -16,7 +16,7 @@ import 'package:idocit/features/authentication/domain/usecases/sign/auth_auto_si
 import 'package:idocit/features/authentication/screens/login_screen.dart';
 // import 'package:idocit/features/authentication/domain/usecases/sign/auth_auto_sign_in.dart';
 // import 'package:idocit/features/authentication/screens/welcome_screen.dart';
-import 'package:idocit/features/dashboard/screens/dashboard_screen.dart';
+import 'package:idocit/features/idocit/screens/idocit_screen.dart';
 // import 'package:idocit/features/eco_kit/screens/eco_kit_screen.dart';
 // import 'package:idocit/features/profile/screens/profile_screen.dart';
 import 'package:idocit/features/splash_screen.dart';
@@ -39,7 +39,7 @@ class _ScreenBuilderState extends State<ScreenBuilder> with SingleTickerProvider
   late final AnimationController _animationController;
   late final Animation<double> _animatedOpacity;
 
-  int _selectedRouteNumber = DashboardScreen.routeTabNumber;
+  int _selectedRouteNumber = IdocItScreen.routeTabNumber;
   bool _isAuthInit = false;
   bool _isSplashInit = false;
   bool _isBlocsInit = false;
@@ -130,7 +130,7 @@ class _ScreenBuilderState extends State<ScreenBuilder> with SingleTickerProvider
 
         if (state.authType == AuthType.unauthenticated) {
           setState(() {
-            _selectedRouteNumber = DashboardScreen.routeTabNumber;
+            _selectedRouteNumber = IdocItScreen.routeTabNumber;
             _isBlocsInit = false;
           });
           // locator<PushNotificationsService>().context = null;
@@ -161,7 +161,7 @@ class _ScreenBuilderState extends State<ScreenBuilder> with SingleTickerProvider
                 absorbing: !_isBlocsInit,
                 child: SafeArea(
                   top: false,
-                  child: Column(children: [Expanded(child: DashboardScreen())]),
+                  child: Column(children: [Expanded(child: IdocItScreen())]),
                 ),
               ),
             );
