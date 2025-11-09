@@ -58,7 +58,7 @@ class AuthSignIn implements UseCase<Either<Failure, void>, LoginData> {
       },
       (result) async {
         authBloc.add(UpdateTokensDataEvent(userToken: result));
-        KeycloakUser? userData;
+        // KeycloakUser? userData;
         Failure? userDataFailure;
 
         final userDataResponse = await authGetUserData.call(NoParams());
@@ -69,7 +69,8 @@ class AuthSignIn implements UseCase<Either<Failure, void>, LoginData> {
             userDataFailure = failure;
           },
           (result) {
-            userData = result;
+            authBloc.add(UpdateUserDataEvent(userData: result));
+            // userData = result;
           },
         );
 

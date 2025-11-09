@@ -188,8 +188,16 @@ class ApiClient {
           return AdminQueryPayload.fromJson(value);
         case 'ChatCompletionRequest':
           return ChatCompletionRequest.fromJson(value);
+        case 'ChatListResponse':
+          return ChatListResponse.fromJson(value);
         case 'ChatMessage':
           return ChatMessage.fromJson(value);
+        case 'ChatSummary':
+          return ChatSummary.fromJson(value);
+        case 'ComponentConfig':
+          return ComponentConfig.fromJson(value);
+        case 'ComponentItem':
+          return ComponentItem.fromJson(value);
         case 'ConversationItem':
           return ConversationItem.fromJson(value);
         case 'CreateCategoryPayload':

@@ -3,16 +3,15 @@ import 'package:idocit/common/models/service/failure.dart';
 import 'package:idocit/common/models/service/usecase.dart';
 import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/common/services/network_listener.dart';
-import 'package:idocit/features/idocit/domain/blocs/idocit/idocit_bloc.dart';
-import 'package:idocit/features/idocit/domain/usecases/idocit_lazy_init_chats.dart';
-
+import 'package:idocit/features/components/domain/blocs/components_bloc.dart';
+import 'package:idocit/features/components/domain/usecases/components_get_components.dart';
 import 'package:idocit/injection_container.dart';
 
-class IdocItInit implements UseCase<Either<Failure, void>, NoParams> {
+class ComponentsInit implements UseCase<Either<Failure, void>, NoParams> {
   final NetworkListenerService networkListenerService;
-  final IdocItBloc idocItBloc;
+  final ComponentsBloc componentsBloc;
 
-  const IdocItInit({required this.networkListenerService, required this.idocItBloc});
+  const ComponentsInit({required this.networkListenerService, required this.componentsBloc});
 
   @override
   Future<Either<Failure, void>> call(NoParams params, {bool isCleanReset = false, bool withArchivedDate = true}) async {
@@ -23,8 +22,9 @@ class IdocItInit implements UseCase<Either<Failure, void>, NoParams> {
     )) {
       return const Left(NetworkFailure());
     }
-    final chatsResult = await locator<IdocItLazyInitChats>().call(NoParams());
-    return chatsResult.fold(
+    componentsBloc.add(ResetComponentConfigEvent());
+    final componentsResult = await locator<ComponentsGetComponents>().call(NoParams());
+    return componentsResult.fold(
       (failure) async {
         return Left(failure);
       },

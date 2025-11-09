@@ -10,6 +10,12 @@ class SetSelectedDateEvent extends IdocItBlocEvent {
   SetSelectedDateEvent({required this.date}) : super([date]);
 }
 
+class SetChatsEvent extends IdocItBlocEvent {
+  List<ChatSummary> chats;
+
+  SetChatsEvent({required this.chats}) : super([chats]);
+}
+
 class SignOutIdocItEvent extends IdocItBlocEvent {
   SignOutIdocItEvent() : super();
 }

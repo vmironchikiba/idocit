@@ -26,7 +26,7 @@ class AuthGetUserData implements UseCase<Either<Failure, KeycloakUser>, NoParams
       return const Left(NetworkFailure());
     }
 
-    final response = await authRemoteDataSource.getUserAttributes();
+    final response = await authRemoteDataSource.getUserAttributes(authBloc.state.userToken);
     return response.fold(
       (failure) async {
         LoggerService.logDebug('FAILURE: AuthGetUserData: authRemoteDataSource.getUserAttributes()');

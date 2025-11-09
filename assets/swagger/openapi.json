@@ -242,7 +242,9 @@
                         "description": "Successful Response",
                         "content": {
                             "application/json": {
-                                "schema": {}
+                                "schema": {
+                                    "$ref": "#/components/schemas/ComponentConfig"
+                                }
                             }
                         }
                     }
@@ -2145,7 +2147,9 @@
                         "description": "Successful Response",
                         "content": {
                             "application/json": {
-                                "schema": {}
+                                "schema": {
+                                    "$ref": "#/components/schemas/ChatListResponse"
+                                }
                             }
                         }
                     },
@@ -2379,6 +2383,101 @@
     },
     "components": {
         "schemas": {
+            "ComponentItem": {
+                "type": "object",
+                "required": [
+                    "name",
+                    "description",
+                    "available",
+                    "message"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "detailed_description": {
+                        "type": "string"
+                    },
+                    "input_form": {
+                        "type": "string"
+                    },
+                    "available": {
+                        "type": "boolean"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "units": {
+                        "type": "integer"
+                    },
+                    "overlap": {
+                        "type": "integer"
+                    },
+                    "streamable": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "ComponentConfig": {
+                "type": "object",
+                "properties": {
+                    "readers": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ComponentItem"
+                        }
+                    },
+                    "chunker": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ComponentItem"
+                        }
+                    },
+                    "embedder": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ComponentItem"
+                        }
+                    },
+                    "retriever": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ComponentItem"
+                        }
+                    },
+                    "generator": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ComponentItem"
+                        }
+                    },
+                    "enable_cache": {
+                        "type": "array",
+                        "items": {
+                            "type": "boolean"
+                        }
+                    },
+                    "preferred_languages": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "default_language": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "default_values": {
+                        "type": "object",
+                        "additionalProperties": true
+                    }
+                }
+            },
             "UserToken": {
                 "type": "object",
                 "required": [
@@ -2398,6 +2497,58 @@
                         "type": "string"
                     },
                     "expires_in": {
+                        "type": "integer"
+                    }
+                }
+            },
+            "ChatSummary": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "title",
+                    "created_at",
+                    "updated_at"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "Chat ID"
+                    },
+                    "title": {
+                        "type": "string",
+                        "description": "Chat title"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "last_message_preview": {
+                        "type": "string"
+                    },
+                    "last_message_time": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            },
+            "ChatListResponse": {
+                "type": "object",
+                "required": [
+                    "items",
+                    "count"
+                ],
+                "properties": {
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ChatSummary"
+                        }
+                    },
+                    "count": {
                         "type": "integer"
                     }
                 }
