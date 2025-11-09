@@ -58,7 +58,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **getComponentsApiComponentsGet**
-> Object getComponentsApiComponentsGet()
+> ComponentConfig getComponentsApiComponentsGet()
 
 Get Components
 
@@ -83,7 +83,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-[**Object**](Object.md)
+[**ComponentConfig**](ComponentConfig.md)
 
 ### Authorization
 

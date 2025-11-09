@@ -16,8 +16,14 @@ import 'package:idocit/features/authentication/domain/usecases/auth_update_statu
 import 'package:idocit/features/authentication/domain/usecases/sign/auth_auto_sign_in.dart';
 import 'package:idocit/features/authentication/domain/usecases/sign/auth_sign_in.dart';
 import 'package:idocit/features/authentication/domain/usecases/user/auth_get_user_data.dart';
+import 'package:idocit/features/components/domain/blocs/components_bloc.dart';
+import 'package:idocit/features/components/domain/datasources/components_remote_datasource.dart';
+import 'package:idocit/features/components/domain/usecases/components_get_components.dart';
+import 'package:idocit/features/components/domain/usecases/components_init_components.dart';
 import 'package:idocit/features/idocit/domain/blocs/idocit/idocit_bloc.dart';
+import 'package:idocit/features/idocit/domain/datasources/idocit_remote_datasource.dart';
 import 'package:idocit/features/idocit/domain/usecases/idocit_init.dart';
+import 'package:idocit/features/idocit/domain/usecases/idocit_lazy_init_chats.dart';
 import 'package:idocit/idocit/lib/api.dart';
 
 final locator = GetIt.instance;
@@ -39,6 +45,7 @@ void initLocator() {
     ),
   );
   locator.registerLazySingleton(() => IdocItBloc(IdocItState.initial()));
+  locator.registerLazySingleton(() => ComponentsBloc(ComponentsState.initial()));
   locator.registerLazySingleton(
     () => IdocItInit(networkListenerService: locator<NetworkListenerService>(), idocItBloc: locator<IdocItBloc>()),
   );
@@ -64,7 +71,6 @@ void initLocator() {
   // );
   locator.registerLazySingleton(() => ApiClient(basePath: 'https://ai-assistant.ibagroupit.com/idocit'));
   locator.registerLazySingleton(() => AuthApi(locator<ApiClient>()));
-  // locator.registerLazySingleton(() => AuthApi(locator<ApiClient>()));
   locator.registerLazySingleton(() => UsersApi(locator<ApiClient>()));
 
   locator.registerLazySingleton(() => AuthSecureStorage());
@@ -77,7 +83,6 @@ void initLocator() {
       authSecureStorage: locator<AuthSecureStorage>(),
       authGetUserData: locator<AuthGetUserData>(),
       authUpdateStatus: locator<AuthUpdateStatus>(),
-      // userGetAllHomes: locator<UserGetAllHomes>(),
     ),
   );
   locator.registerLazySingleton(
@@ -89,4 +94,28 @@ void initLocator() {
   );
   locator.registerLazySingleton(() => AuthUpdateStatus(authBloc: locator<AuthBloc>()));
   locator.registerLazySingleton(() => CoreUpdateInAppToast(coreBloc: locator<CoreBloc>()));
+  locator.registerLazySingleton(() => IdocItRemoteDataSource());
+  locator.registerLazySingleton(() => ComponentsRemoteDataSource());
+  locator.registerLazySingleton(
+    () => IdocItLazyInitChats(
+      networkListenerService: locator<NetworkListenerService>(),
+      idocItBloc: locator<IdocItBloc>(),
+      authBloc: locator<AuthBloc>(),
+      idocItRemoteDataSource: locator<IdocItRemoteDataSource>(),
+    ),
+  );
+  locator.registerLazySingleton(
+    () => ComponentsInit(
+      networkListenerService: locator<NetworkListenerService>(),
+      componentsBloc: locator<ComponentsBloc>(),
+    ),
+  );
+  locator.registerLazySingleton(
+    () => ComponentsGetComponents(
+      networkListenerService: locator<NetworkListenerService>(),
+      componentsBloc: locator<ComponentsBloc>(),
+      authBloc: locator<AuthBloc>(),
+      componentsRemoteDataSource: locator<ComponentsRemoteDataSource>(),
+    ),
+  );
 }
