@@ -56,6 +56,7 @@ doc/SearchQueryPayload.md
 doc/SelectedComponent.md
 doc/SetComponentPayload.md
 doc/SuggestionsApi.md
+doc/SuggestionsResponse.md
 doc/UpdateCategoryPayload.md
 doc/UpdateDocumentsPayload.md
 doc/UpdatePresetPayload.md
@@ -129,6 +130,7 @@ lib/model/save_global_config_payload.dart
 lib/model/search_query_payload.dart
 lib/model/selected_component.dart
 lib/model/set_component_payload.dart
+lib/model/suggestions_response.dart
 lib/model/update_category_payload.dart
 lib/model/update_documents_payload.dart
 lib/model/update_preset_payload.dart
@@ -137,5 +139,4 @@ lib/model/validation_error.dart
 lib/model/validation_error_loc_inner.dart
 lib/model/verba_options.dart
 pubspec.yaml
-test/component_config_test.dart
-test/component_item_test.dart
+test/suggestions_response_test.dart

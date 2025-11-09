@@ -84,6 +84,7 @@ part 'model/save_global_config_payload.dart';
 part 'model/search_query_payload.dart';
 part 'model/selected_component.dart';
 part 'model/set_component_payload.dart';
+part 'model/suggestions_response.dart';
 part 'model/update_category_payload.dart';
 part 'model/update_documents_payload.dart';
 part 'model/update_preset_payload.dart';

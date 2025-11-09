@@ -16,6 +16,11 @@ import 'package:idocit/features/authentication/domain/usecases/auth_update_statu
 import 'package:idocit/features/authentication/domain/usecases/sign/auth_auto_sign_in.dart';
 import 'package:idocit/features/authentication/domain/usecases/sign/auth_sign_in.dart';
 import 'package:idocit/features/authentication/domain/usecases/user/auth_get_user_data.dart';
+import 'package:idocit/features/chat/domain/bloc/chat_bloc.dart';
+import 'package:idocit/features/chat/domain/datasources/chat_remote_datasource.dart';
+import 'package:idocit/features/chat/domain/usecases/chat_init.dart';
+import 'package:idocit/features/chat/domain/usecases/chat_lazy_init_suggestions.dart';
+import 'package:idocit/features/chat/domain/usecases/chat_suggestions_query.dart';
 import 'package:idocit/features/components/domain/blocs/components_bloc.dart';
 import 'package:idocit/features/components/domain/datasources/components_remote_datasource.dart';
 import 'package:idocit/features/components/domain/usecases/components_get_components.dart';
@@ -46,8 +51,28 @@ void initLocator() {
   );
   locator.registerLazySingleton(() => IdocItBloc(IdocItState.initial()));
   locator.registerLazySingleton(() => ComponentsBloc(ComponentsState.initial()));
+  locator.registerLazySingleton(() => ChatBloc(ChatState.initial()));
   locator.registerLazySingleton(
     () => IdocItInit(networkListenerService: locator<NetworkListenerService>(), idocItBloc: locator<IdocItBloc>()),
+  );
+  locator.registerLazySingleton(
+    () => ChatInit(networkListenerService: locator<NetworkListenerService>(), idocItBloc: locator<ChatBloc>()),
+  );
+  locator.registerLazySingleton(
+    () => ChatLazyInitSuggestions(
+      networkListenerService: locator<NetworkListenerService>(),
+      chatBloc: locator<ChatBloc>(),
+      authBloc: locator<AuthBloc>(),
+      chatRemoteDataSource: locator<ChatRemoteDataSource>(),
+    ),
+  );
+  locator.registerLazySingleton(
+    () => ChatSuggestionsWithQuery(
+      networkListenerService: locator<NetworkListenerService>(),
+      chatBloc: locator<ChatBloc>(),
+      authBloc: locator<AuthBloc>(),
+      chatRemoteDataSource: locator<ChatRemoteDataSource>(),
+    ),
   );
   locator.registerLazySingleton(() => AuthBloc(AuthState.initial()));
   locator.registerLazySingleton(
@@ -96,6 +121,7 @@ void initLocator() {
   locator.registerLazySingleton(() => CoreUpdateInAppToast(coreBloc: locator<CoreBloc>()));
   locator.registerLazySingleton(() => IdocItRemoteDataSource());
   locator.registerLazySingleton(() => ComponentsRemoteDataSource());
+  locator.registerLazySingleton(() => ChatRemoteDataSource());
   locator.registerLazySingleton(
     () => IdocItLazyInitChats(
       networkListenerService: locator<NetworkListenerService>(),

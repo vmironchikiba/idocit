@@ -248,6 +248,8 @@ class ApiClient {
           return SelectedComponent.fromJson(value);
         case 'SetComponentPayload':
           return SetComponentPayload.fromJson(value);
+        case 'SuggestionsResponse':
+          return SuggestionsResponse.fromJson(value);
         case 'UpdateCategoryPayload':
           return UpdateCategoryPayload.fromJson(value);
         case 'UpdateDocumentsPayload':

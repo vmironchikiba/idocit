@@ -858,7 +858,9 @@
                         "description": "Successful Response",
                         "content": {
                             "application/json": {
-                                "schema": {}
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuggestionsResponse"
+                                }
                             }
                         }
                     },
@@ -2383,6 +2385,20 @@
     },
     "components": {
         "schemas": {
+            "SuggestionsResponse": {
+                "type": "object",
+                "required": [
+                    "suggestions"
+                ],
+                "properties": {
+                    "suggestions": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
             "ComponentItem": {
                 "type": "object",
                 "required": [

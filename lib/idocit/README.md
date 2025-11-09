@@ -160,6 +160,7 @@ Class | Method | HTTP request | Description
  - [SearchQueryPayload](doc//SearchQueryPayload.md)
  - [SelectedComponent](doc//SelectedComponent.md)
  - [SetComponentPayload](doc//SetComponentPayload.md)
+ - [SuggestionsResponse](doc//SuggestionsResponse.md)
  - [UpdateCategoryPayload](doc//UpdateCategoryPayload.md)
  - [UpdateDocumentsPayload](doc//UpdateDocumentsPayload.md)
  - [UpdatePresetPayload](doc//UpdatePresetPayload.md)
