@@ -129,6 +129,8 @@ Class | Method | HTTP request | Description
 
  - [AdminLoadPayload](doc//AdminLoadPayload.md)
  - [AdminQueryPayload](doc//AdminQueryPayload.md)
+ - [ChatCompletionChoice](doc//ChatCompletionChoice.md)
+ - [ChatCompletionChunk](doc//ChatCompletionChunk.md)
  - [ChatCompletionRequest](doc//ChatCompletionRequest.md)
  - [ChatListResponse](doc//ChatListResponse.md)
  - [ChatMessage](doc//ChatMessage.md)
@@ -160,6 +162,7 @@ Class | Method | HTTP request | Description
  - [SearchQueryPayload](doc//SearchQueryPayload.md)
  - [SelectedComponent](doc//SelectedComponent.md)
  - [SetComponentPayload](doc//SetComponentPayload.md)
+ - [SuggestionsResponse](doc//SuggestionsResponse.md)
  - [UpdateCategoryPayload](doc//UpdateCategoryPayload.md)
  - [UpdateDocumentsPayload](doc//UpdateDocumentsPayload.md)
  - [UpdatePresetPayload](doc//UpdatePresetPayload.md)

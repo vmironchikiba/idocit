@@ -10,6 +10,8 @@ doc/AuthApi.md
 doc/CategoryApi.md
 doc/CategoryTypeApi.md
 doc/ChatApi.md
+doc/ChatCompletionChoice.md
+doc/ChatCompletionChunk.md
 doc/ChatCompletionRequest.md
 doc/ChatListResponse.md
 doc/ChatMessage.md
@@ -56,6 +58,7 @@ doc/SearchQueryPayload.md
 doc/SelectedComponent.md
 doc/SetComponentPayload.md
 doc/SuggestionsApi.md
+doc/SuggestionsResponse.md
 doc/UpdateCategoryPayload.md
 doc/UpdateDocumentsPayload.md
 doc/UpdatePresetPayload.md
@@ -98,6 +101,8 @@ lib/auth/http_bearer_auth.dart
 lib/auth/oauth.dart
 lib/model/admin_load_payload.dart
 lib/model/admin_query_payload.dart
+lib/model/chat_completion_choice.dart
+lib/model/chat_completion_chunk.dart
 lib/model/chat_completion_request.dart
 lib/model/chat_list_response.dart
 lib/model/chat_message.dart
@@ -129,6 +134,7 @@ lib/model/save_global_config_payload.dart
 lib/model/search_query_payload.dart
 lib/model/selected_component.dart
 lib/model/set_component_payload.dart
+lib/model/suggestions_response.dart
 lib/model/update_category_payload.dart
 lib/model/update_documents_payload.dart
 lib/model/update_preset_payload.dart
@@ -137,5 +143,5 @@ lib/model/validation_error.dart
 lib/model/validation_error_loc_inner.dart
 lib/model/verba_options.dart
 pubspec.yaml
-test/component_config_test.dart
-test/component_item_test.dart
+test/chat_completion_choice_test.dart
+test/chat_completion_chunk_test.dart

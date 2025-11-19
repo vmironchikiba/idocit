@@ -55,6 +55,8 @@ enum HttpErrorType {
   none,
 }
 
+enum ChatErrorType { chunkError, none }
+
 extension HttpErrorExtension on HttpErrorType {
   static HTTPFailure getErrorByCode(int? code, String? comment, String? additional) {
     switch (code) {

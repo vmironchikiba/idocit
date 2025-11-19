@@ -97,7 +97,7 @@ class SuggestionsApi {
   /// Parameters:
   ///
   /// * [QueryPayload] queryPayload (required):
-  Future<Object?> suggestionsApiSuggestionsPost(QueryPayload queryPayload,) async {
+  Future<SuggestionsResponse?> suggestionsApiSuggestionsPost(QueryPayload queryPayload,) async {
     final response = await suggestionsApiSuggestionsPostWithHttpInfo(queryPayload,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
@@ -106,7 +106,7 @@ class SuggestionsApi {
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
     if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Object',) as Object;
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'SuggestionsResponse',) as SuggestionsResponse;
     
     }
     return null;

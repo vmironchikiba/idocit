@@ -53,6 +53,8 @@ part 'api/users_api.dart';
 
 part 'model/admin_load_payload.dart';
 part 'model/admin_query_payload.dart';
+part 'model/chat_completion_choice.dart';
+part 'model/chat_completion_chunk.dart';
 part 'model/chat_completion_request.dart';
 part 'model/chat_list_response.dart';
 part 'model/chat_message.dart';
@@ -84,6 +86,7 @@ part 'model/save_global_config_payload.dart';
 part 'model/search_query_payload.dart';
 part 'model/selected_component.dart';
 part 'model/set_component_payload.dart';
+part 'model/suggestions_response.dart';
 part 'model/update_category_payload.dart';
 part 'model/update_documents_payload.dart';
 part 'model/update_preset_payload.dart';

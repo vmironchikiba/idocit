@@ -14,7 +14,7 @@ Method | HTTP request | Description
 
 
 # **chatCompletionsApiV1ChatCompletionsPost**
-> Object chatCompletionsApiV1ChatCompletionsPost(chatCompletionRequest)
+> ChatCompletionChunk chatCompletionsApiV1ChatCompletionsPost(chatCompletionRequest)
 
 Chat Completions
 
@@ -43,7 +43,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**Object**](Object.md)
+[**ChatCompletionChunk**](ChatCompletionChunk.md)
 
 ### Authorization
 
@@ -52,7 +52,7 @@ Name | Type | Description  | Notes
 ### HTTP request headers
 
  - **Content-Type**: application/json
- - **Accept**: application/json
+ - **Accept**: application/x-ndjson, application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

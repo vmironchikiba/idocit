@@ -858,7 +858,9 @@
                         "description": "Successful Response",
                         "content": {
                             "application/json": {
-                                "schema": {}
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuggestionsResponse"
+                                }
                             }
                         }
                     },
@@ -1948,10 +1950,13 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Successful Response",
+                        "description": "Streamed chat completions",
                         "content": {
-                            "application/json": {
-                                "schema": {}
+                            "application/x-ndjson": {
+                                "schema": {
+                                    "type": "object",
+                                    "$ref": "#/components/schemas/ChatCompletionChunk"
+                                }
                             }
                         }
                     },
@@ -2383,6 +2388,61 @@
     },
     "components": {
         "schemas": {
+            "ChatCompletionChunk": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "created": {
+                        "type": "integer"
+                    },
+                    "model": {
+                        "type": "string"
+                    },
+                    "object": {
+                        "type": "string"
+                    },
+                    "choices": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ChatCompletionChoice"
+                        }
+                    }
+                }
+            },
+            "ChatCompletionChoice": {
+                "type": "object",
+                "properties": {
+                    "index": {
+                        "type": "integer"
+                    },
+                    "finish_reason": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "delta": {
+                        "type": "object",
+                        "additionalProperties": true
+                    }
+                }
+            },
+            "SuggestionsResponse": {
+                "type": "object",
+                "required": [
+                    "suggestions"
+                ],
+                "properties": {
+                    "suggestions": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
             "ComponentItem": {
                 "type": "object",
                 "required": [
