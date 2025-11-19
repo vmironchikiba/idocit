@@ -129,6 +129,8 @@ Class | Method | HTTP request | Description
 
  - [AdminLoadPayload](doc//AdminLoadPayload.md)
  - [AdminQueryPayload](doc//AdminQueryPayload.md)
+ - [ChatCompletionChoice](doc//ChatCompletionChoice.md)
+ - [ChatCompletionChunk](doc//ChatCompletionChunk.md)
  - [ChatCompletionRequest](doc//ChatCompletionRequest.md)
  - [ChatListResponse](doc//ChatListResponse.md)
  - [ChatMessage](doc//ChatMessage.md)

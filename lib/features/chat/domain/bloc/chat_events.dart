@@ -22,6 +22,12 @@ class SetQueryEvent extends ChatBlocEvent {
   SetQueryEvent({required this.query}) : super([query]);
 }
 
+class SetChunkEvent extends ChatBlocEvent {
+  ChatCompletionChunk? chunk;
+
+  SetChunkEvent({required this.chunk}) : super([chunk]);
+}
+
 class SignOutIdocItEvent extends ChatBlocEvent {
   SignOutIdocItEvent() : super();
 }

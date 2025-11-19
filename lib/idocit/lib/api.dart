@@ -53,6 +53,8 @@ part 'api/users_api.dart';
 
 part 'model/admin_load_payload.dart';
 part 'model/admin_query_payload.dart';
+part 'model/chat_completion_choice.dart';
+part 'model/chat_completion_chunk.dart';
 part 'model/chat_completion_request.dart';
 part 'model/chat_list_response.dart';
 part 'model/chat_message.dart';

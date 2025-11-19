@@ -12,6 +12,7 @@ import 'package:idocit/common/services/device.dart';
 import 'package:idocit/common/services/network_listener.dart';
 import 'package:idocit/common/usecases/core_init.dart';
 import 'package:idocit/features/authentication/screens/login_screen.dart';
+import 'package:idocit/features/chat/domain/bloc/chat_bloc.dart';
 import 'package:idocit/features/components/domain/blocs/components_bloc.dart';
 import 'package:idocit/features/chat/screens/chat_screen.dart';
 import 'package:idocit/features/idocit/domain/blocs/idocit/idocit_bloc.dart';
@@ -55,6 +56,7 @@ class _IDocItAppState extends State<IDocItApp> {
         BlocProvider.value(value: locator<AuthBloc>()),
         BlocProvider.value(value: locator<IdocItBloc>()),
         BlocProvider.value(value: locator<ComponentsBloc>()),
+        BlocProvider.value(value: locator<ChatBloc>()),
       ],
       child: MultiProvider(
         providers: [ChangeNotifierProvider.value(value: locator<ThemeProvider>())],
@@ -79,7 +81,7 @@ class _IDocItAppState extends State<IDocItApp> {
                 case IdocItScreen.routeName:
                   return NavigatorService.getPageRoute(const IdocItScreen());
                 case ChatScreen.routeName:
-                  return NavigatorService.getPageRoute(const ChatScreen());
+                  return NavigatorService.getPageRoute(ChatScreen());
                 default:
                   return null;
               }

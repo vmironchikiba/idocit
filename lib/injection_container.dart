@@ -17,7 +17,7 @@ import 'package:idocit/features/authentication/domain/usecases/sign/auth_auto_si
 import 'package:idocit/features/authentication/domain/usecases/sign/auth_sign_in.dart';
 import 'package:idocit/features/authentication/domain/usecases/user/auth_get_user_data.dart';
 import 'package:idocit/features/chat/domain/bloc/chat_bloc.dart';
-import 'package:idocit/features/chat/domain/datasources/chat_remote_datasource.dart';
+import 'package:idocit/features/chat/domain/api/chat_remote_datasource.dart';
 import 'package:idocit/features/chat/domain/usecases/chat_init.dart';
 import 'package:idocit/features/chat/domain/usecases/chat_lazy_init_suggestions.dart';
 import 'package:idocit/features/chat/domain/usecases/chat_suggestions_query.dart';

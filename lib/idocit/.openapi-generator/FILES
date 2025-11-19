@@ -10,6 +10,8 @@ doc/AuthApi.md
 doc/CategoryApi.md
 doc/CategoryTypeApi.md
 doc/ChatApi.md
+doc/ChatCompletionChoice.md
+doc/ChatCompletionChunk.md
 doc/ChatCompletionRequest.md
 doc/ChatListResponse.md
 doc/ChatMessage.md
@@ -99,6 +101,8 @@ lib/auth/http_bearer_auth.dart
 lib/auth/oauth.dart
 lib/model/admin_load_payload.dart
 lib/model/admin_query_payload.dart
+lib/model/chat_completion_choice.dart
+lib/model/chat_completion_chunk.dart
 lib/model/chat_completion_request.dart
 lib/model/chat_list_response.dart
 lib/model/chat_message.dart
@@ -139,4 +143,5 @@ lib/model/validation_error.dart
 lib/model/validation_error_loc_inner.dart
 lib/model/verba_options.dart
 pubspec.yaml
-test/suggestions_response_test.dart
+test/chat_completion_choice_test.dart
+test/chat_completion_chunk_test.dart
