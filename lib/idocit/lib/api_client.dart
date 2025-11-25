@@ -254,6 +254,12 @@ class ApiClient {
           return SetComponentPayload.fromJson(value);
         case 'SuggestionsResponse':
           return SuggestionsResponse.fromJson(value);
+        case 'ToolArguments':
+          return ToolArguments.fromJson(value);
+        case 'ToolCall':
+          return ToolCall.fromJson(value);
+        case 'ToolFunctionCall':
+          return ToolFunctionCall.fromJson(value);
         case 'UpdateCategoryPayload':
           return UpdateCategoryPayload.fromJson(value);
         case 'UpdateDocumentsPayload':
