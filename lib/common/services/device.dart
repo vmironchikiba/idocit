@@ -31,6 +31,7 @@ class DeviceService {
   late final PackageInfo _packageInfo;
   late final bool _isPhysicalDevice;
 
+  // ignore: unused_field
   static const _devPackageName = 'com.idocit.mobile.lbs.dev';
   static const _prodPackageName = 'com.idocit.mobile.lbs';
 

@@ -6,14 +6,22 @@ abstract class ChatBlocEvent {
 
 class SetSelectedDateEvent extends ChatBlocEvent {
   final DateTime date;
-
   SetSelectedDateEvent({required this.date}) : super([date]);
+}
+
+class SetIsInProcess extends ChatBlocEvent {
+  final bool isInProcess;
+  SetIsInProcess({required this.isInProcess}) : super([isInProcess]);
 }
 
 class SetSuggestionsResponseEvent extends ChatBlocEvent {
   SuggestionsResponse? suggestionsResponse;
 
   SetSuggestionsResponseEvent({required this.suggestionsResponse}) : super([suggestionsResponse]);
+}
+
+class ResetSuggestionsEvent extends ChatBlocEvent {
+  ResetSuggestionsEvent() : super([]);
 }
 
 class SetQueryEvent extends ChatBlocEvent {
@@ -24,8 +32,27 @@ class SetQueryEvent extends ChatBlocEvent {
 
 class SetChunkEvent extends ChatBlocEvent {
   ChatCompletionChunk? chunk;
-
   SetChunkEvent({required this.chunk}) : super([chunk]);
+}
+
+class SetGenerationResultSystem extends ChatBlocEvent {
+  String? generationResultSystem;
+  SetGenerationResultSystem({required this.generationResultSystem}) : super([generationResultSystem]);
+}
+
+class SetQueryResponse extends ChatBlocEvent {
+  QueryResponse? queryResponse;
+  SetQueryResponse({required this.queryResponse}) : super([queryResponse]);
+}
+
+class SetTraceId extends ChatBlocEvent {
+  String? traceId;
+  SetTraceId({required this.traceId}) : super([traceId]);
+}
+
+class SetPreMessageArray extends ChatBlocEvent {
+  List<String> preMessageArray;
+  SetPreMessageArray({required this.preMessageArray}) : super([preMessageArray]);
 }
 
 class SignOutIdocItEvent extends ChatBlocEvent {

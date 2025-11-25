@@ -18,9 +18,11 @@ import 'package:idocit/features/authentication/domain/usecases/sign/auth_sign_in
 import 'package:idocit/features/authentication/domain/usecases/user/auth_get_user_data.dart';
 import 'package:idocit/features/chat/domain/bloc/chat_bloc.dart';
 import 'package:idocit/features/chat/domain/api/chat_remote_datasource.dart';
+import 'package:idocit/features/chat/domain/usecases/chat_completions_stream.dart';
 import 'package:idocit/features/chat/domain/usecases/chat_init.dart';
 import 'package:idocit/features/chat/domain/usecases/chat_lazy_init_suggestions.dart';
 import 'package:idocit/features/chat/domain/usecases/chat_suggestions_query.dart';
+import 'package:idocit/features/chat/domain/usecases/chat_suggestions_reset.dart';
 import 'package:idocit/features/components/domain/blocs/components_bloc.dart';
 import 'package:idocit/features/components/domain/datasources/components_remote_datasource.dart';
 import 'package:idocit/features/components/domain/usecases/components_get_components.dart';
@@ -72,6 +74,16 @@ void initLocator() {
       chatBloc: locator<ChatBloc>(),
       authBloc: locator<AuthBloc>(),
       chatRemoteDataSource: locator<ChatRemoteDataSource>(),
+    ),
+  );
+  locator.registerLazySingleton(() => ChatSuggestionsReset(chatBloc: locator<ChatBloc>()));
+
+  //ChatSuggestionsReset
+  locator.registerLazySingleton(
+    () => ChatStartCompletionsStream(
+      networkListenerService: locator<NetworkListenerService>(),
+      chatBloc: locator<ChatBloc>(),
+      authBloc: locator<AuthBloc>(),
     ),
   );
   locator.registerLazySingleton(() => AuthBloc(AuthState.initial()));

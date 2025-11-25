@@ -59,6 +59,9 @@ doc/SelectedComponent.md
 doc/SetComponentPayload.md
 doc/SuggestionsApi.md
 doc/SuggestionsResponse.md
+doc/ToolArguments.md
+doc/ToolCall.md
+doc/ToolFunctionCall.md
 doc/UpdateCategoryPayload.md
 doc/UpdateDocumentsPayload.md
 doc/UpdatePresetPayload.md
@@ -135,6 +138,9 @@ lib/model/search_query_payload.dart
 lib/model/selected_component.dart
 lib/model/set_component_payload.dart
 lib/model/suggestions_response.dart
+lib/model/tool_arguments.dart
+lib/model/tool_call.dart
+lib/model/tool_function_call.dart
 lib/model/update_category_payload.dart
 lib/model/update_documents_payload.dart
 lib/model/update_preset_payload.dart
@@ -143,5 +149,3 @@ lib/model/validation_error.dart
 lib/model/validation_error_loc_inner.dart
 lib/model/verba_options.dart
 pubspec.yaml
-test/chat_completion_choice_test.dart
-test/chat_completion_chunk_test.dart
