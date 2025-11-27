@@ -55,6 +55,11 @@ class SetPreMessageArray extends ChatBlocEvent {
   SetPreMessageArray({required this.preMessageArray}) : super([preMessageArray]);
 }
 
+class AddCompletionRequest extends ChatBlocEvent {
+  CompletionRequest completionRequest;
+  AddCompletionRequest({required this.completionRequest}) : super([completionRequest]);
+}
+
 class SignOutIdocItEvent extends ChatBlocEvent {
   SignOutIdocItEvent() : super();
 }

@@ -52,6 +52,7 @@ dependencies:
   flutter_svg: ^2.2.1
   provider: ^6.1.5+1
   swipeable_page_route: ^0.4.7
+  markdown: ^7.3.0
 
 dev_dependencies:
   flutter_test:

@@ -6,6 +6,7 @@ class ChatState {
   final SuggestionsResponse? suggestionsResponse;
   final String? query;
   final ChatCompletionChunk? chunk;
+  final List<CompletionRequest> completionRequests;
   final String? generationResultSystem;
   final QueryResponse? queryResponse;
   final String? traceId;
@@ -16,6 +17,7 @@ class ChatState {
     required this.suggestionsResponse,
     required this.query,
     this.chunk,
+    this.completionRequests = const [],
     this.generationResultSystem,
     this.queryResponse,
     this.traceId,
@@ -29,6 +31,7 @@ class ChatState {
       suggestionsResponse: null,
       query: null,
       chunk: null,
+      completionRequests: [],
       generationResultSystem: null,
       queryResponse: null,
       traceId: null,
@@ -42,6 +45,7 @@ class ChatState {
     SuggestionsResponse? suggestionsResponse,
     String? query,
     ChatCompletionChunk? chunk,
+    CompletionRequest? completionRequest,
     String? generationResultSystem,
     QueryResponse? queryResponse,
     String? traceId,
@@ -53,6 +57,7 @@ class ChatState {
       suggestionsResponse: suggestionsResponse ?? this.suggestionsResponse,
       query: query ?? this.query,
       chunk: chunk ?? this.chunk,
+      completionRequests: completionRequest != null ? [...completionRequests, completionRequest] : completionRequests,
       generationResultSystem: generationResultSystem ?? this.generationResultSystem,
       queryResponse: queryResponse ?? this.queryResponse,
       traceId: traceId ?? this.traceId,

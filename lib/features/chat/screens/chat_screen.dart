@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:idocit/common/models/service/usecase.dart';
 import 'package:idocit/common/widgets/indicators/loading_indicator.dart';
+import 'package:idocit/common/widgets/inline_expandable_list.dart';
 import 'package:idocit/constants/colors.dart';
 import 'package:idocit/constants/image.dart';
 import 'package:idocit/features/chat/domain/bloc/chat_bloc.dart';
@@ -56,89 +57,125 @@ class _ChatScreenState extends State<ChatScreen> {
         builder: (context, constraints) {
           final screenHeight = constraints.maxHeight;
           const inputHeight = 70.0;
+
           return Stack(
             children: [
               BlocBuilder<ChatBloc, ChatState>(
-                // buildWhen: (previous, current) =>
-                //     previous.queryResponse?.categories != current.queryResponse?.categories ||
-                //     previous.preMessageArray != current.preMessageArray ||
-                //     previous.generationResultSystem != current.generationResultSystem,
                 builder: (context, state) {
                   final docNames =
-                      state.queryResponse?.categories
-                          .expand((category) => category.knowledgeData.map((data) => data.text.split('\n').first))
-                          .toList() ??
-                      [];
+                      state.queryResponse?.categories.expand((c) => c.knowledgeData.map((d) => d.text)).toList() ?? [];
 
-                  final List<ChatItem> items = [
-                    ...state.preMessageArray.map((msg) => ChatItem(ChatItemType.userMessage, msg)),
-
-                    if (state.generationResultSystem != null)
-                      ChatItem(ChatItemType.systemMessage, state.generationResultSystem!),
-
-                    ...docNames.map((name) => ChatItem(ChatItemType.docName, name)),
-                  ];
-
-                  return ListView.builder(
-                    padding: const EdgeInsets.only(bottom: 100), // reserve space for input
-                    itemCount: items.length,
-                    itemBuilder: (_, i) {
-                      final item = items[i];
-
-                      Color color = item.type.color();
-                      Decoration? decoration = item.type.decoration();
-                      return ListTile(
-                        title: Container(
-                          padding: const EdgeInsets.all(8), // optional, makes it look nicer
-                          decoration: decoration,
-                          child: Text(item.text, style: TextStyle(color: color)),
+                  return ListView(
+                    padding: const EdgeInsets.only(bottom: 120),
+                    children: [
+                      if (state.completionRequests.isNotEmpty)
+                        Card(
+                          color: ColorConstants.black200,
+                          child: ListTile(
+                            title: Text(
+                              state.completionRequests.last.content,
+                              style: const TextStyle(color: ColorConstants.white500),
+                            ),
+                          ),
                         ),
-                      );
-                    },
+                      // -------------------------------------------
+                      // 1) USER messages — expandable
+                      // -------------------------------------------
+                      if (state.preMessageArray.isNotEmpty && state.generationResultSystem == null)
+                        Card(
+                          color: ColorConstants.blue500.withValues(alpha: 0.1),
+                          child: ListTile(
+                            title: Text(
+                              state.preMessageArray.last,
+                              style: const TextStyle(color: ColorConstants.blue500),
+                            ),
+                          ),
+                        ),
+
+                      // InlineExpandableList(
+                      //   items: state.preMessageArray,
+                      //   onItemTap: (index) {
+                      //     // Optional action on tap
+                      //   },
+                      // ),
+                      const SizedBox(height: 10),
+
+                      // -------------------------------------------
+                      // 2) SYSTEM message — a single string
+                      // -------------------------------------------
+                      if (state.generationResultSystem != null)
+                        Card(
+                          color: ColorConstants.blue500.withValues(alpha: 0.1),
+                          child: ListTile(
+                            title: Text(
+                              state.generationResultSystem!,
+                              style: const TextStyle(color: ColorConstants.blue500),
+                            ),
+                          ),
+                        ),
+
+                      const SizedBox(height: 10),
+
+                      // -------------------------------------------
+                      // 3) DOCUMENT NAMES — expandable
+                      // -------------------------------------------
+                      if (docNames.isNotEmpty)
+                        InlineExpandableList(
+                          items: docNames,
+                          onItemTap: (index) {
+                            // Optional: scroll to doc, fill input, etc.
+                          },
+                        ),
+                    ],
                   );
                 },
               ),
 
-              /// Suggestions dropdown OVER background
+              // ======================================
+              // SUGGESTIONS PANEL
+              // ======================================
               BlocBuilder<ChatBloc, ChatState>(
-                buildWhen: (previous, current) =>
-                    previous.suggestionsResponse?.suggestions != current.suggestionsResponse?.suggestions,
+                buildWhen: (p, c) => p.suggestionsResponse?.suggestions != c.suggestionsResponse?.suggestions,
                 builder: (context, state) {
-                  suggestions = List<String>.from(state.suggestionsResponse?.suggestions ?? []);
-                  return suggestions.isNotEmpty
-                      ? Positioned(
-                          bottom: inputHeight, // <-- just above input field
-                          left: 0,
-                          right: 0,
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints(maxHeight: screenHeight - inputHeight - 30),
-                            child: Material(
-                              elevation: 6,
-                              borderRadius: BorderRadius.circular(8),
-                              color: Colors.white,
-                              child: ListView.builder(
-                                shrinkWrap: true,
-                                itemCount: suggestions.length,
-                                itemBuilder: (_, index) => ListTile(
-                                  title: Text(suggestions[index]),
-                                  onTap: () {
-                                    _controller.text = suggestions[index];
-                                    setState(() {
-                                      suggestions.clear();
-                                    });
-                                  },
-                                ),
-                              ),
-                            ),
-                          ),
-                        )
-                      : Container();
+                  final suggestions = List<String>.from(state.suggestionsResponse?.suggestions ?? []);
+
+                  if (suggestions.isEmpty) return const SizedBox.shrink();
+
+                  return Positioned(
+                    bottom: inputHeight,
+                    left: 0,
+                    right: 0,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(maxHeight: screenHeight - inputHeight - 30),
+                      child: Material(
+                        elevation: 6,
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: suggestions.length,
+                          itemBuilder: (_, index) {
+                            final text = suggestions[index];
+                            return ListTile(
+                              title: Text(text),
+                              onTap: () {
+                                _controller.text = text;
+                                locator<ChatSuggestionsReset>().call(NoParams());
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  );
                 },
               ),
 
-              /// Input field at bottom
+              // ======================================
+              // INPUT FIELD
+              // ======================================
               BlocBuilder<ChatBloc, ChatState>(
-                buildWhen: (previous, current) => previous.isInProcess != current.isInProcess,
+                buildWhen: (p, c) => p.isInProcess != c.isInProcess,
                 builder: (context, state) {
                   return Positioned(
                     bottom: 0,
@@ -151,10 +188,9 @@ class _ChatScreenState extends State<ChatScreen> {
                         children: [
                           Expanded(
                             child: TextField(
-                              key: const ValueKey("chat_input"),
                               controller: _controller,
-                              onChanged: fetchSuggestions,
-                              decoration: InputDecoration(hintText: "Type here...", border: OutlineInputBorder()),
+                              onChanged: (v) => locator<ChatSuggestionsWithQuery>().call(v),
+                              decoration: const InputDecoration(hintText: "Type here...", border: OutlineInputBorder()),
                             ),
                           ),
                           IconButton(
