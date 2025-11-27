@@ -82,6 +82,19 @@ class QueryRelatedCategories {
         return true;
       }());
 
+      // --- Parse the list as usual ---
+      List<KnowledgeData> parsedList = (json[r'knowledge_data'] as List? ?? [])
+          .map((element) => KnowledgeData.fromJson(element))
+          .whereType<KnowledgeData>()
+          .toList();
+
+      // --- SORT by numeric score (DESCENDING) ---
+      parsedList.sort((a, b) {
+        final double scoreA = double.tryParse(a.score) ?? 0.0;
+        final double scoreB = double.tryParse(b.score) ?? 0.0;
+        return scoreB.compareTo(scoreA); // high → low
+      });
+
       return QueryRelatedCategories(
         id: mapValueOfType<String>(json, r'id') ?? '',
         type: mapValueOfType<String>(json, r'type') ?? '',

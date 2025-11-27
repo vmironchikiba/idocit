@@ -31,13 +31,30 @@ class OpenAIStreamApi {
 
     final lines = streamedResponse.stream.transform(utf8.decoder).transform(const LineSplitter());
 
+    // await for (final line in lines) {
+    //   if (line.trim().isEmpty) continue;
+    //   try {
+    //     final chunk = ChatCompletionChunk.fromJson(jsonDecode(line) as Map<String, dynamic>);
+    //     if (chunk != null) yield chunk;
+    //   } catch (e) {
+    //     LoggerService.logDebug(e.toString());
+    //     continue;
+    //   }
+    // }
     await for (final line in lines) {
-      if (line.trim().isEmpty) continue;
+      final trimmed = line.trim();
+
+      if (trimmed.isEmpty) continue;
+
+      // Remove SSE "data:" prefix
+      final clean = trimmed.startsWith("data:") ? trimmed.substring(5).trim() : trimmed;
+
       try {
-        final chunk = ChatCompletionChunk.fromJson(jsonDecode(line) as Map<String, dynamic>);
+        final jsonMap = jsonDecode(clean) as Map<String, dynamic>;
+        final chunk = ChatCompletionChunk.fromJson(jsonMap);
         if (chunk != null) yield chunk;
       } catch (e) {
-        LoggerService.logDebug(e.toString());
+        LoggerService.logDebug("JSON parse error: $e | RAW: $clean");
         continue;
       }
     }

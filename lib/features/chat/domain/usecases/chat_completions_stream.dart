@@ -99,6 +99,7 @@ class ChatStartCompletionsStream implements UseCase<Either<Failure, void>, Compl
           },
           onDone: () => chatBloc.add(SetIsInProcess(isInProcess: false)),
         );
+    chatBloc.add(AddCompletionRequest(completionRequest: request));
     return Right(null);
   }
 }

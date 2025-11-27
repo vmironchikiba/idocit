@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/common/utils/date_time.dart';
+import 'package:idocit/features/chat/domain/models/completions_request.dart';
 import 'package:idocit/features/chat/domain/models/query_response.dart';
 import 'package:idocit/idocit/lib/api.dart';
 
@@ -34,7 +35,11 @@ class ChatBloc extends Bloc<ChatBlocEvent, ChatState> {
       LoggerService.logDebug('ChatBloc SetPreMessageArray ${event.preMessageArray}');
       emit(state.update(preMessageArray: event.preMessageArray));
     });
-
+    //
+    on<AddCompletionRequest>((event, emit) {
+      LoggerService.logDebug('ChatBloc SetPreMessageArray ${event.completionRequest}');
+      emit(state.update(completionRequest: event.completionRequest));
+    });
     on<SetChunkEvent>((event, emit) {
       if (event.chunk != null) {
         final choice = event.chunk!.choices[0];
