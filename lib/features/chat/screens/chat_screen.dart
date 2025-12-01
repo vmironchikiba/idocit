@@ -11,6 +11,7 @@ import 'package:idocit/constants/image.dart';
 import 'package:idocit/features/chat/domain/bloc/chat_bloc.dart';
 import 'package:idocit/features/chat/domain/models/completions_request.dart';
 import 'package:idocit/features/chat/domain/usecases/chat_completions_stream.dart';
+import 'package:idocit/features/chat/domain/usecases/chat_history.dart';
 import 'package:idocit/features/chat/domain/usecases/chat_lazy_init_suggestions.dart';
 import 'package:idocit/features/chat/domain/usecases/chat_suggestions_query.dart';
 import 'package:idocit/features/chat/domain/usecases/chat_suggestions_reset.dart';
@@ -42,6 +43,7 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
     locator<ChatLazyInitSuggestions>().call(NoParams());
     locator<ChatBloc>().stream.listen(((state) {}));
+    locator<GetChatHistory>().call('chatcmpl-17ce01bf839b4fcda2376390fa419ea0');
   }
 
   Future<void> fetchSuggestions(String query) async {
@@ -72,6 +74,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         Card(
                           color: ColorConstants.black200,
                           child: ListTile(
+                            leading: SvgPicture.asset(ImageConstants.userChatAvatarSvg, height: 21, width: 21),
                             title: Text(
                               state.completionRequests.last.content,
                               style: const TextStyle(color: ColorConstants.white500),
