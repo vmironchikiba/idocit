@@ -192,6 +192,8 @@ class ApiClient {
           return ChatCompletionChunk.fromJson(value);
         case 'ChatCompletionRequest':
           return ChatCompletionRequest.fromJson(value);
+        case 'ChatHistoryMessage':
+          return ChatHistoryMessage.fromJson(value);
         case 'ChatListResponse':
           return ChatListResponse.fromJson(value);
         case 'ChatMessage':
@@ -204,6 +206,10 @@ class ApiClient {
           return ComponentItem.fromJson(value);
         case 'ConversationItem':
           return ConversationItem.fromJson(value);
+        case 'ConversationItemHistory':
+          return ConversationItemHistory.fromJson(value);
+        case 'ConversationResult':
+          return ConversationResult.fromJson(value);
         case 'CreateCategoryPayload':
           return CreateCategoryPayload.fromJson(value);
         case 'CreateKeyRequest':
@@ -222,6 +228,8 @@ class ApiClient {
           return FeedbackPayload.fromJson(value);
         case 'GeneratePayload':
           return GeneratePayload.fromJson(value);
+        case 'GenerationResult':
+          return GenerationResult.fromJson(value);
         case 'GetComponentPayload':
           return GetComponentPayload.fromJson(value);
         case 'GetDocumentPayload':
@@ -230,6 +238,14 @@ class ApiClient {
           return HTTPValidationError.fromJson(value);
         case 'KeycloakUser':
           return KeycloakUser.fromJson(value);
+        case 'KnowledgeBlock':
+          return KnowledgeBlock.fromJson(value);
+        case 'KnowledgeCategory':
+          return KnowledgeCategory.fromJson(value);
+        case 'KnowledgeData':
+          return KnowledgeData.fromJson(value);
+        case 'KnowledgeRetrieval':
+          return KnowledgeRetrieval.fromJson(value);
         case 'LoadPayload':
           return LoadPayload.fromJson(value);
         case 'LogoutRequest':
@@ -266,6 +282,8 @@ class ApiClient {
           return UpdateDocumentsPayload.fromJson(value);
         case 'UpdatePresetPayload':
           return UpdatePresetPayload.fromJson(value);
+        case 'UserInfo':
+          return UserInfo.fromJson(value);
         case 'UserToken':
           return UserToken.fromJson(value);
         case 'ValidationError':
