@@ -81,7 +81,7 @@ class _IDocItAppState extends State<IDocItApp> {
                 case IdocItScreen.routeName:
                   return NavigatorService.getPageRoute(const IdocItScreen());
                 case ChatScreen.routeName:
-                  return NavigatorService.getPageRoute(ChatScreen());
+                  return NavigatorService.getPageRoute(ChatScreen(chatId: ''));
                 default:
                   return null;
               }

@@ -8,8 +8,10 @@ import 'package:idocit/common/widgets/indicators/loading_indicator.dart';
 import 'package:idocit/common/widgets/inline_expandable_list.dart';
 import 'package:idocit/constants/colors.dart';
 import 'package:idocit/constants/image.dart';
+import 'package:idocit/features/authentication/domain/bloc/auth_bloc.dart';
 import 'package:idocit/features/chat/domain/bloc/chat_bloc.dart';
 import 'package:idocit/features/chat/domain/models/completions_request.dart';
+import 'package:idocit/features/chat/domain/models/enums/role.dart';
 import 'package:idocit/features/chat/domain/usecases/chat_completions_stream.dart';
 import 'package:idocit/features/chat/domain/usecases/chat_history.dart';
 import 'package:idocit/features/chat/domain/usecases/chat_lazy_init_suggestions.dart';
@@ -19,8 +21,9 @@ import 'package:idocit/injection_container.dart';
 
 class ChatScreen extends StatefulWidget {
   static const routeName = '/chat';
+  final String chatId;
 
-  const ChatScreen({super.key});
+  const ChatScreen({super.key, required this.chatId});
 
   @override
   _ChatScreenState createState() => _ChatScreenState();
@@ -28,6 +31,7 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
+  late final ScrollController _scrollController;
   List<String> suggestions = [];
   // final test = CompletionRequest(
   //   tenant: "kaz_audit",
@@ -41,10 +45,37 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   initState() {
     super.initState();
+    _scrollController = ScrollController();
     locator<ChatLazyInitSuggestions>().call(NoParams());
-    locator<ChatBloc>().stream.listen(((state) {}));
-    locator<GetChatHistory>().call('chatcmpl-17ce01bf839b4fcda2376390fa419ea0');
+    locator<ChatBloc>().stream.listen(((state) {
+      _scrollToBottom();
+    }));
+    locator<GetChatHistory>().call(widget.chatId).then((result) {
+      if (result.isRight()) {
+        _scrollToBottom();
+      }
+    });
   }
+
+  void _scrollToBottom() {
+    if (!_scrollController.hasClients) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+    });
+  }
+
+  // void _scrollToBottom() {
+  //   if (!_scrollController.hasClients) return;
+
+  //   WidgetsBinding.instance.addPostFrameCallback((_) {
+  //     _scrollController.animateTo(
+  //       _scrollController.position.maxScrollExtent,
+  //       duration: const Duration(milliseconds: 300),
+  //       curve: Curves.easeOut,
+  //     );
+  //   });
+  // }
 
   Future<void> fetchSuggestions(String query) async {
     await locator<ChatSuggestionsWithQuery>().call(query);
@@ -52,6 +83,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final tennant = locator<AuthBloc>().state.userData?.tenant;
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(title: SvgPicture.asset(ImageConstants.igIdocIt, height: 56, width: 56)),
@@ -66,10 +98,30 @@ class _ChatScreenState extends State<ChatScreen> {
                 builder: (context, state) {
                   final docNames =
                       state.queryResponse?.categories.expand((c) => c.knowledgeData.map((d) => d.text)).toList() ?? [];
+                  final historyCards = state.chatHistoryMessages.map((historyItem) {
+                    return Card(
+                      color: historyItem.role.toRole() == Role.user
+                          ? ColorConstants.green400
+                          : historyItem.role.toRole() == Role.assistant
+                          ? ColorConstants.blue400
+                          : ColorConstants.red400,
+                      child: ListTile(
+                        leading: historyItem.role.toRole() == Role.user
+                            ? SvgPicture.asset(ImageConstants.userChatAvatarSvg, height: 21, width: 21)
+                            : historyItem.role.toRole() == Role.assistant
+                            ? SvgPicture.asset(ImageConstants.igIdocIt, height: 21, width: 21)
+                            : null,
+                        title: Text(historyItem.content, style: const TextStyle(color: ColorConstants.white500)),
+                      ),
+                    );
+                  }).toList();
+                  WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
 
                   return ListView(
+                    controller: _scrollController,
                     padding: const EdgeInsets.only(bottom: 120),
                     children: [
+                      ...historyCards,
                       if (state.completionRequests.isNotEmpty)
                         Card(
                           color: ColorConstants.black200,
@@ -203,15 +255,16 @@ class _ChatScreenState extends State<ChatScreen> {
                             onPressed: () {
                               FocusScope.of(context).unfocus();
                               final request = CompletionRequest(
-                                tenant: "kaz_audit",
-                                chatId: 'chatcmpl-17ce01bf839b4fcda2376390fa419ea0',
+                                tenant: locator<AuthBloc>().state.userData?.tenant ?? '',
+                                chatId: widget.chatId,
                                 language: 'en-US',
                                 content: _controller.text,
-                                role: 'user',
+                                role: Role.user.asString(),
                               );
                               locator<ChatStartCompletionsStream>().call(request);
                               _controller.clear();
                               locator<ChatSuggestionsReset>().call(NoParams());
+                              _scrollToBottom();
                             },
                           ),
                         ],
@@ -225,6 +278,12 @@ class _ChatScreenState extends State<ChatScreen> {
         },
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 }
 

@@ -30,13 +30,16 @@ class GetChatHistory implements UseCase<Either<Failure, void>, String> {
     LoggerService.logDebug('IdocItLazyInitChats -> call()');
     final token = authBloc.state.userToken;
     if (token == null) return Left(AuthFailure(message: 'Token is empty', type: AuthErrorType.badTokensData));
+    chatBloc.add(SetIsInProcess(isInProcess: true));
     final chatsResult = await chatHistoryRemoteDataSource.getChats(token, chatId);
     return chatsResult.fold(
       (failure) async {
+        chatBloc.add(SetIsInProcess(isInProcess: false));
         return Left(NetworkFailure());
       },
       (result) async {
-        // idocItBloc.add(SetChatsEvent(chats: result));
+        chatBloc.add(SetChatHistoryMessages(chatHistoryMessages: result));
+        chatBloc.add(SetIsInProcess(isInProcess: false));
         return Right(null);
       },
     );

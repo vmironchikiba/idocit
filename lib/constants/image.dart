@@ -185,4 +185,5 @@ class ImageConstants {
   static const igIdocIt = 'assets/icons/idocit.svg';
 
   static const userChatAvatarSvg = 'assets/icons/user_chat_avatar.svg';
+  static const addSvg = 'assets/icons/add.svg';
 }

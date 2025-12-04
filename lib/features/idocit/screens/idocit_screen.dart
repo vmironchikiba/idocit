@@ -50,7 +50,8 @@ class _IdocItScreenState extends State<IdocItScreen> with AutomaticKeepAliveClie
 
   Future<void> _onChatClickHandler(String id) async {
     LoggerService.logDebug(id);
-    Navigator.of(context).pushNamed(ChatScreen.routeName);
+    Navigator.push(context, MaterialPageRoute(builder: (_) => ChatScreen(chatId: id)));
+    // Navigator.of(context).pushNamed(ChatScreen.routeName, arguments: id);
   }
 
   @override

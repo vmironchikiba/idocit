@@ -7,7 +7,7 @@ import 'package:idocit/idocit/lib/api.dart';
 
 class ChatHistoryRemoteDataSource {
   // Future<Either<Failure, List<ChatSummary>>> getChats(UserToken? token, String chatId) async {
-  Future<Either<Failure, Object?>> getChats(UserToken? token, String chatId) async {
+  Future<Either<Failure, List<ChatHistoryMessage>>> getChats(UserToken? token, String chatId) async {
     LoggerService.logDebug('IdocItRemoteDataSource -> getChats()})');
     if (token == null) return Left(AuthFailure(message: 'No access token', type: AuthErrorType.badTokensData));
 
@@ -17,7 +17,7 @@ class ChatHistoryRemoteDataSource {
       final chats = (await ChatApi(
         ApiClient(basePath: StringsConstants.basePath, authentication: authentication),
       ).getChatApiChatsChatIdGet(chatId));
-      return Right(chats);
+      return Right(chats ?? []);
     } catch (ex) {
       return Left(NetworkFailure());
     }

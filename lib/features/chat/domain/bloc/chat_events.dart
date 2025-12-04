@@ -60,6 +60,11 @@ class AddCompletionRequest extends ChatBlocEvent {
   AddCompletionRequest({required this.completionRequest}) : super([completionRequest]);
 }
 
+class SetChatHistoryMessages extends ChatBlocEvent {
+  List<ChatHistoryMessage> chatHistoryMessages;
+  SetChatHistoryMessages({required this.chatHistoryMessages}) : super([chatHistoryMessages]);
+}
+
 class SignOutIdocItEvent extends ChatBlocEvent {
   SignOutIdocItEvent() : super();
 }
