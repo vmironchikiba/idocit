@@ -21,6 +21,7 @@ class IdocItTextButton extends StatelessWidget {
   final bool withProgress;
   final bool withShadow;
   final IdocItButtonType type;
+  final Color? color;
 
   const IdocItTextButton({
     Key? key,
@@ -40,6 +41,7 @@ class IdocItTextButton extends StatelessWidget {
     this.withProgress = false,
     this.withShadow = true,
     this.type = IdocItButtonType.scaffold,
+    this.color = const Color(0xFF00454F),
   }) : super(key: key);
 
   Color? _getButtonColor(BuildContext context) {
@@ -78,18 +80,18 @@ class IdocItTextButton extends StatelessWidget {
           boxShadow: [
             if (!isBlocked && withShadow)
               BoxShadow(
-                color: const Color(0xFF00454F).withOpacity(0.5),
+                color: color ?? const Color(0xFF00454F).withValues(alpha: 0.5),
                 offset: const Offset(0.0, 4.0),
-                blurRadius: 12.0,
+                // blurRadius: 12.0,
               ),
           ],
-          gradient: isBlocked
-              ? null
-              : LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [ColorConstants.gradientVertical.first, ColorConstants.gradientVertical.last],
-                ),
+          // gradient: isBlocked
+          //     ? null
+          //     : LinearGradient(
+          //         begin: Alignment.topCenter,
+          //         end: Alignment.bottomCenter,
+          //         colors: [ColorConstants.gradientVertical.first, ColorConstants.gradientVertical.last],
+          //       ),
         ),
         child: ClipRRect(
           borderRadius: const BorderRadius.all(Radius.circular(8.0)),

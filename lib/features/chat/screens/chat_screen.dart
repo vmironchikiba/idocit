@@ -11,12 +11,18 @@ import 'package:idocit/constants/image.dart';
 import 'package:idocit/features/authentication/domain/bloc/auth_bloc.dart';
 import 'package:idocit/features/chat/domain/bloc/chat_bloc.dart';
 import 'package:idocit/features/chat/domain/models/completions_request.dart';
+import 'package:idocit/features/chat/domain/models/enums/chat_item_type.dart';
 import 'package:idocit/features/chat/domain/models/enums/role.dart';
 import 'package:idocit/features/chat/domain/usecases/chat_completions_stream.dart';
 import 'package:idocit/features/chat/domain/usecases/chat_history.dart';
 import 'package:idocit/features/chat/domain/usecases/chat_lazy_init_suggestions.dart';
 import 'package:idocit/features/chat/domain/usecases/chat_suggestions_query.dart';
 import 'package:idocit/features/chat/domain/usecases/chat_suggestions_reset.dart';
+import 'package:idocit/features/chat/widgets/chat_history_list.dart';
+import 'package:idocit/features/chat/widgets/doc_names_expandable_list.dart';
+import 'package:idocit/features/chat/widgets/last_completion_request_card.dart';
+import 'package:idocit/features/chat/widgets/last_user_pending_message.dart';
+import 'package:idocit/features/chat/widgets/system_response_card.dart';
 import 'package:idocit/injection_container.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -96,91 +102,26 @@ class _ChatScreenState extends State<ChatScreen> {
             children: [
               BlocBuilder<ChatBloc, ChatState>(
                 builder: (context, state) {
-                  final docNames =
-                      state.queryResponse?.categories.expand((c) => c.knowledgeData.map((d) => d.text)).toList() ?? [];
-                  final historyCards = state.chatHistoryMessages.map((historyItem) {
-                    return Card(
-                      color: historyItem.role.toRole() == Role.user
-                          ? ColorConstants.green400
-                          : historyItem.role.toRole() == Role.assistant
-                          ? ColorConstants.blue400
-                          : ColorConstants.red400,
-                      child: ListTile(
-                        leading: historyItem.role.toRole() == Role.user
-                            ? SvgPicture.asset(ImageConstants.userChatAvatarSvg, height: 21, width: 21)
-                            : historyItem.role.toRole() == Role.assistant
-                            ? SvgPicture.asset(ImageConstants.igIdocIt, height: 21, width: 21)
-                            : null,
-                        title: Text(historyItem.content, style: const TextStyle(color: ColorConstants.white500)),
-                      ),
-                    );
-                  }).toList();
                   WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
-
+                  final test = state.queryResponse?.categories.expand((c) => c.knowledgeData).toList() ?? [];
                   return ListView(
                     controller: _scrollController,
                     padding: const EdgeInsets.only(bottom: 120),
                     children: [
-                      ...historyCards,
+                      ChatHistoryList(messages: state.chatHistoryMessages),
+
                       if (state.completionRequests.isNotEmpty)
-                        Card(
-                          color: ColorConstants.black200,
-                          child: ListTile(
-                            leading: SvgPicture.asset(ImageConstants.userChatAvatarSvg, height: 21, width: 21),
-                            title: Text(
-                              state.completionRequests.last.content,
-                              style: const TextStyle(color: ColorConstants.white500),
-                            ),
-                          ),
-                        ),
-                      // -------------------------------------------
-                      // 1) USER messages — expandable
-                      // -------------------------------------------
+                        LastCompletionRequestCard(text: state.completionRequests.last.content),
+
                       if (state.preMessageArray.isNotEmpty && state.generationResultSystem == null)
-                        Card(
-                          color: ColorConstants.blue500.withValues(alpha: 0.1),
-                          child: ListTile(
-                            title: Text(
-                              state.preMessageArray.last,
-                              style: const TextStyle(color: ColorConstants.blue500),
-                            ),
-                          ),
-                        ),
+                        LastUserPendingMessage(text: state.preMessageArray.last),
 
-                      // InlineExpandableList(
-                      //   items: state.preMessageArray,
-                      //   onItemTap: (index) {
-                      //     // Optional action on tap
-                      //   },
-                      // ),
-                      const SizedBox(height: 10),
-
-                      // -------------------------------------------
-                      // 2) SYSTEM message — a single string
-                      // -------------------------------------------
                       if (state.generationResultSystem != null)
-                        Card(
-                          color: ColorConstants.blue500.withValues(alpha: 0.1),
-                          child: ListTile(
-                            title: Text(
-                              state.generationResultSystem!,
-                              style: const TextStyle(color: ColorConstants.blue500),
-                            ),
-                          ),
-                        ),
+                        SystemResponseCard(message: state.generationResultSystem!),
 
-                      const SizedBox(height: 10),
-
-                      // -------------------------------------------
-                      // 3) DOCUMENT NAMES — expandable
-                      // -------------------------------------------
-                      if (docNames.isNotEmpty)
-                        InlineExpandableList(
-                          items: docNames,
-                          onItemTap: (index) {
-                            // Optional: scroll to doc, fill input, etc.
-                          },
-                        ),
+                      DocNamesExpandableList(
+                        docNames: state.queryResponse?.categories.expand((c) => c.knowledgeData).toList() ?? [],
+                      ),
                     ],
                   );
                 },
@@ -285,40 +226,4 @@ class _ChatScreenState extends State<ChatScreen> {
     _scrollController.dispose();
     super.dispose();
   }
-}
-
-enum ChatItemType { userMessage, systemMessage, docName }
-
-extension ChatItemTypeExtended on ChatItemType {
-  Color color() {
-    switch (this) {
-      case ChatItemType.userMessage:
-        return ColorConstants.green600;
-      case ChatItemType.systemMessage:
-        return ColorConstants.blue500;
-      case ChatItemType.docName:
-        return ColorConstants.red400;
-    }
-  }
-
-  Decoration? decoration() {
-    switch (this) {
-      case ChatItemType.userMessage:
-        return null;
-      case ChatItemType.systemMessage:
-        return null;
-      case ChatItemType.docName:
-        return BoxDecoration(
-          border: Border.all(color: color(), width: 1),
-          borderRadius: BorderRadius.circular(8),
-        );
-    }
-  }
-}
-
-class ChatItem {
-  final ChatItemType type;
-  final String text;
-
-  ChatItem(this.type, this.text);
 }
