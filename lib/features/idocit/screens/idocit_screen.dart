@@ -8,6 +8,7 @@ import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/common/widgets/buttons/text_button.dart';
 import 'package:idocit/common/widgets/texts.dart';
 import 'package:idocit/common/widgets/wrappers/content_wrapper.dart';
+import 'package:idocit/constants/colors.dart';
 import 'package:idocit/constants/image.dart';
 // import 'package:idocit/common/widgets/wrappers/content_wrapper.dart';
 // import 'package:idocit/common/widgets/wrappers/scrollable_wrapper.dart';
@@ -50,7 +51,8 @@ class _IdocItScreenState extends State<IdocItScreen> with AutomaticKeepAliveClie
 
   Future<void> _onChatClickHandler(String id) async {
     LoggerService.logDebug(id);
-    Navigator.of(context).pushNamed(ChatScreen.routeName);
+    Navigator.push(context, MaterialPageRoute(builder: (_) => ChatScreen(chatId: id)));
+    // Navigator.of(context).pushNamed(ChatScreen.routeName, arguments: id);
   }
 
   @override
@@ -77,6 +79,7 @@ class _IdocItScreenState extends State<IdocItScreen> with AutomaticKeepAliveClie
                         callback: () async {
                           await _onChatClickHandler(chat.id);
                         },
+                        color: ColorConstants.black400,
                       ),
                     ),
                   )
@@ -94,6 +97,7 @@ class _IdocItScreenState extends State<IdocItScreen> with AutomaticKeepAliveClie
                         callback: () async {
                           await _onChatClickHandler('');
                         },
+                        color: ColorConstants.black400,
                       ),
                     ),
                     ...chatsButtons,

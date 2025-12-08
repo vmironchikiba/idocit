@@ -928,7 +928,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentResponse"
+                }
               }
             }
           },
@@ -2225,7 +2227,12 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChatHistoryMessage"
+                  }
+                }
               }
             }
           },
@@ -2388,6 +2395,368 @@
   },
   "components": {
     "schemas": {
+      "DocumentResponse": {
+        "type": "object",
+        "properties": {
+          "document": {
+            "$ref": "#/components/schemas/Document"
+          }
+        },
+        "required": [
+          "document"
+        ]
+      },
+      "Document": {
+        "type": "object",
+        "properties": {
+          "class": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "creationTimeUnix": {
+            "type": "integer"
+          },
+          "lastUpdateTimeUnix": {
+            "type": "integer"
+          },
+          "properties": {
+            "$ref": "#/components/schemas/DocumentProperties"
+          }
+        },
+        "required": [
+          "class",
+          "id",
+          "creationTimeUnix",
+          "lastUpdateTimeUnix",
+          "properties"
+        ]
+      },
+      "DocumentProperties": {
+        "type": "object",
+        "properties": {
+          "chunk_count": {
+            "type": "integer"
+          },
+          "doc_link": {
+            "type": "string"
+          },
+          "doc_name": {
+            "type": "string"
+          },
+          "doc_type": {
+            "type": "string"
+          },
+          "html": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "chunk_count",
+          "doc_link",
+          "doc_name",
+          "doc_type",
+          "html"
+        ]
+      },
+      "ChatHistoryMessage": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "chat_id": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "knowledge_retrieval": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/KnowledgeRetrieval"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "trace_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sequence": {
+            "type": "integer"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "chat_id",
+          "role",
+          "content",
+          "sequence",
+          "created_at"
+        ]
+      },
+      "KnowledgeRetrieval": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string"
+          },
+          "conversation": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConversationItemHistory"
+            }
+          },
+          "tenant": {
+            "type": "string"
+          },
+          "session_id": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          },
+          "user_id": {
+            "type": "string"
+          },
+          "current_user": {
+            "$ref": "#/components/schemas/UserInfo"
+          },
+          "trigger_workflow": {
+            "type": "boolean"
+          },
+          "conversation_result": {
+            "$ref": "#/components/schemas/ConversationResult"
+          },
+          "cached_result": {
+            "nullable": true
+          },
+          "knowledge": {
+            "$ref": "#/components/schemas/KnowledgeBlock"
+          },
+          "generation_result": {
+            "$ref": "#/components/schemas/GenerationResult"
+          }
+        }
+      },
+      "ConversationItemHistory": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string"
+          },
+          "user": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "type": {
+            "type": "string"
+          },
+          "id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "content",
+          "type"
+        ]
+      },
+      "UserInfo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "tenant": {
+            "type": "string"
+          },
+          "is_onedrive_authorized": {
+            "type": "boolean"
+          },
+          "is_api_key": {
+            "type": "boolean"
+          },
+          "scopes": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "groups": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "group_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "username",
+          "email",
+          "role",
+          "tenant"
+        ]
+      },
+      "ConversationResult": {
+        "type": "object",
+        "properties": {
+          "system": {
+            "type": "string"
+          },
+          "cached": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "system",
+          "cached"
+        ]
+      },
+      "KnowledgeBlock": {
+        "type": "object",
+        "properties": {
+          "categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KnowledgeCategory"
+            }
+          }
+        },
+        "required": [
+          "categories"
+        ]
+      },
+      "KnowledgeCategory": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "context": {
+            "type": "string"
+          },
+          "knowledge_data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KnowledgeData"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "type",
+          "context",
+          "knowledge_data"
+        ]
+      },
+      "KnowledgeData": {
+        "type": "object",
+        "required": [
+          "text",
+          "doc_name",
+          "chunk_id",
+          "doc_uuid",
+          "doc_type",
+          "score"
+        ],
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "doc_name": {
+            "type": "string"
+          },
+          "chunk_id": {
+            "type": "integer"
+          },
+          "doc_uuid": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "doc_type": {
+            "type": "string"
+          },
+          "score": {
+            "type": "string",
+            "description": "String representation of a numeric score"
+          },
+          "doc_link": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "is_used": {
+            "type": "boolean",
+            "nullable": true
+          }
+        }
+      },
+      "GenerationResult": {
+        "type": "object",
+        "properties": {
+          "system": {
+            "type": "string"
+          },
+          "cached": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "system",
+          "cached"
+        ]
+      },
       "ChatCompletionChunk": {
         "type": "object",
         "properties": {

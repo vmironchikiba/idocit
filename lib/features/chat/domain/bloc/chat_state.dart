@@ -11,6 +11,7 @@ class ChatState {
   final QueryResponse? queryResponse;
   final String? traceId;
   final List<String> preMessageArray;
+  final List<ChatHistoryMessage> chatHistoryMessages;
   const ChatState({
     required this.selectedDate,
     required this.isInProcess,
@@ -22,6 +23,7 @@ class ChatState {
     this.queryResponse,
     this.traceId,
     required this.preMessageArray,
+    this.chatHistoryMessages = const [],
   });
 
   factory ChatState.initial() {
@@ -36,6 +38,7 @@ class ChatState {
       queryResponse: null,
       traceId: null,
       preMessageArray: [],
+      chatHistoryMessages: [],
     );
   }
 
@@ -50,6 +53,7 @@ class ChatState {
     QueryResponse? queryResponse,
     String? traceId,
     List<String>? preMessageArray,
+    List<ChatHistoryMessage>? chatHistoryMessages,
   }) {
     return ChatState(
       selectedDate: selectedDate ?? this.selectedDate,
@@ -62,6 +66,7 @@ class ChatState {
       queryResponse: queryResponse ?? this.queryResponse,
       traceId: traceId ?? this.traceId,
       preMessageArray: preMessageArray ?? this.preMessageArray,
+      chatHistoryMessages: chatHistoryMessages ?? this.chatHistoryMessages,
     );
   }
 
@@ -76,6 +81,7 @@ class ChatState {
       queryResponse: queryResponse,
       traceId: traceId,
       preMessageArray: preMessageArray,
+      chatHistoryMessages: chatHistoryMessages,
     );
   }
 }

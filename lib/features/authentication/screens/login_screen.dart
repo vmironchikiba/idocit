@@ -300,6 +300,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 callback: () => _onLogInHandler(context),
                 isBlocked: !_isButtonEnabled,
                 withProgress: _isRequestInProgress,
+                color: Color.fromARGB(255, 210, 159, 0),
+                contentWidget: Text('Log In', style: TextStyle(color: Colors.black, fontSize: 18)),
               ),
             ],
           ),

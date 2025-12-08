@@ -5,7 +5,7 @@ import 'package:idocit/common/models/service/failure.dart';
 import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/idocit/lib/api.dart';
 
-class ChatRemoteDataSource {
+class ChatSuggestionsRemoteDataSource {
   Future<Either<Failure, SuggestionsResponse?>> getSuggestions(UserToken? token, String query) async {
     LoggerService.logDebug('IdocItRemoteDataSource -> getChats()})');
     if (token == null) return Left(AuthFailure(message: 'No access token', type: AuthErrorType.badTokensData));

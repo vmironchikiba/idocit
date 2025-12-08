@@ -7,7 +7,7 @@ import 'package:idocit/common/services/network_listener.dart';
 import 'package:idocit/constants/errors.dart';
 import 'package:idocit/features/authentication/domain/bloc/auth_bloc.dart';
 import 'package:idocit/features/chat/domain/bloc/chat_bloc.dart';
-import 'package:idocit/features/chat/domain/api/chat_remote_datasource.dart';
+import 'package:idocit/features/chat/domain/datasources/chat_suggestions_remote_data_source.dart';
 import 'package:idocit/features/idocit/domain/blocs/idocit/idocit_bloc.dart';
 import 'package:idocit/features/idocit/domain/datasources/idocit_remote_datasource.dart';
 

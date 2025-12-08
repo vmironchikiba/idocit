@@ -183,4 +183,7 @@ class ImageConstants {
   static const igProgressGIF = 'assets/gifs/ig_progress.gif';
   static const icSplashLogoSvg = 'assets/icons/logo/ic_splash_logo.svg';
   static const igIdocIt = 'assets/icons/idocit.svg';
+
+  static const userChatAvatarSvg = 'assets/icons/user_chat_avatar.svg';
+  static const addSvg = 'assets/icons/add.svg';
 }

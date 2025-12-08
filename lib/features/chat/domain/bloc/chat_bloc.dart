@@ -40,6 +40,13 @@ class ChatBloc extends Bloc<ChatBlocEvent, ChatState> {
       LoggerService.logDebug('ChatBloc SetPreMessageArray ${event.completionRequest}');
       emit(state.update(completionRequest: event.completionRequest));
     });
+
+    on<SetChatHistoryMessages>((event, emit) {
+      LoggerService.logDebug('ChatBloc SetChatHistoryMessages ${event.chatHistoryMessages.length}');
+      emit(state.update(chatHistoryMessages: event.chatHistoryMessages));
+    });
+
+    //SetChatHistoryMessages
     on<SetChunkEvent>((event, emit) {
       if (event.chunk != null) {
         final choice = event.chunk!.choices[0];
