@@ -22,21 +22,22 @@ class _InlineExpandableListState extends State<InlineExpandableList> with Single
   @override
   Widget build(BuildContext context) {
     if (widget.items.isEmpty) return const SizedBox.shrink();
-    final total = widget.items.map((item) => double.tryParse(item.score) ?? 0).reduce((a, b) => a + b).toString();
+    // final total = widget.items.map((item) => double.tryParse(item.score) ?? 0).reduce((a, b) => a + b).toString();
 
     final header = ListTile(
       leading: Column(
         children: [
           SvgPicture.asset(ImageConstants.igIdocIt, height: 21, width: 21),
-          _expanded
-              ? Text(
-                  total.toPercent(),
-                  style: TextStyle(color: ColorConstants.black500, fontSize: 12, fontWeight: FontWeight.w800),
-                )
-              : Text(
-                  widget.items[0].score.toPercent(),
-                  style: TextStyle(color: ColorConstants.black500, fontSize: 12, fontWeight: FontWeight.w800),
-                ),
+          SizedBox(height: 4.0),
+          Container(
+            // color: widget.items[0].score.toColor(),
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(4.0), color: widget.items[0].score.toColor()),
+            padding: EdgeInsets.all(3.0),
+            child: Text(
+              widget.items[0].score.toPercent(),
+              style: TextStyle(color: ColorConstants.black500, fontSize: 12, fontWeight: FontWeight.w800),
+            ),
+          ),
         ],
       ),
       title: Card(
@@ -60,9 +61,17 @@ class _InlineExpandableListState extends State<InlineExpandableList> with Single
           leading: Column(
             children: [
               SvgPicture.asset(ImageConstants.igIdocIt, height: 21, width: 21),
-              Text(
-                widget.items[i + 1].score.toPercent(),
-                style: TextStyle(color: ColorConstants.black500, fontSize: 12, fontWeight: FontWeight.w800),
+              SizedBox(height: 4.0),
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(4.0),
+                  color: widget.items[i + 1].score.toColor(),
+                ),
+                padding: EdgeInsets.all(3.0),
+                child: Text(
+                  widget.items[i + 1].score.toPercent(),
+                  style: TextStyle(color: ColorConstants.black500, fontSize: 12, fontWeight: FontWeight.w800),
+                ),
               ),
             ],
           ),

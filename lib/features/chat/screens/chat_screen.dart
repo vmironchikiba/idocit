@@ -103,7 +103,6 @@ class _ChatScreenState extends State<ChatScreen> {
               BlocBuilder<ChatBloc, ChatState>(
                 builder: (context, state) {
                   WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
-                  final test = state.queryResponse?.categories.expand((c) => c.knowledgeData).toList() ?? [];
                   return ListView(
                     controller: _scrollController,
                     padding: const EdgeInsets.only(bottom: 120),
@@ -145,7 +144,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       constraints: BoxConstraints(maxHeight: screenHeight - inputHeight - 30),
                       child: Material(
                         elevation: 6,
-                        color: Colors.white,
+                        color: ColorConstants.progressBarBackground,
                         borderRadius: BorderRadius.circular(8),
                         child: ListView.builder(
                           shrinkWrap: true,

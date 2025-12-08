@@ -32,7 +32,10 @@ doc/DeleteCategoriesPayload.md
 doc/DeleteDocumentsPayload.md
 doc/DeletePresetsPayload.md
 doc/DocTypeApi.md
+doc/Document.md
 doc/DocumentApi.md
+doc/DocumentProperties.md
+doc/DocumentResponse.md
 doc/ExecuteApi.md
 doc/ExecutePythonPayload.md
 doc/FeedbackApi.md
@@ -131,6 +134,9 @@ lib/model/create_preset_payload.dart
 lib/model/delete_categories_payload.dart
 lib/model/delete_documents_payload.dart
 lib/model/delete_presets_payload.dart
+lib/model/document.dart
+lib/model/document_properties.dart
+lib/model/document_response.dart
 lib/model/execute_python_payload.dart
 lib/model/feedback_payload.dart
 lib/model/generate_payload.dart
@@ -167,3 +173,6 @@ lib/model/validation_error.dart
 lib/model/validation_error_loc_inner.dart
 lib/model/verba_options.dart
 pubspec.yaml
+test/document_properties_test.dart
+test/document_response_test.dart
+test/document_test.dart

@@ -928,7 +928,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentResponse"
+                }
               }
             }
           },
@@ -2393,6 +2395,71 @@
   },
   "components": {
     "schemas": {
+      "DocumentResponse": {
+        "type": "object",
+        "properties": {
+          "document": {
+            "$ref": "#/components/schemas/Document"
+          }
+        },
+        "required": [
+          "document"
+        ]
+      },
+      "Document": {
+        "type": "object",
+        "properties": {
+          "class": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "creationTimeUnix": {
+            "type": "integer"
+          },
+          "lastUpdateTimeUnix": {
+            "type": "integer"
+          },
+          "properties": {
+            "$ref": "#/components/schemas/DocumentProperties"
+          }
+        },
+        "required": [
+          "class",
+          "id",
+          "creationTimeUnix",
+          "lastUpdateTimeUnix",
+          "properties"
+        ]
+      },
+      "DocumentProperties": {
+        "type": "object",
+        "properties": {
+          "chunk_count": {
+            "type": "integer"
+          },
+          "doc_link": {
+            "type": "string"
+          },
+          "doc_name": {
+            "type": "string"
+          },
+          "doc_type": {
+            "type": "string"
+          },
+          "html": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "chunk_count",
+          "doc_link",
+          "doc_name",
+          "doc_type",
+          "html"
+        ]
+      },
       "ChatHistoryMessage": {
         "type": "object",
         "properties": {

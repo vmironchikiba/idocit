@@ -245,7 +245,7 @@ class DocumentApi {
   /// Parameters:
   ///
   /// * [GetDocumentPayload] getDocumentPayload (required):
-  Future<Object?> getDocumentApiGetDocumentPost(GetDocumentPayload getDocumentPayload,) async {
+  Future<DocumentResponse?> getDocumentApiGetDocumentPost(GetDocumentPayload getDocumentPayload,) async {
     final response = await getDocumentApiGetDocumentPostWithHttpInfo(getDocumentPayload,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
@@ -254,7 +254,7 @@ class DocumentApi {
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
     if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Object',) as Object;
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'DocumentResponse',) as DocumentResponse;
     
     }
     return null;

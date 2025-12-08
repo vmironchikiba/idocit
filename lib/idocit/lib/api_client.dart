@@ -222,6 +222,12 @@ class ApiClient {
           return DeleteDocumentsPayload.fromJson(value);
         case 'DeletePresetsPayload':
           return DeletePresetsPayload.fromJson(value);
+        case 'Document':
+          return Document.fromJson(value);
+        case 'DocumentProperties':
+          return DocumentProperties.fromJson(value);
+        case 'DocumentResponse':
+          return DocumentResponse.fromJson(value);
         case 'ExecutePythonPayload':
           return ExecutePythonPayload.fromJson(value);
         case 'FeedbackPayload':
