@@ -25,3 +25,7 @@ class UpdateAuthStatusEvent extends AuthBlocEvent {
 class ClearAdditionalDataAuthEvent extends AuthBlocEvent {
   ClearAdditionalDataAuthEvent() : super();
 }
+
+class LogOutAuthEvent extends AuthBlocEvent {
+  LogOutAuthEvent() : super();
+}

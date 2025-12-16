@@ -68,3 +68,7 @@ class SetChatHistoryMessages extends ChatBlocEvent {
 class SignOutIdocItEvent extends ChatBlocEvent {
   SignOutIdocItEvent() : super();
 }
+
+class ChatResettEvent extends ChatBlocEvent {
+  ChatResettEvent() : super();
+}

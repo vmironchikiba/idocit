@@ -70,7 +70,10 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "string",
+                  "example": "Successfully logged out"
+                }
               }
             }
           },
@@ -2450,6 +2453,9 @@
           },
           "html": {
             "type": "string"
+          },
+          "text": {
+            "type": "string"
           }
         },
         "required": [
@@ -2457,7 +2463,8 @@
           "doc_link",
           "doc_name",
           "doc_type",
-          "html"
+          "html",
+          "text"
         ]
       },
       "ChatHistoryMessage": {

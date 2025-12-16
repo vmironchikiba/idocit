@@ -7,18 +7,8 @@ import 'package:idocit/common/models/service/failure.dart';
 import 'package:idocit/common/models/service/usecase.dart';
 import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/common/services/network_listener.dart';
-import 'package:idocit/constants/errors.dart';
 import 'package:idocit/features/authentication/domain/usecases/auth_update_status.dart';
 import 'package:idocit/features/authentication/domain/usecases/user/auth_get_user_data.dart';
-import 'package:idocit/idocit/lib/api.dart';
-// import 'package:idocit/features/authentication/domain/datasources/auth_remote_datasource.dart';
-// import 'package:idocit/features/authentication/domain/datasources/auth_secure_storage.dart';
-// import 'package:idocit/features/authentication/domain/models/login_data.dart';
-// import 'package:idocit/features/authentication/domain/models/sign_up_data.dart';
-// import 'package:idocit/features/authentication/domain/models/user_data.dart';
-// import 'package:idocit/features/authentication/domain/usecases/auth_update_status.dart';
-// import 'package:idocit/features/authentication/domain/usecases/user/auth_get_user_data.dart';
-// import 'package:idocit/features/multi_houses/domain/usecases/user_get_all_homes.dart';
 
 class AuthSignIn implements UseCase<Either<Failure, void>, LoginData> {
   final NetworkListenerService networkListenerService;

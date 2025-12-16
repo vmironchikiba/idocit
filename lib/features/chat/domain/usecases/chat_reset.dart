@@ -8,29 +8,22 @@ import 'package:idocit/features/chat/domain/usecases/chat_lazy_init_suggestions.
 
 import 'package:idocit/injection_container.dart';
 
-class ChatInit implements UseCase<Either<Failure, void>, NoParams> {
+class ChaReset implements UseCase<Either<Failure, void>, NoParams> {
   final NetworkListenerService networkListenerService;
-  final ChatBloc idocItBloc;
+  final ChatBloc chatBloc;
 
-  const ChatInit({required this.networkListenerService, required this.idocItBloc});
+  const ChaReset({required this.networkListenerService, required this.chatBloc});
 
   @override
   Future<Either<Failure, void>> call(NoParams params, {bool isCleanReset = false, bool withArchivedDate = true}) async {
-    LoggerService.logDebug('IdocItInit -> call(isCleanReset: $isCleanReset, withArchivedDate: $withArchivedDate)');
+    LoggerService.logDebug('ChatInit -> call(isCleanReset: $isCleanReset, withArchivedDate: $withArchivedDate)');
 
     if (!await networkListenerService.checkNetworkConnection(
       () => call(params, isCleanReset: isCleanReset, withArchivedDate: withArchivedDate),
     )) {
       return const Left(NetworkFailure());
     }
-    final chatsResult = await locator<ChatLazyInitSuggestions>().call(NoParams());
-    return chatsResult.fold(
-      (failure) async {
-        return Left(failure);
-      },
-      (_) async {
-        return Right(null);
-      },
-    );
+    chatBloc.add(ChatResettEvent());
+    return Right(null);
   }
 }

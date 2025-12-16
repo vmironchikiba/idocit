@@ -1,9 +1,12 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:idocit/constants/colors.dart';
 import 'package:idocit/constants/image.dart';
 import 'package:idocit/features/chat/domain/models/enums/role.dart';
 import 'package:idocit/features/chat/domain/models/extensions/percent_string.dart';
+import 'package:idocit/features/document/screens/documet_screen.dart';
+import 'package:idocit/features/document/screens/markdown_earch_page.dart';
 import 'package:idocit/idocit/lib/api.dart';
 
 class ChatHistoryList extends StatelessWidget {
@@ -79,11 +82,22 @@ class ChatHistoryList extends StatelessWidget {
                               (knowledge) => Card(
                                 child: Padding(
                                   padding: const EdgeInsets.all(4.0),
-                                  child: Text(
-                                    knowledge.docName,
-                                    maxLines: 3,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(color: ColorConstants.black500),
+                                  child: TextButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        CupertinoPageRoute(
+                                          builder: (_) => MarkdownSearchPage(),
+                                          //DocumentScreen(documentId: knowledge.docUuid),
+                                        ),
+                                      );
+                                    },
+                                    child: Text(
+                                      knowledge.text,
+                                      maxLines: 3,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(color: ColorConstants.black500),
+                                    ),
                                   ),
                                 ),
                               ),

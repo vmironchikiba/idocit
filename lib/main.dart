@@ -15,6 +15,7 @@ import 'package:idocit/features/authentication/screens/login_screen.dart';
 import 'package:idocit/features/chat/domain/bloc/chat_bloc.dart';
 import 'package:idocit/features/components/domain/blocs/components_bloc.dart';
 import 'package:idocit/features/chat/screens/chat_screen.dart';
+import 'package:idocit/features/document/domain/bloc/document_bloc.dart';
 import 'package:idocit/features/idocit/domain/blocs/idocit/idocit_bloc.dart';
 import 'package:idocit/features/idocit/screens/idocit_screen.dart';
 import 'package:idocit/features/screen_builder.dart';
@@ -57,6 +58,7 @@ class _IDocItAppState extends State<IDocItApp> {
         BlocProvider.value(value: locator<IdocItBloc>()),
         BlocProvider.value(value: locator<ComponentsBloc>()),
         BlocProvider.value(value: locator<ChatBloc>()),
+        BlocProvider.value(value: locator<DocumentBloc>()),
       ],
       child: MultiProvider(
         providers: [ChangeNotifierProvider.value(value: locator<ThemeProvider>())],

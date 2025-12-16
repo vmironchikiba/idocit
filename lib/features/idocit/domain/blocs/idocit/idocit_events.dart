@@ -19,3 +19,7 @@ class SetChatsEvent extends IdocItBlocEvent {
 class SignOutIdocItEvent extends IdocItBlocEvent {
   SignOutIdocItEvent() : super();
 }
+
+class IdocItResetEvent extends IdocItBlocEvent {
+  IdocItResetEvent() : super();
+}

@@ -91,6 +91,10 @@ class ChatBloc extends Bloc<ChatBlocEvent, ChatState> {
     on<SignOutIdocItEvent>((event, emit) {
       emit(ChatState.initial());
     });
+
+    on<ChatResettEvent>((event, emit) {
+      emit(ChatState.initial());
+    });
   }
 
   @override
