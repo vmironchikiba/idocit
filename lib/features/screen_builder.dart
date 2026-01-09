@@ -14,6 +14,7 @@ import 'package:idocit/constants/colors.dart';
 import 'package:idocit/features/authentication/domain/usecases/auth_init.dart';
 import 'package:idocit/features/authentication/domain/usecases/sign/auth_auto_sign_in.dart';
 import 'package:idocit/features/authentication/screens/login_screen.dart';
+import 'package:idocit/features/document/screens/markdown_search_page.dart';
 // import 'package:idocit/features/authentication/domain/usecases/sign/auth_auto_sign_in.dart';
 // import 'package:idocit/features/authentication/screens/welcome_screen.dart';
 import 'package:idocit/features/idocit/screens/idocit_screen.dart';

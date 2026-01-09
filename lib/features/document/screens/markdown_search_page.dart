@@ -13,19 +13,19 @@ class _MarkdownSearchPageState extends State<MarkdownSearchPage> {
   final String _originalMarkdownData = MarkdownTestMoc.originalMarkdownData;
 
   String _displayedMarkdownData = "";
-  final TextEditingController _searchController = TextEditingController();
+  // final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     // Initialize with original data
     _displayedMarkdownData = _originalMarkdownData;
-    _searchController.addListener(_onSearchChanged);
+    // _searchController.addListener(_onSearchChanged);
   }
 
   @override
   void dispose() {
-    _searchController.dispose();
+    // _searchController.dispose();
     super.dispose();
   }
 
@@ -85,25 +85,25 @@ class _MarkdownSearchPageState extends State<MarkdownSearchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Searchable Markdown'),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(kToolbarHeight),
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: const InputDecoration(
-                hintText: 'Enter search text...',
-                border: OutlineInputBorder(),
-                filled: true,
-                fillColor: Colors.white,
-                suffixIcon: Icon(Icons.search),
-              ),
-            ),
-          ),
-        ),
-      ),
+      // appBar: AppBar(
+      //   title: const Text('Searchable Markdown'),
+      //   bottom: PreferredSize(
+      //     preferredSize: const Size.fromHeight(kToolbarHeight),
+      //     child: Padding(
+      //       padding: const EdgeInsets.all(8.0),
+      //       child: TextField(
+      //         controller: _searchController,
+      //         decoration: const InputDecoration(
+      //           hintText: 'Enter search text...',
+      //           border: OutlineInputBorder(),
+      //           filled: true,
+      //           fillColor: Colors.white,
+      //           suffixIcon: Icon(Icons.search),
+      //         ),
+      //       ),
+      //     ),
+      //   ),
+      // ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),

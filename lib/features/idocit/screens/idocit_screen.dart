@@ -105,12 +105,12 @@ class _IdocItScreenState extends State<IdocItScreen> with AutomaticKeepAliveClie
                   child: ContentWrapper(
                     child: Column(
                       children: [
-                        chatPreviewSvg,
-                        SizedBox(height: 10),
                         IdocItText(text: 'User name: ${authState.userData?.username ?? 'No username'}'),
                         IdocItText(text: 'Email: ${authState.userData?.email ?? 'No email'}'),
                         IdocItText(text: 'Role: ${authState.userData?.role ?? 'No role'}'),
-
+                        SizedBox(height: 10),
+                        chatPreviewSvg,
+                        SizedBox(height: 10),
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8.0),
                           child: IdocItTextButton(
