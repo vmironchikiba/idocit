@@ -5,8 +5,7 @@ import 'package:idocit/constants/colors.dart';
 import 'package:idocit/constants/image.dart';
 import 'package:idocit/features/chat/domain/models/enums/role.dart';
 import 'package:idocit/features/chat/domain/models/extensions/percent_string.dart';
-import 'package:idocit/features/document/screens/documet_screen.dart';
-import 'package:idocit/features/document/screens/markdown_present_page.dart';
+import 'package:idocit/features/document/screens/markdown_web_view_page.dart';
 import 'package:idocit/idocit/lib/api.dart';
 
 class ChatHistoryList extends StatelessWidget {
@@ -87,7 +86,8 @@ class ChatHistoryList extends StatelessWidget {
                                       Navigator.push(
                                         context,
                                         CupertinoPageRoute(
-                                          builder: (_) => MarkdownPresentPage(),
+                                          builder: (_) => MarkdownWebViewPage(knowledge: knowledge),
+                                          // MarkdownPresentPage(docUuid: knowledge.docUuid),
                                           //DocumentScreen(documentId: knowledge.docUuid),
                                         ),
                                       );
