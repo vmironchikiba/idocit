@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // Добавьте этот импорт
+import 'package:idocit/common/services/logger.dart';
+import 'package:idocit/features/document/domain/bloc/document_bloc.dart';
+import 'package:idocit/injection_container.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:markdown/markdown.dart' as md;
-import 'package:idocit/features/document/screens/markdown_test_moc.dart';
 import 'package:idocit/idocit/lib/api.dart';
 
 class MarkdownWebViewPage extends StatefulWidget {
@@ -16,11 +18,14 @@ class MarkdownWebViewPage extends StatefulWidget {
 
 class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
   late final WebViewController _webViewController;
-  final String _originalMarkdownData = MarkdownTestMoc.originalMarkdownData;
+  final test = locator<DocumentBloc>().state.documentResponse?.document.properties.text;
+  final String _originalMarkdownData =
+      locator<DocumentBloc>().state.documentResponse?.document.properties.text.replaceAll('\n\n', '\n') ??
+      ''; //MarkdownTestMoc.originalMarkdownData;
   late String _currentSearchQuery = '';
   bool _isLoading = true;
   double _scrollPosition = 0;
-  List<SearchMatch> _matches = [];
+  final List<SearchMatch> _matches = [];
   String _htmlTemplate = ''; // Для хранения загруженного шаблона
 
   // Для хранения состояния прокрутки
@@ -52,7 +57,7 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
             setState(() => _isLoading = false);
           },
           onWebResourceError: (WebResourceError error) {
-            print('WebView error: ${error.description}');
+            LoggerService.logDebug('WebView error: ${error.description}');
           },
         ),
       );
@@ -66,12 +71,12 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
     try {
       // Загружаем HTML шаблон из assets
       _htmlTemplate = await rootBundle.loadString('assets/templates/document_template.html');
-      print('✅ HTML шаблон загружен (${_htmlTemplate.length} символов)');
+      LoggerService.logDebug('✅ HTML шаблон загружен (${_htmlTemplate.length} символов)');
 
       // Обрабатываем поисковый запрос
       await _processSearchAndLoad();
     } catch (e) {
-      print('⚠️ Ошибка загрузки шаблона: $e');
+      LoggerService.logDebug('⚠️ Ошибка загрузки шаблона: $e');
       // Используем fallback шаблон в случае ошибки
       _htmlTemplate = _getFallbackTemplate();
       await _processSearchAndLoad();
@@ -81,11 +86,12 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
   /// Основная функция: обработка поиска и загрузка контента
   Future<void> _processSearchAndLoad() async {
     // Получаем поисковый запрос
-    final query = removeFirstTwoLines(MarkdownTestMoc.query).trim();
+    // final query = removeFirstTwoLines(MarkdownTestMoc.query).trim();
+    final query = removeFirstTwoLines(widget.knowledge.text).trim();
     _currentSearchQuery = query;
 
-    print('🔍 Поисковый запрос: "$query"');
-    print('🔍 Длина запроса: ${query.length}');
+    LoggerService.logDebug('🔍 Поисковый запрос: "$query"');
+    LoggerService.logDebug('🔍 Длина запроса: ${query.length}');
 
     if (query.isEmpty) {
       // Загружаем Markdown без выделений
@@ -101,13 +107,13 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
     final allMatches = regex.allMatches(_originalMarkdownData).toList();
 
     if (allMatches.isEmpty) {
-      print('🔍 Совпадений не найдено');
+      LoggerService.logDebug('🔍 Совпадений не найдено');
       await _loadMarkdownWithoutHighlights();
       return;
     }
 
-    print('🔍 Найдено совпадений: ${allMatches.length}');
-    print('🔍 Первое совпадение: "${allMatches.first.group(0)?.substring(0, 50)}..."');
+    LoggerService.logDebug('🔍 Найдено совпадений: ${allMatches.length}');
+    LoggerService.logDebug('🔍 Первое совпадение: "${allMatches.first.group(0)?.substring(0, 50)}..."');
 
     // Обрабатываем Markdown, добавляя HTML теги для выделений
     final markedMarkdown = _markMatchesInMarkdown(allMatches);
@@ -149,7 +155,7 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
     // Остаток текста после последнего совпадения
     result.write(_originalMarkdownData.substring(lastEnd));
 
-    print('📝 Создано тегов <mark>: ${_matches.length}');
+    LoggerService.logDebug('📝 Создано тегов <mark>: ${_matches.length}');
 
     return result.toString();
   }
@@ -168,11 +174,11 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
 
     // Для отладки: проверяем наличие тегов <mark>
     final markCount = htmlContent.split('<mark').length - 1;
-    print('🔍 Тегов <mark> в HTML: $markCount');
+    LoggerService.logDebug('🔍 Тегов <mark> в HTML: $markCount');
 
     if (markCount == 0) {
-      print('⚠️ ВНИМАНИЕ: Теги <mark> не обнаружены в HTML!');
-      print('📄 Первые 500 символов HTML: ${htmlContent.substring(0, 500)}');
+      LoggerService.logDebug('⚠️ ВНИМАНИЕ: Теги <mark> не обнаружены в HTML!');
+      LoggerService.logDebug('📄 Первые 500 символов HTML: ${htmlContent.substring(0, 500)}');
     }
 
     await _loadHtmlToWebView(htmlContent, hasHighlights: markCount > 0);
@@ -181,7 +187,7 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
   /// Загружает HTML в WebView, используя шаблон
   Future<void> _loadHtmlToWebView(String htmlContent, {bool hasHighlights = false}) async {
     if (_htmlTemplate.isEmpty) {
-      print('⚠️ HTML шаблон не загружен, использую fallback');
+      LoggerService.logDebug('⚠️ HTML шаблон не загружен, использую fallback');
       _htmlTemplate = _getFallbackTemplate();
     }
 
@@ -285,21 +291,21 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
           switch (event) {
             case 'scroll_position':
               _scrollPosition = (payload as num).toDouble();
-              print('📊 Текущая позиция скролла: $_scrollPosition');
+              LoggerService.logDebug('📊 Текущая позиция скролла: $_scrollPosition');
               break;
             case 'highlight_position':
               final position = (payload as num).toDouble();
-              print('📍 Позиция выделения: $position');
+              LoggerService.logDebug('📍 Позиция выделения: $position');
               _scrollPositions[_currentSearchQuery] = position;
               break;
             case 'match_navigated':
               final currentIndex = payload['currentIndex'] as int;
               final totalMatches = payload['totalMatches'] as int;
-              print('🎯 Совпадение ${currentIndex + 1} из $totalMatches');
+              LoggerService.logDebug('🎯 Совпадение ${currentIndex + 1} из $totalMatches');
               break;
           }
         } catch (e) {
-          print('⚠️ Ошибка обработки сообщения от JavaScript: $e');
+          LoggerService.logDebug('⚠️ Ошибка обработки сообщения от JavaScript: $e');
         }
       },
     );
@@ -308,7 +314,7 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
     _webViewController.addJavaScriptChannel(
       'DebugChannel',
       onMessageReceived: (JavaScriptMessage message) {
-        print('🔍 DEBUG: ${message.message}');
+        LoggerService.logDebug('🔍 DEBUG: ${message.message}');
       },
     );
   }
@@ -316,7 +322,7 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
   /// Прокрутка к первому совпадению
   Future<void> _scrollToFirstMatch() async {
     if (_matches.isEmpty) {
-      print('🔍 Нет совпадений для прокрутки');
+      LoggerService.logDebug('🔍 Нет совпадений для прокрутки');
       return;
     }
 
@@ -328,16 +334,14 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
         }
       ''');
 
-      if (result != null) {
-        final data = jsonDecode(result as String);
-        if (data['success'] == true) {
-          print('✅ Прокрутка к первому совпадению выполнена');
-        } else {
-          print('❌ Не удалось прокрутить: ${data['message']}');
-        }
+      final data = jsonDecode(result as String);
+      if (data['success'] == true) {
+        LoggerService.logDebug('✅ Прокрутка к первому совпадению выполнена');
+      } else {
+        LoggerService.logDebug('❌ Не удалось прокрутить: ${data['message']}');
       }
     } catch (e) {
-      print('⚠️ Ошибка при прокрутке: $e');
+      LoggerService.logDebug('⚠️ Ошибка при прокрутке: $e');
     }
   }
 
@@ -353,14 +357,12 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
         }
       ''');
 
-      if (result != null) {
-        final data = jsonDecode(result as String);
-        if (data['success'] == true) {
-          print('➡️ Совпадение ${data['currentIndex'] + 1}/${data['total']}');
-        }
+      final data = jsonDecode(result as String);
+      if (data['success'] == true) {
+        LoggerService.logDebug('➡️ Совпадение ${data['currentIndex'] + 1}/${data['total']}');
       }
     } catch (e) {
-      print('⚠️ Ошибка навигации: $e');
+      LoggerService.logDebug('⚠️ Ошибка навигации: $e');
     }
   }
 
@@ -376,14 +378,12 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
         }
       ''');
 
-      if (result != null) {
-        final data = jsonDecode(result as String);
-        if (data['success'] == true) {
-          print('⬅️ Совпадение ${data['currentIndex'] + 1}/${data['total']}');
-        }
+      final data = jsonDecode(result as String);
+      if (data['success'] == true) {
+        LoggerService.logDebug('⬅️ Совпадение ${data['currentIndex'] + 1}/${data['total']}');
       }
     } catch (e) {
-      print('⚠️ Ошибка навигации: $e');
+      LoggerService.logDebug('⚠️ Ошибка навигации: $e');
     }
   }
 
@@ -396,19 +396,17 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
         }
       ''');
 
-      if (result != null) {
-        final info = jsonDecode(result as String);
-        print('📊 Всего совпадений: ${info['total']}');
-        print('📌 Текущий индекс: ${info['currentIndex']}');
-        if (info['matches'] is List && info['matches'].length > 0) {
-          print('🔍 Первые 3 совпадения:');
-          for (final match in (info['matches'] as List).take(3)) {
-            print('  - [${match['index']}] "${match['text']}"');
-          }
+      final info = jsonDecode(result as String);
+      LoggerService.logDebug('📊 Всего совпадений: ${info['total']}');
+      LoggerService.logDebug('📌 Текущий индекс: ${info['currentIndex']}');
+      if (info['matches'] is List && info['matches'].length > 0) {
+        LoggerService.logDebug('🔍 Первые 3 совпадения:');
+        for (final match in (info['matches'] as List).take(3)) {
+          LoggerService.logDebug('  - [${match['index']}] "${match['text']}"');
         }
       }
     } catch (e) {
-      print('⚠️ Ошибка получения информации: $e');
+      LoggerService.logDebug('⚠️ Ошибка получения информации: $e');
     }
   }
 
@@ -421,23 +419,21 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
         }
       ''');
 
-      if (result != null) {
-        final info = jsonDecode(result as String);
-        print('🐛 Отладочная информация:');
-        print('   URL: ${info['url']}');
-        print('   Совпадений: ${info['matchesCount']}');
-        print('   Прокрутка: ${info['scrollY']}px');
-        print('   Высота окна: ${info['windowHeight']}px');
-        print('   Высота документа: ${info['documentHeight']}px');
-      }
+      final info = jsonDecode(result as String);
+      LoggerService.logDebug('🐛 Отладочная информация:');
+      LoggerService.logDebug('   URL: ${info['url']}');
+      LoggerService.logDebug('   Совпадений: ${info['matchesCount']}');
+      LoggerService.logDebug('   Прокрутка: ${info['scrollY']}px');
+      LoggerService.logDebug('   Высота окна: ${info['windowHeight']}px');
+      LoggerService.logDebug('   Высота документа: ${info['documentHeight']}px');
     } catch (e) {
-      print('⚠️ Ошибка получения отладочной информации: $e');
+      LoggerService.logDebug('⚠️ Ошибка получения отладочной информации: $e');
     }
   }
 
   /// Обновление поиска (при изменении данных в MarkdownTestMoc)
   void _refreshSearch() {
-    print('🔄 Обновление поиска...');
+    LoggerService.logDebug('🔄 Обновление поиска...');
     _processSearchAndLoad();
   }
 
@@ -534,7 +530,7 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
                 FloatingActionButton(
                   onPressed: () async {
                     await _webViewController.runJavaScript('window.scrollTo({top: 0, behavior: "smooth"});');
-                    print('⬆️ Прокрутка в начало');
+                    LoggerService.logDebug('⬆️ Прокрутка в начало');
                   },
                   tooltip: 'В начало',
                   backgroundColor: Colors.purple,
