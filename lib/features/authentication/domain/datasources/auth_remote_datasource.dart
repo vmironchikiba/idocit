@@ -19,6 +19,16 @@ class AuthRemoteDataSource {
     }
   }
 
+  Future<Either<Failure, String>> signOut(LogoutRequest data) async {
+    LoggerService.logDebug('AuthRemoteDataSource -> signOut(refreshToken: ${data.refreshToken})');
+    try {
+      final result = await locator<AuthApi>().logoutApiLogoutPost(data);
+      return result != null ? Right(result) : Left(NetworkFailure());
+    } catch (exception) {
+      return Left(NetworkFailure());
+    }
+  }
+
   Future<Either<Failure, KeycloakUser>> getUserAttributes(UserToken? token) async {
     LoggerService.logDebug('AuthRemoteDataSource -> getUserAttributes()})');
     if (token == null) return Left(AuthFailure(message: 'No access token', type: AuthErrorType.badTokensData));

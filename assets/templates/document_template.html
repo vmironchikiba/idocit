@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+
+        pre,
+        code {
+            background-color: #f5f5f5;
+            border-radius: 3px;
+        }
+
+        pre {
+            padding: 16px;
+            overflow: auto;
+        }
+
+        code {
+            padding: 2px 4px;
+        }
+
+        blockquote {
+            border-left: 4px solid #ddd;
+            padding-left: 16px;
+            margin-left: 0;
+            color: #666;
+        }
+
+        mark.search-match {
+            background-color: #FFEB3B !important;
+            border: 2px solid #FF9800 !important;
+            padding: 2px 4px !important;
+            border-radius: 3px !important;
+            display: inline-block;
+        }
+
+        mark.search-match.current-match {
+            background-color: #FF9800 !important;
+            color: white !important;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(255, 152, 0, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 152, 0, 0);
+            }
+        }
+
+        .matches-nav {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 1000;
+        }
+
+        .debug-info {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #00ff00;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 1000;
+            max-width: 300px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- CONTENT_PLACEHOLDER -->
+
+    <!-- NAVIGATION_PLACEHOLDER -->
+
+    <script>
+        // Глобальные переменные для навигации по совпадениям
+        let currentMatchIndex = 0;
+        let allMatches = [];
+
+        // Инициализация после загрузки DOM
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('📄 DOM загружен');
+
+            // Находим все элементы с выделениями
+            allMatches = Array.from(document.querySelectorAll('mark.search-match'));
+
+            // Обновляем счетчик
+            updateMatchCounter();
+
+            // Если есть совпадения, выделяем первое
+            if (allMatches.length > 0) {
+                setTimeout(() => {
+                    goToMatch(0);
+                    scrollToMatch(0);
+                }, 300);
+            }
+
+            // Отправляем отладочную информацию
+            if (window.DebugChannel) {
+                DebugChannel.postMessage('DOM загружен. Найдено совпадений: ' + allMatches.length);
+            }
+        });
+
+        // Обновление счетчика совпадений
+        function updateMatchCounter() {
+            const counter = document.getElementById('match-count');
+            if (counter) {
+                counter.textContent = allMatches.length;
+            }
+        }
+
+        // Прокрутка к указанному совпадению
+        function scrollToMatch(index) {
+            if (index < 0 || index >= allMatches.length) {
+                console.warn('Индекс вне диапазона:', index);
+                return false;
+            }
+
+            const match = allMatches[index];
+
+            // Прокручиваем с плавной анимацией
+            match.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center',
+                inline: 'nearest'
+            });
+
+            // Отправляем позицию во Flutter
+            if (window.FlutterChannel) {
+                const rect = match.getBoundingClientRect();
+                const position = window.pageYOffset + rect.top;
+
+                FlutterChannel.postMessage(JSON.stringify({
+                    event: 'highlight_position',
+                    payload: position,
+                    matchId: match.id,
+                    matchIndex: index
+                }));
+            }
+
+            console.log('Прокрутка к совпадению', index + 1, 'из', allMatches.length);
+            return true;
+        }
+
+        // Выделение указанного совпадения
+        function goToMatch(index) {
+            if (index < 0 || index >= allMatches.length) {
+                return false;
+            }
+
+            // Убираем выделение со всех совпадений
+            allMatches.forEach(match => {
+                match.classList.remove('current-match');
+            });
+
+            // Выделяем текущее совпадение
+            const match = allMatches[index];
+            match.classList.add('current-match');
+            currentMatchIndex = index;
+
+            // Отправляем информацию во Flutter
+            if (window.FlutterChannel) {
+                FlutterChannel.postMessage(JSON.stringify({
+                    event: 'match_navigated',
+                    payload: {
+                        currentIndex: currentMatchIndex,
+                        totalMatches: allMatches.length,
+                        matchId: match.id,
+                        text: match.textContent.substring(0, 50)
+                    }
+                }));
+            }
+
+            return true;
+        }
+
+        // ===== API для Flutter =====
+
+        // Прокрутка к первому совпадению
+        window.scrollToFirstMatch = function () {
+            if (allMatches.length === 0) {
+                return { success: false, message: 'Нет совпадений' };
+            }
+
+            goToMatch(0);
+            scrollToMatch(0);
+
+            return {
+                success: true,
+                index: 0,
+                total: allMatches.length
+            };
+        };
+
+        // Переход к следующему совпадению
+        window.goToNextMatch = function () {
+            if (allMatches.length === 0) {
+                return { success: false, message: 'Нет совпадений' };
+            }
+
+            const newIndex = (currentMatchIndex + 1) % allMatches.length;
+            goToMatch(newIndex);
+            scrollToMatch(newIndex);
+
+            return {
+                success: true,
+                currentIndex: newIndex,
+                total: allMatches.length
+            };
+        };
+
+        // Переход к предыдущему совпадению
+        window.goToPreviousMatch = function () {
+            if (allMatches.length === 0) {
+                return { success: false, message: 'Нет совпадений' };
+            }
+
+            const newIndex = (currentMatchIndex - 1 + allMatches.length) % allMatches.length;
+            goToMatch(newIndex);
+            scrollToMatch(newIndex);
+
+            return {
+                success: true,
+                currentIndex: newIndex,
+                total: allMatches.length
+            };
+        };
+
+        // Получение информации о совпадениях
+        window.getMatchesInfo = function () {
+            return {
+                total: allMatches.length,
+                currentIndex: currentMatchIndex,
+                hasMatches: allMatches.length > 0,
+                matches: allMatches.map((match, idx) => ({
+                    index: idx,
+                    id: match.id,
+                    text: match.textContent.substring(0, 100),
+                    isCurrent: idx === currentMatchIndex
+                }))
+            };
+        };
+
+        // Переход к конкретному совпадению по индексу
+        window.goToMatchIndex = function (index) {
+            if (goToMatch(index)) {
+                scrollToMatch(index);
+                return true;
+            }
+            return false;
+        };
+
+        // Отладочные функции
+        window.debugInfo = function () {
+            return {
+                url: window.location.href,
+                matchesCount: allMatches.length,
+                scrollY: window.pageYOffset,
+                windowHeight: window.innerHeight,
+                documentHeight: document.body.scrollHeight
+            };
+        };
+    </script>
+</body>
+
+</html>

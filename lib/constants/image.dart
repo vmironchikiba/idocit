@@ -186,4 +186,6 @@ class ImageConstants {
 
   static const userChatAvatarSvg = 'assets/icons/user_chat_avatar.svg';
   static const addSvg = 'assets/icons/add.svg';
+  static const chatPreviewSvg = 'assets/icons/chatPreview.svg';
+  static const chatPreviewPng = 'assets/icons/chatPreview.png';
 }

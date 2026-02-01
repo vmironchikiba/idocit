@@ -173,6 +173,3 @@ lib/model/validation_error.dart
 lib/model/validation_error_loc_inner.dart
 lib/model/verba_options.dart
 pubspec.yaml
-test/document_properties_test.dart
-test/document_response_test.dart
-test/document_test.dart

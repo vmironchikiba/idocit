@@ -16,6 +16,10 @@ class IdocItBloc extends Bloc<IdocItBlocEvent, IdocItState> {
       emit(state.update(chats: event.chats));
     });
 
+    on<IdocItResetEvent>((event, emit) {
+      emit(IdocItState.initial());
+    });
+
     on<SignOutIdocItEvent>((event, emit) {
       emit(IdocItState.initial());
     });

@@ -18,6 +18,7 @@ class DocumentProperties {
     required this.docName,
     required this.docType,
     required this.html,
+    required this.text,
   });
 
   int chunkCount;
@@ -30,13 +31,16 @@ class DocumentProperties {
 
   String html;
 
+  String text;
+
   @override
   bool operator ==(Object other) => identical(this, other) || other is DocumentProperties &&
     other.chunkCount == chunkCount &&
     other.docLink == docLink &&
     other.docName == docName &&
     other.docType == docType &&
-    other.html == html;
+    other.html == html &&
+    other.text == text;
 
   @override
   int get hashCode =>
@@ -45,10 +49,11 @@ class DocumentProperties {
     (docLink.hashCode) +
     (docName.hashCode) +
     (docType.hashCode) +
-    (html.hashCode);
+    (html.hashCode) +
+    (text.hashCode);
 
   @override
-  String toString() => 'DocumentProperties[chunkCount=$chunkCount, docLink=$docLink, docName=$docName, docType=$docType, html=$html]';
+  String toString() => 'DocumentProperties[chunkCount=$chunkCount, docLink=$docLink, docName=$docName, docType=$docType, html=$html, text=$text]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -57,6 +62,7 @@ class DocumentProperties {
       json[r'doc_name'] = this.docName;
       json[r'doc_type'] = this.docType;
       json[r'html'] = this.html;
+      json[r'text'] = this.text;
     return json;
   }
 
@@ -84,6 +90,7 @@ class DocumentProperties {
         docName: mapValueOfType<String>(json, r'doc_name')!,
         docType: mapValueOfType<String>(json, r'doc_type')!,
         html: mapValueOfType<String>(json, r'html')!,
+        text: mapValueOfType<String>(json, r'text')!,
       );
     }
     return null;
@@ -136,6 +143,7 @@ class DocumentProperties {
     'doc_name',
     'doc_type',
     'html',
+    'text',
   };
 }
 
