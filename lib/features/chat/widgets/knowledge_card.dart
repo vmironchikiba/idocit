@@ -64,7 +64,7 @@ class _KnowledgeCardState extends State<KnowledgeCard> {
           if (_isLoading)
             Container(
               color: Colors.white.withOpacity(0.7),
-              child: const Center(child: IdocItLoadingIndicator()),
+              child: const Center(child: IdocItLoadingIndicator(color: ColorConstants.loading)),
             ),
         ],
       ),

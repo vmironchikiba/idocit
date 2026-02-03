@@ -34,11 +34,11 @@ class ChatHistoryList extends StatelessWidget {
                 ? Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      SvgPicture.asset(ImageConstants.userChatAvatarSvg, height: 21, width: 21),
+                      SvgPicture.asset(ImageConstants.userChatAvatarSvg, height: 16, width: 16),
                       Text(
                         'You',
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: ColorConstants.black500, fontSize: 12, fontWeight: FontWeight.w800),
+                        style: TextStyle(color: ColorConstants.white500, fontSize: 9, fontWeight: FontWeight.w800),
                       ),
                     ],
                   )
@@ -46,11 +46,11 @@ class ChatHistoryList extends StatelessWidget {
                 ? Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      SvgPicture.asset(ImageConstants.igIdocIt, height: 21, width: 21),
+                      SvgPicture.asset(ImageConstants.igIdocIt, height: 16, width: 16),
                       Text(
                         'iDocIt\nAI',
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: ColorConstants.black500, fontSize: 10, fontWeight: FontWeight.w800),
+                        style: TextStyle(color: ColorConstants.black500, fontSize: 9, fontWeight: FontWeight.w800),
                       ),
                     ],
                   )

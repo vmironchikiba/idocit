@@ -47,30 +47,35 @@
         }
 
         mark.search-match {
-            background-color: #FFEB3B !important;
-            border: 2px solid #FF9800 !important;
+            background-color: #FFECB3 !important;
+            border: 2px solid #FFA726 !important;
             padding: 2px 4px !important;
             border-radius: 3px !important;
             display: inline-block;
+            color: #333 !important;
+            /* темно-серый цвет текста */
         }
 
         mark.search-match.current-match {
-            background-color: #FF9800 !important;
-            color: white !important;
+            background-color: #FFECB3 !important;
+            /* оранжевый для текущего совпадения */
+            color: #212121 !important;
+            /* темно-серый почти черный */
             animation: pulse 2s infinite;
         }
 
         @keyframes pulse {
             0% {
-                box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.7);
+                box-shadow: 0 0 0 0 rgba(255, 167, 38, 0.7);
+                /* обновлен цвет для пульсации */
             }
 
             70% {
-                box-shadow: 0 0 0 10px rgba(255, 152, 0, 0);
+                box-shadow: 0 0 0 10px rgba(255, 167, 38, 0);
             }
 
             100% {
-                box-shadow: 0 0 0 0 rgba(255, 152, 0, 0);
+                box-shadow: 0 0 0 0 rgba(255, 167, 38, 0);
             }
         }
 
