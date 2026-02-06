@@ -24,6 +24,7 @@ import 'package:idocit/features/idocit/screens/idocit_screen.dart';
 // import 'package:idocit/features/profile/screens/profile_screen.dart';
 import 'package:idocit/features/splash_screen.dart';
 import 'package:idocit/injection_container.dart';
+import 'package:idocit/testmenu/home/idocit_slider_home_page.dart';
 
 class ScreenBuilder extends StatefulWidget {
   static const routeName = '/';
@@ -167,7 +168,7 @@ class _ScreenBuilderState extends State<ScreenBuilder> with SingleTickerProvider
                 absorbing: !_isBlocsInit,
                 child: SafeArea(
                   top: false,
-                  child: Column(children: [Expanded(child: IdocItScreen())]),
+                  child: Column(children: [Expanded(child: IdocItSliderHomePage())]),
                 ),
               ),
             );

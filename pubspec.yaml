@@ -55,6 +55,8 @@ dependencies:
   flutter_html: ^3.0.0
   flutter_markdown_plus: ^1.0.7
   webview_flutter: ^4.13.1
+  flutter_sliding_drawer: ^2.0.0
+  flutter_slider_drawer: ^3.0.2
 
 dev_dependencies:
   flutter_test:
