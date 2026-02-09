@@ -4,6 +4,7 @@ import 'package:idocit/common/widgets/buttons/text_button.dart';
 import 'package:idocit/constants/colors.dart';
 import 'package:idocit/features/idocit/domain/blocs/idocit/idocit_bloc.dart';
 import 'package:idocit/features/idocit/domain/usecases/idocit_lazy_init_chats.dart';
+import 'package:idocit/features/idocit/widget/user_profile.dart';
 import 'package:idocit/injection_container.dart';
 import 'package:flutter/material.dart';
 
@@ -68,6 +69,7 @@ class _SliderMenuState extends State<SliderMenu> {
                   ),
                 ),
                 ...chatsButtons,
+                UserProfile(),
               ],
             ),
           );
