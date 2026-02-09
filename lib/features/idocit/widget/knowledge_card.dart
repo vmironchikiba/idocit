@@ -9,8 +9,9 @@ import 'package:idocit/injection_container.dart';
 
 class KnowledgeCard extends StatefulWidget {
   final KnowledgeData knowledge;
+  final void Function(String) onItemTap;
 
-  const KnowledgeCard({super.key, required this.knowledge});
+  const KnowledgeCard({super.key, required this.knowledge, required this.onItemTap});
 
   @override
   State<KnowledgeCard> createState() => _KnowledgeCardState();
@@ -19,7 +20,7 @@ class KnowledgeCard extends StatefulWidget {
 class _KnowledgeCardState extends State<KnowledgeCard> {
   bool _isLoading = false;
 
-  Future<void> _handleTap() async {
+  Future<void> _handleTap(String udid) async {
     // Show loading indicator
     setState(() {
       _isLoading = true;
@@ -27,6 +28,7 @@ class _KnowledgeCardState extends State<KnowledgeCard> {
 
     try {
       final result = await locator<GetDocumentById>().call(GetDocumentPayload(documentId: widget.knowledge.docUuid));
+      widget.onItemTap(udid);
 
       if (result.isRight() && mounted) {
         Navigator.push(context, CupertinoPageRoute(builder: (_) => MarkdownWebViewPage(knowledge: widget.knowledge)));
@@ -50,7 +52,11 @@ class _KnowledgeCardState extends State<KnowledgeCard> {
           Padding(
             padding: const EdgeInsets.all(4.0),
             child: TextButton(
-              onPressed: _isLoading ? null : _handleTap,
+              onPressed: () async {
+                if (_isLoading == false) {
+                  await _handleTap(widget.knowledge.docUuid);
+                }
+              },
               child: Text(
                 widget.knowledge.text,
                 maxLines: 3,

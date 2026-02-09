@@ -1,140 +1,92 @@
-// import 'dart:async';
-
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:idocit/common/models/service/usecase.dart';
-import 'package:idocit/common/services/logger.dart';
-import 'package:idocit/common/widgets/buttons/text_button.dart';
-import 'package:idocit/common/widgets/texts.dart';
-import 'package:idocit/common/widgets/wrappers/content_wrapper.dart';
 import 'package:idocit/constants/colors.dart';
 import 'package:idocit/constants/image.dart';
 import 'package:idocit/features/authentication/domain/bloc/auth_bloc.dart';
-import 'package:idocit/features/authentication/domain/usecases/sign/auth_sign_out.dart';
-import 'package:idocit/features/chat/domain/usecases/chat_reset.dart';
-import 'package:idocit/features/chat/screens/chat_screen.dart';
-import 'package:idocit/features/idocit/domain/blocs/idocit/idocit_bloc.dart';
-import 'package:idocit/features/idocit/domain/usecases/idocit_lazy_init_chats.dart';
-import 'package:idocit/features/idocit/domain/usecases/idocit_reset.dart';
+import 'package:idocit/features/chat/domain/bloc/chat_bloc.dart';
+import 'package:idocit/features/chat/domain/usecases/chat_history.dart';
+import 'package:idocit/features/chat/domain/usecases/chat_lazy_init_suggestions.dart';
 import 'package:idocit/injection_container.dart';
+import 'package:idocit/features/idocit/widget/idocit_chat.dart';
+import 'package:idocit/features/idocit/widget/slider_menu.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_slider_drawer/flutter_slider_drawer.dart';
 
 class IdocItScreen extends StatefulWidget {
-  static const routeName = '/idocit';
-  static const routeTabNumber = 0;
-  static const routeTabName = 'Home';
-
   const IdocItScreen({super.key});
+  static const routeName = '/home';
 
   @override
   State<IdocItScreen> createState() => _IdocItScreenState();
 }
 
-class _IdocItScreenState extends State<IdocItScreen> with AutomaticKeepAliveClientMixin<IdocItScreen> {
+class _IdocItScreenState extends State<IdocItScreen> {
+  final GlobalKey<SliderDrawerState> _sliderDrawerKey = GlobalKey<SliderDrawerState>();
+
   bool _isRequestInProgress = false;
-  // bool _isRefreshInProgress = false;
+
+  late String chatTitle;
+  late String chatId;
 
   @override
   void initState() {
+    chatTitle = "New Chat";
+    chatId = "";
     super.initState();
     _isRequestInProgress = true;
-    locator<IdocItLazyInitChats>().call(NoParams()).then((onValue) {
-      setState(() {
-        _isRequestInProgress = false;
-      });
-    });
-  }
-
-  Future<void> _onChatClickHandler(String id) async {
-    LoggerService.logDebug(id);
-    // Navigator.push(context, MaterialPageRoute(builder: (_) => ChatScreen(chatId: id)));
-
-    await Navigator.push(context, CupertinoPageRoute(builder: (_) => ChatScreen(chatId: id)));
-    await locator<ChaReset>().call(NoParams());
-
-    // Navigator.of(context).pushNamed(ChatScreen.routeName, arguments: id);
   }
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
-
-    return PopScope(
-      canPop: false,
-      onPopInvoked: (didPop) async {
-        final result = await locator<AuthSignOut>().call(NoParams());
-        if (result.isRight()) {
-          await locator<IdocItReset>().call(NoParams());
-          await locator<AuthSignOut>.call();
-        }
-      },
-      child: BlocBuilder<AuthBloc, AuthState>(
-        builder: (_, authState) {
-          return Scaffold(
-            appBar: AppBar(
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [SvgPicture.asset(ImageConstants.igIdocIt, height: 56, width: 56)],
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (_, authState) {
+        return SafeArea(
+          child: SliderDrawer(
+            key: _sliderDrawerKey,
+            appBar: SliderAppBar(
+              config: SliderAppBarConfig(
+                title: Text(
+                  chatTitle,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: ColorConstants.white500,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                backgroundColor: ColorConstants.black300,
+                drawerIconColor: ColorConstants.white500,
+                trailing: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SvgPicture.asset(ImageConstants.igIdocIt, height: 28, width: 28),
+                ),
               ),
             ),
-            body: BlocBuilder<IdocItBloc, IdocItState>(
-              builder: (context, state) {
-                final chatsButtons = state.chats
-                    .map(
-                      (chat) => Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: IdocItTextButton(
-                          contentText: chat.title,
-                          callback: () async {
-                            await _onChatClickHandler(chat.id);
-                          },
-                          color: ColorConstants.black400,
-                        ),
-                      ),
-                    )
-                    .toList();
-                final chatPreviewSvg = Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image.asset(ImageConstants.chatPreviewPng),
-                    // SvgPicture.asset(ImageConstants.chatPreviewSvg),
-                  ],
-                );
-                return SingleChildScrollView(
-                  child: ContentWrapper(
-                    child: Column(
-                      children: [
-                        IdocItText(text: 'User name: ${authState.userData?.username ?? 'No username'}'),
-                        IdocItText(text: 'Email: ${authState.userData?.email ?? 'No email'}'),
-                        IdocItText(text: 'Role: ${authState.userData?.role ?? 'No role'}'),
-                        SizedBox(height: 10),
-                        chatPreviewSvg,
-                        SizedBox(height: 10),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: IdocItTextButton(
-                            contentText: 'New chat',
-                            callback: () async {
-                              await _onChatClickHandler('');
-                            },
-                            color: ColorConstants.black400,
-                          ),
-                        ),
-
-                        ...chatsButtons,
-                      ],
-                    ),
-                  ),
-                );
+            sliderOpenSize: 300,
+            slider: SliderMenu(
+              onItemClick: (chatId, chatTitle) {
+                locator<ChatLazyInitSuggestions>().call(NoParams());
+                locator<ChatBloc>().stream.listen(((state) {
+                  // _scrollToBottom();
+                }));
+                locator<GetChatHistory>().call(chatId).then((result) {
+                  if (result.isRight()) {
+                    // _scrollToBottom();
+                  }
+                });
+                _sliderDrawerKey.currentState?.closeSlider();
+                setState(() {
+                  this.chatTitle = chatTitle;
+                  this.chatId = chatId;
+                });
               },
             ),
-          );
-        },
-      ),
+            child: IdocItChat(chatId: chatId, chatTitle: chatTitle),
+          ),
+        );
+      },
     );
   }
-
-  @override
-  bool get wantKeepAlive => true;
 }

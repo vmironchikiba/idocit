@@ -4,13 +4,15 @@ import 'package:idocit/constants/colors.dart';
 import 'package:idocit/constants/image.dart';
 import 'package:idocit/features/chat/domain/models/extensions/percent_string.dart';
 import 'package:idocit/features/chat/domain/models/query_response.dart';
+import 'package:idocit/features/idocit/widget/knowledge_card.dart';
+import 'package:idocit/idocit/lib/api.dart';
 
 class InlineExpandableList extends StatefulWidget {
   // final List<String> items;
   final List<KnowledgeData> items;
-  final ValueChanged<int>? onItemTap;
+  final void Function(String, int) onItemTap;
 
-  const InlineExpandableList({super.key, required this.items, this.onItemTap});
+  const InlineExpandableList({super.key, required this.items, required this.onItemTap});
 
   @override
   _InlineExpandableListState createState() => _InlineExpandableListState();
@@ -54,7 +56,41 @@ class _InlineExpandableListState extends State<InlineExpandableList> with Single
       onTap: () => setState(() => _expanded = !_expanded),
     );
 
+    //KnowledgeCard(knowledge: knowledge)
+
     final rest = Column(
+      children: List.generate(widget.items.length - 1, (i) {
+        final data = widget.items[i + 1];
+        return ListTile(
+          leading: Column(
+            children: [
+              SvgPicture.asset(ImageConstants.igIdocIt, height: 21, width: 21),
+              SizedBox(height: 4.0),
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(4.0),
+                  color: widget.items[i + 1].score.toColor(),
+                ),
+                padding: EdgeInsets.all(3.0),
+                child: Text(
+                  widget.items[i + 1].score.toPercent(),
+                  style: TextStyle(color: ColorConstants.black500, fontSize: 12, fontWeight: FontWeight.w800),
+                ),
+              ),
+            ],
+          ),
+          title: KnowledgeCard(
+            knowledge: data,
+            onItemTap: (docUuid) {
+              widget.onItemTap(docUuid, i + 1);
+              setState(() => _expanded = false);
+            },
+          ),
+        );
+      }),
+    );
+
+    final rest2 = Column(
       children: List.generate(
         widget.items.length - 1,
         (i) => ListTile(
@@ -86,7 +122,7 @@ class _InlineExpandableListState extends State<InlineExpandableList> with Single
             ),
           ),
           onTap: () {
-            widget.onItemTap?.call(i + 1);
+            widget.onItemTap(widget.items[i + 1].docUuid, i + 1);
             // если нужно — закрывать после выбора:
             setState(() => _expanded = false);
           },

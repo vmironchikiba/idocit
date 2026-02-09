@@ -14,12 +14,10 @@ import 'package:idocit/common/usecases/core_init.dart';
 import 'package:idocit/features/authentication/screens/login_screen.dart';
 import 'package:idocit/features/chat/domain/bloc/chat_bloc.dart';
 import 'package:idocit/features/components/domain/blocs/components_bloc.dart';
-import 'package:idocit/features/chat/screens/chat_screen.dart';
 import 'package:idocit/features/document/domain/bloc/document_bloc.dart';
 import 'package:idocit/features/idocit/domain/blocs/idocit/idocit_bloc.dart';
 import 'package:idocit/features/idocit/screens/idocit_screen.dart';
 import 'package:idocit/features/screen_builder.dart';
-import 'package:idocit/idocit/lib/api.dart';
 import 'package:idocit/injection_container.dart';
 import 'package:provider/provider.dart';
 
@@ -82,8 +80,6 @@ class _IDocItAppState extends State<IDocItApp> {
                   );
                 case IdocItScreen.routeName:
                   return NavigatorService.getPageRoute(const IdocItScreen());
-                case ChatScreen.routeName:
-                  return NavigatorService.getPageRoute(ChatScreen(chatId: ''));
                 default:
                   return null;
               }

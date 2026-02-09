@@ -5,34 +5,19 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:idocit/features/authentication/domain/bloc/auth_bloc.dart';
 import 'package:idocit/common/models/service/usecase.dart';
-// import 'package:idocit/common/services/push/push_notifications_service.dart';
-// import 'package:idocit/common/widgets/indicators/progress_indicator.dart';
-// import 'package:idocit/common/widgets/navigation_bar.dart';
 import 'package:idocit/constants/colors.dart';
-// import 'package:idocit/constants/image.dart';
-// import 'package:idocit/features/authentication/domain/bloc/auth_bloc.dart';
 import 'package:idocit/features/authentication/domain/usecases/auth_init.dart';
 import 'package:idocit/features/authentication/domain/usecases/sign/auth_auto_sign_in.dart';
 import 'package:idocit/features/authentication/screens/login_screen.dart';
-import 'package:idocit/features/document/screens/markdown_demo_page.dart';
-import 'package:idocit/features/document/screens/markdown_present_page.dart';
-import 'package:idocit/features/document/screens/markdown_web_view_page.dart';
-// import 'package:idocit/features/authentication/domain/usecases/sign/auth_auto_sign_in.dart';
-// import 'package:idocit/features/authentication/screens/welcome_screen.dart';
-import 'package:idocit/features/idocit/screens/idocit_screen.dart';
-// import 'package:idocit/features/eco_kit/screens/eco_kit_screen.dart';
-// import 'package:idocit/features/profile/screens/profile_screen.dart';
 import 'package:idocit/features/splash_screen.dart';
 import 'package:idocit/injection_container.dart';
-import 'package:idocit/testmenu/home/idocit_slider_home_page.dart';
+import 'package:idocit/features/idocit/screens/idocit_screen.dart';
 
 class ScreenBuilder extends StatefulWidget {
   static const routeName = '/';
   static final contextKey = GlobalKey();
 
-  ScreenBuilder({super.key}) {
-    debugPrint('TEST');
-  }
+  const ScreenBuilder({super.key});
 
   @override
   State<ScreenBuilder> createState() => _ScreenBuilderState();
@@ -43,7 +28,7 @@ class _ScreenBuilderState extends State<ScreenBuilder> with SingleTickerProvider
   late final AnimationController _animationController;
   late final Animation<double> _animatedOpacity;
 
-  int _selectedRouteNumber = IdocItScreen.routeTabNumber;
+  // int _selectedRouteNumber = IdocItScreen.routeTabNumber;
   bool _isAuthInit = false;
   bool _isSplashInit = false;
   bool _isBlocsInit = false;
@@ -134,7 +119,7 @@ class _ScreenBuilderState extends State<ScreenBuilder> with SingleTickerProvider
 
         if (state.authType == AuthType.unauthenticated) {
           setState(() {
-            _selectedRouteNumber = IdocItScreen.routeTabNumber;
+            // _selectedRouteNumber = IdocItScreen.routeTabNumber;
             _isBlocsInit = false;
           });
           // locator<PushNotificationsService>().context = null;
@@ -168,7 +153,7 @@ class _ScreenBuilderState extends State<ScreenBuilder> with SingleTickerProvider
                 absorbing: !_isBlocsInit,
                 child: SafeArea(
                   top: false,
-                  child: Column(children: [Expanded(child: IdocItSliderHomePage())]),
+                  child: Column(children: [Expanded(child: IdocItScreen())]),
                 ),
               ),
             );
