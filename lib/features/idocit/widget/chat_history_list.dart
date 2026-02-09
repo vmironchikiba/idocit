@@ -5,11 +5,8 @@ import 'package:idocit/constants/colors.dart';
 import 'package:idocit/constants/image.dart';
 import 'package:idocit/features/chat/domain/models/enums/role.dart';
 import 'package:idocit/features/chat/domain/models/extensions/percent_string.dart';
-import 'package:idocit/features/chat/widgets/knowledge_card.dart';
-import 'package:idocit/features/document/domain/usecases/get_document_by_id.dart';
-import 'package:idocit/features/document/screens/markdown_web_view_page.dart';
+import 'package:idocit/features/idocit/widget/doc_names_expandable_list.dart';
 import 'package:idocit/idocit/lib/api.dart';
-import 'package:idocit/injection_container.dart';
 
 class ChatHistoryList extends StatelessWidget {
   final List<ChatHistoryMessage> messages;
@@ -34,11 +31,11 @@ class ChatHistoryList extends StatelessWidget {
                 ? Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      SvgPicture.asset(ImageConstants.userChatAvatarSvg, height: 21, width: 21),
+                      SvgPicture.asset(ImageConstants.userChatAvatarSvg, height: 16, width: 16),
                       Text(
                         'You',
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: ColorConstants.black500, fontSize: 12, fontWeight: FontWeight.w800),
+                        style: TextStyle(color: ColorConstants.white500, fontSize: 9, fontWeight: FontWeight.w800),
                       ),
                     ],
                   )
@@ -46,11 +43,11 @@ class ChatHistoryList extends StatelessWidget {
                 ? Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      SvgPicture.asset(ImageConstants.igIdocIt, height: 21, width: 21),
+                      SvgPicture.asset(ImageConstants.igIdocIt, height: 16, width: 16),
                       Text(
                         'iDocIt\nAI',
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: ColorConstants.black500, fontSize: 10, fontWeight: FontWeight.w800),
+                        style: TextStyle(color: ColorConstants.black500, fontSize: 9, fontWeight: FontWeight.w800),
                       ),
                     ],
                   )
@@ -78,41 +75,7 @@ class ChatHistoryList extends StatelessWidget {
                           ),
                         ],
                       ),
-                      subtitle: Column(
-                        children: category.knowledgeData
-                            .map(
-                              (knowledge) => KnowledgeCard(knowledge: knowledge),
-                              // Card(
-                              //   child: Padding(
-                              //     padding: const EdgeInsets.all(4.0),
-                              //     child: TextButton(
-                              //       onPressed: () async {
-                              //         final result = await locator<GetDocumentById>().call(
-                              //           GetDocumentPayload(documentId: knowledge.docUuid),
-                              //         );
-                              //         if (result.isRight()) {
-                              //           Navigator.push(
-                              //             context,
-                              //             CupertinoPageRoute(
-                              //               builder: (_) => MarkdownWebViewPage(knowledge: knowledge),
-                              //               // MarkdownPresentPage(docUuid: knowledge.docUuid),
-                              //               //DocumentScreen(documentId: knowledge.docUuid),
-                              //             ),
-                              //           );
-                              //         }
-                              //       },
-                              //       child: Text(
-                              //         knowledge.text,
-                              //         maxLines: 3,
-                              //         overflow: TextOverflow.ellipsis,
-                              //         style: TextStyle(color: ColorConstants.black500),
-                              //       ),
-                              //     ),
-                              //   ),
-                              // ),
-                            )
-                            .toList(),
-                      ),
+                      subtitle: DocNamesExpandableList(docNames: category.knowledgeData),
                     ),
                   )
                   .toList(),

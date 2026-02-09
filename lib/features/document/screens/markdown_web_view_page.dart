@@ -1,7 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:idocit/common/services/logger.dart';
+import 'package:idocit/common/widgets/indicators/loading_indicator.dart';
+import 'package:idocit/constants/colors.dart';
+import 'package:idocit/constants/image.dart';
 import 'package:idocit/constants/strings.dart';
 import 'package:idocit/features/document/domain/bloc/document_bloc.dart';
 import 'package:idocit/injection_container.dart';
@@ -18,6 +22,7 @@ class MarkdownWebViewPage extends StatefulWidget {
 }
 
 class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
+  static const hasDebugInfo = false;
   late final WebViewController _webViewController;
   final String _originalMarkdownData =
       locator<DocumentBloc>().state.documentResponse?.document.properties.text.replaceAll('\n\n', '\n') ?? '';
@@ -192,7 +197,7 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
   String _buildHtmlFromTemplate(String htmlContent, bool hasHighlights) {
     var result = _htmlTemplate.replaceFirst('<!-- CONTENT_PLACEHOLDER -->', htmlContent);
 
-    final navHtml = hasHighlights
+    final navHtml = hasHighlights && hasDebugInfo
         ? '<div id="matches-nav" class="matches-nav">Найдено: <span id="match-count">0</span></div>'
         : '';
 
@@ -395,9 +400,15 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          widget.knowledge.docName.split('\n').firstOrNull ?? 'Документ',
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        leading: SvgPicture.asset(ImageConstants.igIdocIt, height: 8, width: 8),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              widget.knowledge.docName.split('\n').firstOrNull ?? 'Документ',
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 9.0),
+            ),
+          ],
         ),
         actions: [
           if (_matches.isNotEmpty)
@@ -405,8 +416,16 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Center(child: Text('${_matches.length} совпад.', style: const TextStyle(fontSize: 14))),
             ),
-          IconButton(icon: const Icon(Icons.refresh), onPressed: _refreshSearch, tooltip: 'Обновить поиск'),
-          IconButton(icon: const Icon(Icons.bug_report), onPressed: _getDebugInfo, tooltip: 'Отладочная информация'),
+          IconButton(
+            icon: const Icon(Icons.refresh, color: ColorConstants.moccasin),
+            onPressed: _refreshSearch,
+            tooltip: 'Обновить поиск',
+          ),
+          // IconButton(
+          //   icon: const Icon(Icons.bug_report, color: ColorConstants.moccasin),
+          //   onPressed: _getDebugInfo,
+          //   tooltip: 'Отладочная информация',
+          // ),
         ],
       ),
 
@@ -416,7 +435,7 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
           if (_isLoading)
             Container(
               color: Colors.white,
-              child: const Center(child: CircularProgressIndicator()),
+              child: const Center(child: IdocItLoadingIndicator(size: 40.0, color: ColorConstants.loading)),
             ),
         ],
       ),
@@ -425,46 +444,46 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
           ? Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                FloatingActionButton(
-                  onPressed: _goToPreviousMatch,
-                  tooltip: 'Предыдущее совпадение',
-                  backgroundColor: Colors.blue,
-                  child: const Icon(Icons.arrow_upward, color: Colors.white),
-                ),
-                const SizedBox(height: 16),
-                FloatingActionButton(
-                  onPressed: _goToNextMatch,
-                  tooltip: 'Следующее совпадение',
-                  backgroundColor: Colors.blue,
-                  child: const Icon(Icons.arrow_downward, color: Colors.white),
-                ),
-                const SizedBox(height: 16),
-                FloatingActionButton(
-                  onPressed: _getMatchesInfo,
-                  tooltip: 'Информация о совпадениях',
-                  backgroundColor: Colors.green,
-                  mini: true,
-                  child: const Icon(Icons.info, color: Colors.white, size: 20),
-                ),
-                const SizedBox(height: 16),
-                FloatingActionButton(
-                  onPressed: _scrollToFirstMatch,
-                  tooltip: 'К первому совпадению',
-                  backgroundColor: Colors.orange,
-                  mini: true,
-                  child: const Icon(Icons.first_page, color: Colors.white, size: 20),
-                ),
-                const SizedBox(height: 16),
-                FloatingActionButton(
-                  onPressed: () async {
-                    await _webViewController.runJavaScript('window.scrollTo({top: 0, behavior: "smooth"});');
-                    LoggerService.logDebug('⬆️ Прокрутка в начало');
-                  },
-                  tooltip: 'В начало',
-                  backgroundColor: Colors.purple,
-                  mini: true,
-                  child: const Icon(Icons.vertical_align_top, color: Colors.white, size: 20),
-                ),
+                // FloatingActionButton(
+                //   onPressed: _goToPreviousMatch,
+                //   tooltip: 'Предыдущее совпадение',
+                //   backgroundColor: Colors.blue,
+                //   child: const Icon(Icons.arrow_upward, color: Colors.white),
+                // ),
+                // const SizedBox(height: 16),
+                // FloatingActionButton(
+                //   onPressed: _goToNextMatch,
+                //   tooltip: 'Следующее совпадение',
+                //   backgroundColor: Colors.blue,
+                //   child: const Icon(Icons.arrow_downward, color: Colors.white),
+                // ),
+                // const SizedBox(height: 16),
+                // FloatingActionButton(
+                //   onPressed: _getMatchesInfo,
+                //   tooltip: 'Информация о совпадениях',
+                //   backgroundColor: Colors.green,
+                //   mini: true,
+                //   child: const Icon(Icons.info, color: Colors.white, size: 20),
+                // ),
+                // const SizedBox(height: 16),
+                // FloatingActionButton(
+                //   onPressed: _scrollToFirstMatch,
+                //   tooltip: 'К первому совпадению',
+                //   backgroundColor: Colors.orange,
+                //   mini: true,
+                //   child: const Icon(Icons.first_page, color: Colors.white, size: 20),
+                // ),
+                // const SizedBox(height: 16),
+                // FloatingActionButton(
+                //   onPressed: () async {
+                //     await _webViewController.runJavaScript('window.scrollTo({top: 0, behavior: "smooth"});');
+                //     LoggerService.logDebug('⬆️ Прокрутка в начало');
+                //   },
+                //   tooltip: 'В начало',
+                //   backgroundColor: Colors.purple,
+                //   mini: true,
+                //   child: const Icon(Icons.vertical_align_top, color: Colors.white, size: 20),
+                // ),
               ],
             )
           : FloatingActionButton(

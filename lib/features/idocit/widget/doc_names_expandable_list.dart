@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:idocit/common/widgets/inline_expandable_list.dart';
+import 'package:idocit/common/services/logger.dart';
+import 'package:idocit/features/idocit/widget/inline_expandable_list.dart';
 import 'package:idocit/features/chat/domain/models/query_response.dart';
+import 'package:idocit/idocit/lib/api.dart';
 
 class DocNamesExpandableList extends StatelessWidget {
   // final List<String> docNames;
@@ -12,6 +14,11 @@ class DocNamesExpandableList extends StatelessWidget {
   Widget build(BuildContext context) {
     if (docNames.isEmpty) return const SizedBox.shrink();
 
-    return InlineExpandableList(items: docNames, onItemTap: (_) {});
+    return InlineExpandableList(
+      items: docNames,
+      onItemTap: (udid, _) {
+        LoggerService.logDebug(udid);
+      },
+    );
   }
 }

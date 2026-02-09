@@ -371,6 +371,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.2"
+  flutter_slider_drawer:
+    dependency: "direct main"
+    description:
+      name: flutter_slider_drawer
+      sha256: "41a627bc3a87c981ca128c0ec4e0f2135244c8e13a78bf472db4d59a1ed9896f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.2"
+  flutter_sliding_drawer:
+    dependency: "direct main"
+    description:
+      name: flutter_sliding_drawer
+      sha256: b81fdf1a5c2c997bb0aac3fc1f626d98f03c1a058f18aa6d7d70e99ed1626953
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
   flutter_svg:
     dependency: "direct main"
     description:

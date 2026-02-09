@@ -1,57 +1,43 @@
-// import 'dart:async';
-
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:idocit/common/models/service/usecase.dart';
 import 'package:idocit/common/widgets/indicators/loading_indicator.dart';
-import 'package:idocit/common/widgets/inline_expandable_list.dart';
+import 'package:idocit/features/idocit/widget/inline_expandable_list.dart';
 import 'package:idocit/constants/colors.dart';
-import 'package:idocit/constants/image.dart';
 import 'package:idocit/features/authentication/domain/bloc/auth_bloc.dart';
 import 'package:idocit/features/chat/domain/bloc/chat_bloc.dart';
 import 'package:idocit/features/chat/domain/models/completions_request.dart';
-import 'package:idocit/features/chat/domain/models/enums/chat_item_type.dart';
 import 'package:idocit/features/chat/domain/models/enums/role.dart';
 import 'package:idocit/features/chat/domain/usecases/chat_completions_stream.dart';
 import 'package:idocit/features/chat/domain/usecases/chat_history.dart';
 import 'package:idocit/features/chat/domain/usecases/chat_lazy_init_suggestions.dart';
 import 'package:idocit/features/chat/domain/usecases/chat_suggestions_query.dart';
 import 'package:idocit/features/chat/domain/usecases/chat_suggestions_reset.dart';
-import 'package:idocit/features/chat/widgets/chat_history_list.dart';
-import 'package:idocit/features/chat/widgets/doc_names_expandable_list.dart';
-import 'package:idocit/features/chat/widgets/last_completion_request_card.dart';
-import 'package:idocit/features/chat/widgets/last_user_pending_message.dart';
-import 'package:idocit/features/chat/widgets/system_response_card.dart';
+import 'package:idocit/features/idocit/widget/chat_history_list.dart';
+import 'package:idocit/features/idocit/widget/last_completion_request_card.dart';
+import 'package:idocit/features/idocit/widget/last_user_pending_message.dart';
+import 'package:idocit/features/idocit/widget/system_response_card.dart';
 import 'package:idocit/injection_container.dart';
+import 'package:flutter/material.dart';
 
-class ChatScreen extends StatefulWidget {
-  static const routeName = '/chat';
+class IdocItChat extends StatefulWidget {
+  const IdocItChat({super.key, required this.chatId, required this.chatTitle});
   final String chatId;
-
-  const ChatScreen({super.key, required this.chatId});
+  final String chatTitle;
 
   @override
-  _ChatScreenState createState() => _ChatScreenState();
+  State<IdocItChat> createState() => _IdocItChatState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _IdocItChatState extends State<IdocItChat> {
   final TextEditingController _controller = TextEditingController();
   late final ScrollController _scrollController;
   List<String> suggestions = [];
-  // final test = CompletionRequest(
-  //   tenant: "kaz_audit",
-  //   chatId: 'chatcmpl-17ce01bf839b4fcda2376390fa419ea0',
-  //   language: 'en-US',
-  //   content:
-  //       'В каком формате должна представляться информация в Единую базу данных через шлюз "электронного правительства"?',
-  //   role: 'user',
-  // );
 
   @override
   initState() {
     super.initState();
     _scrollController = ScrollController();
+
     locator<ChatLazyInitSuggestions>().call(NoParams());
     locator<ChatBloc>().stream.listen(((state) {
       _scrollToBottom();
@@ -89,10 +75,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final tennant = locator<AuthBloc>().state.userData?.tenant;
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      appBar: AppBar(title: SvgPicture.asset(ImageConstants.igIdocIt, height: 56, width: 56)),
       body: LayoutBuilder(
         builder: (context, constraints) {
           final screenHeight = constraints.maxHeight;
@@ -105,7 +89,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
                   return ListView(
                     controller: _scrollController,
-                    padding: const EdgeInsets.only(bottom: 120),
+                    padding: const EdgeInsets.only(bottom: 65),
                     children: [
                       ChatHistoryList(messages: state.chatHistoryMessages),
 
@@ -118,9 +102,14 @@ class _ChatScreenState extends State<ChatScreen> {
                       if (state.generationResultSystem != null)
                         SystemResponseCard(message: state.generationResultSystem!),
 
-                      DocNamesExpandableList(
-                        docNames: state.queryResponse?.categories.expand((c) => c.knowledgeData).toList() ?? [],
+                      InlineExpandableList(
+                        items: state.queryResponse?.categories.expand((c) => c.knowledgeData).toList() ?? [],
+                        onItemTap: (udid, index) {},
                       ),
+
+                      // DocNamesExpandableList(
+                      //   docNames: state.queryResponse?.categories.expand((c) => c.knowledgeData).toList() ?? [],
+                      // ),
                     ],
                   );
                 },
@@ -178,7 +167,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     right: 0,
                     child: Container(
                       padding: const EdgeInsets.all(8),
-                      color: ColorConstants.greyBlue800,
+                      color: ColorConstants.black200,
                       child: Row(
                         children: [
                           Expanded(
@@ -218,11 +207,5 @@ class _ChatScreenState extends State<ChatScreen> {
         },
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
   }
 }
