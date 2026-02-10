@@ -143,6 +143,9 @@ void initLocator() {
       authBloc: locator<AuthBloc>(),
       authGetUserData: locator<AuthGetUserData>(),
       authUpdateStatus: locator<AuthUpdateStatus>(),
+      authSecureStorage: locator<AuthSecureStorage>(),
+      authSignIn: locator<AuthSignIn>(),
+      authRemoteDataSource: locator<AuthRemoteDataSource>(),
     ),
   );
   locator.registerLazySingleton(() => AuthUpdateStatus(authBloc: locator<AuthBloc>()));

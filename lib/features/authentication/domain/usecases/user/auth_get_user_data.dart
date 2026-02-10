@@ -5,7 +5,6 @@ import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/common/services/network_listener.dart';
 import 'package:idocit/features/authentication/domain/bloc/auth_bloc.dart';
 import 'package:idocit/features/authentication/domain/datasources/auth_remote_datasource.dart';
-import 'package:idocit/features/authentication/domain/models/user_data.dart';
 import 'package:idocit/idocit/lib/api.dart';
 
 class AuthGetUserData implements UseCase<Either<Failure, KeycloakUser>, NoParams> {
