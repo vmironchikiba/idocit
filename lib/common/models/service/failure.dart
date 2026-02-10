@@ -30,6 +30,12 @@ class AuthFailure extends Failure {
   const AuthFailure({required String message, required this.type}) : super(message);
 }
 
+class TokenExpiredFailure extends Failure {
+  final AuthErrorType type;
+
+  const TokenExpiredFailure({required String message, required this.type}) : super(message);
+}
+
 class ChunkFailure extends Failure {
   final AuthErrorType type;
 

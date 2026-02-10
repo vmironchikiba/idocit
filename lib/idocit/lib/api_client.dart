@@ -240,6 +240,8 @@ class ApiClient {
           return GetComponentPayload.fromJson(value);
         case 'GetDocumentPayload':
           return GetDocumentPayload.fromJson(value);
+        case 'HTTPUnauthorizedError':
+          return HTTPUnauthorizedError.fromJson(value);
         case 'HTTPValidationError':
           return HTTPValidationError.fromJson(value);
         case 'KeycloakUser':

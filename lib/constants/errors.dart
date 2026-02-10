@@ -23,7 +23,14 @@ extension CommonErrorExtension on CommonErrorType {
   }
 }
 
-enum AuthErrorType { badCredentials, badTokensData, needConfirmUser, needConfirmPersonalData, needConfirmHome }
+enum AuthErrorType {
+  badCredentials,
+  badTokensData,
+  needConfirmUser,
+  needConfirmPersonalData,
+  needConfirmHome,
+  tokenExpired,
+}
 
 extension AuthErrorExtension on AuthErrorType {
   AuthFailure convertToFailure() {
@@ -42,6 +49,9 @@ extension AuthErrorExtension on AuthErrorType {
 
       case AuthErrorType.needConfirmHome:
         return const AuthFailure(message: 'Need confirm home', type: AuthErrorType.needConfirmHome);
+
+      case AuthErrorType.tokenExpired:
+        return const AuthFailure(message: 'Token expired', type: AuthErrorType.tokenExpired);
     }
   }
 }

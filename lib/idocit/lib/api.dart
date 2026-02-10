@@ -80,6 +80,7 @@ part 'model/generate_payload.dart';
 part 'model/generation_result.dart';
 part 'model/get_component_payload.dart';
 part 'model/get_document_payload.dart';
+part 'model/http_unauthorized_error.dart';
 part 'model/http_validation_error.dart';
 part 'model/keycloak_user.dart';
 part 'model/knowledge_block.dart';
