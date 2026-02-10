@@ -14,7 +14,24 @@ class AuthRemoteDataSource {
     try {
       final result = await locator<AuthApi>().loginApiLoginPost(data.email, data.password);
       return result != null ? Right(result) : Left(NetworkFailure());
-    } catch (exception) {
+    } on ApiException catch (exception) {
+      if (exception.code == 401) {
+        return Left(
+          TokenExpiredFailure(message: exception.message ?? 'Token expired', type: AuthErrorType.tokenExpired),
+        );
+      }
+      return Left(NetworkFailure());
+    }
+  }
+
+  Future<Either<Failure, UserToken>> refreshTokenRequest(String? refreshToken) async {
+    LoggerService.logDebug('AuthRemoteDataSource -> refreshTokenRequest(refreshToken: $refreshToken)');
+    try {
+      final result = await locator<AuthApi>().refreshApiTokenRefreshPost(
+        refreshTokenRequest: RefreshTokenRequest(refreshToken: refreshToken),
+      );
+      return result != null ? Right(result) : Left(NetworkFailure());
+    } on ApiException catch (exception) {
       return Left(NetworkFailure());
     }
   }

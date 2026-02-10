@@ -36,9 +36,43 @@ class AuthSignIn implements UseCase<Either<Failure, void>, LoginData> {
 
     final response = await authRemoteDataSource.signIn(data);
     return response.fold(
-      (failure) {
+      (failure) async {
         LoggerService.logDebug('FAILURE: AuthSignIn: authRemoteDataSource.signIn()');
         LoggerService.logDebug('FAILURE: ${failure.message}');
+        if (failure is TokenExpiredFailure) {
+          final response = await authRemoteDataSource.refreshTokenRequest(authBloc.state.userToken?.refreshToken);
+          return response.fold(
+            (failure) {
+              return Left(failure);
+            },
+            (result) async {
+              authBloc.add(UpdateTokensDataEvent(userToken: result));
+              // KeycloakUser? userData;
+              Failure? userDataFailure;
+
+              final userDataResponse = await authGetUserData.call(NoParams());
+              userDataResponse.fold(
+                (failure) {
+                  userDataFailure = failure;
+                },
+                (result) {
+                  authBloc.add(UpdateUserDataEvent(userData: result));
+                },
+              );
+
+              if (userDataFailure != null) {
+                return Left(userDataFailure!);
+              }
+
+              authSecureStorage.writeTokensData(result);
+              if (withStatusUpdate) {
+                authUpdateStatus.call(AuthType.authenticated);
+              }
+
+              return const Right(null);
+            },
+          );
+        }
 
         // if (failure is HTTPFailure && failure.type == HttpErrorType.userNotConfirmed) {
         //   return Left(AuthErrorType.needConfirmEmail.convertToFailure());

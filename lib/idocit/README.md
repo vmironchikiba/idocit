@@ -156,6 +156,7 @@ Class | Method | HTTP request | Description
  - [GenerationResult](doc//GenerationResult.md)
  - [GetComponentPayload](doc//GetComponentPayload.md)
  - [GetDocumentPayload](doc//GetDocumentPayload.md)
+ - [HTTPUnauthorizedError](doc//HTTPUnauthorizedError.md)
  - [HTTPValidationError](doc//HTTPValidationError.md)
  - [KeycloakUser](doc//KeycloakUser.md)
  - [KnowledgeBlock](doc//KnowledgeBlock.md)
