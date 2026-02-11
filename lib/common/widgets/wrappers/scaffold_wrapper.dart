@@ -5,7 +5,7 @@ import 'package:idocit/common/widgets/appbar.dart';
 
 class ScaffoldWrapper extends StatelessWidget {
   final Widget child;
-  final FootprintAppBar? appBar;
+  final IdocItAppBar? appBar;
   final Widget? bottomNavigationBar;
   final Color? backgroundColor;
   final bool withSafeArea;
