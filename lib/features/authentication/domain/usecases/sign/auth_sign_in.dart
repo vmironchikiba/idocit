@@ -7,18 +7,8 @@ import 'package:idocit/common/models/service/failure.dart';
 import 'package:idocit/common/models/service/usecase.dart';
 import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/common/services/network_listener.dart';
-import 'package:idocit/constants/errors.dart';
 import 'package:idocit/features/authentication/domain/usecases/auth_update_status.dart';
 import 'package:idocit/features/authentication/domain/usecases/user/auth_get_user_data.dart';
-import 'package:idocit/idocit/lib/api.dart';
-// import 'package:idocit/features/authentication/domain/datasources/auth_remote_datasource.dart';
-// import 'package:idocit/features/authentication/domain/datasources/auth_secure_storage.dart';
-// import 'package:idocit/features/authentication/domain/models/login_data.dart';
-// import 'package:idocit/features/authentication/domain/models/sign_up_data.dart';
-// import 'package:idocit/features/authentication/domain/models/user_data.dart';
-// import 'package:idocit/features/authentication/domain/usecases/auth_update_status.dart';
-// import 'package:idocit/features/authentication/domain/usecases/user/auth_get_user_data.dart';
-// import 'package:idocit/features/multi_houses/domain/usecases/user_get_all_homes.dart';
 
 class AuthSignIn implements UseCase<Either<Failure, void>, LoginData> {
   final NetworkListenerService networkListenerService;
@@ -46,9 +36,43 @@ class AuthSignIn implements UseCase<Either<Failure, void>, LoginData> {
 
     final response = await authRemoteDataSource.signIn(data);
     return response.fold(
-      (failure) {
+      (failure) async {
         LoggerService.logDebug('FAILURE: AuthSignIn: authRemoteDataSource.signIn()');
         LoggerService.logDebug('FAILURE: ${failure.message}');
+        if (failure is TokenExpiredFailure) {
+          final response = await authRemoteDataSource.refreshTokenRequest(authBloc.state.userToken?.refreshToken);
+          return response.fold(
+            (failure) {
+              return Left(failure);
+            },
+            (result) async {
+              authBloc.add(UpdateTokensDataEvent(userToken: result));
+              // KeycloakUser? userData;
+              Failure? userDataFailure;
+
+              final userDataResponse = await authGetUserData.call(NoParams());
+              userDataResponse.fold(
+                (failure) {
+                  userDataFailure = failure;
+                },
+                (result) {
+                  authBloc.add(UpdateUserDataEvent(userData: result));
+                },
+              );
+
+              if (userDataFailure != null) {
+                return Left(userDataFailure!);
+              }
+
+              authSecureStorage.writeTokensData(result);
+              if (withStatusUpdate) {
+                authUpdateStatus.call(AuthType.authenticated);
+              }
+
+              return const Right(null);
+            },
+          );
+        }
 
         // if (failure is HTTPFailure && failure.type == HttpErrorType.userNotConfirmed) {
         //   return Left(AuthErrorType.needConfirmEmail.convertToFailure());
@@ -58,7 +82,7 @@ class AuthSignIn implements UseCase<Either<Failure, void>, LoginData> {
       },
       (result) async {
         authBloc.add(UpdateTokensDataEvent(userToken: result));
-        KeycloakUser? userData;
+        // KeycloakUser? userData;
         Failure? userDataFailure;
 
         final userDataResponse = await authGetUserData.call(NoParams());
@@ -69,7 +93,8 @@ class AuthSignIn implements UseCase<Either<Failure, void>, LoginData> {
             userDataFailure = failure;
           },
           (result) {
-            userData = result;
+            authBloc.add(UpdateUserDataEvent(userData: result));
+            // userData = result;
           },
         );
 

@@ -104,4 +104,6 @@ class ColorConstants {
   static const progressMiddleColor = Color(0xFF0099D8);
   static const progressEndColor = Color(0xFF289D83);
   static const progressBarBackground = Color(0xFFD9D9D9);
+  static const loading = Color(0xFFFFA726);
+  static const moccasin = Color(0xFFFFECB3);
 }

@@ -186,12 +186,30 @@ class ApiClient {
           return AdminLoadPayload.fromJson(value);
         case 'AdminQueryPayload':
           return AdminQueryPayload.fromJson(value);
+        case 'ChatCompletionChoice':
+          return ChatCompletionChoice.fromJson(value);
+        case 'ChatCompletionChunk':
+          return ChatCompletionChunk.fromJson(value);
         case 'ChatCompletionRequest':
           return ChatCompletionRequest.fromJson(value);
+        case 'ChatHistoryMessage':
+          return ChatHistoryMessage.fromJson(value);
+        case 'ChatListResponse':
+          return ChatListResponse.fromJson(value);
         case 'ChatMessage':
           return ChatMessage.fromJson(value);
+        case 'ChatSummary':
+          return ChatSummary.fromJson(value);
+        case 'ComponentConfig':
+          return ComponentConfig.fromJson(value);
+        case 'ComponentItem':
+          return ComponentItem.fromJson(value);
         case 'ConversationItem':
           return ConversationItem.fromJson(value);
+        case 'ConversationItemHistory':
+          return ConversationItemHistory.fromJson(value);
+        case 'ConversationResult':
+          return ConversationResult.fromJson(value);
         case 'CreateCategoryPayload':
           return CreateCategoryPayload.fromJson(value);
         case 'CreateKeyRequest':
@@ -204,20 +222,38 @@ class ApiClient {
           return DeleteDocumentsPayload.fromJson(value);
         case 'DeletePresetsPayload':
           return DeletePresetsPayload.fromJson(value);
+        case 'Document':
+          return Document.fromJson(value);
+        case 'DocumentProperties':
+          return DocumentProperties.fromJson(value);
+        case 'DocumentResponse':
+          return DocumentResponse.fromJson(value);
         case 'ExecutePythonPayload':
           return ExecutePythonPayload.fromJson(value);
         case 'FeedbackPayload':
           return FeedbackPayload.fromJson(value);
         case 'GeneratePayload':
           return GeneratePayload.fromJson(value);
+        case 'GenerationResult':
+          return GenerationResult.fromJson(value);
         case 'GetComponentPayload':
           return GetComponentPayload.fromJson(value);
         case 'GetDocumentPayload':
           return GetDocumentPayload.fromJson(value);
+        case 'HTTPUnauthorizedError':
+          return HTTPUnauthorizedError.fromJson(value);
         case 'HTTPValidationError':
           return HTTPValidationError.fromJson(value);
         case 'KeycloakUser':
           return KeycloakUser.fromJson(value);
+        case 'KnowledgeBlock':
+          return KnowledgeBlock.fromJson(value);
+        case 'KnowledgeCategory':
+          return KnowledgeCategory.fromJson(value);
+        case 'KnowledgeData':
+          return KnowledgeData.fromJson(value);
+        case 'KnowledgeRetrieval':
+          return KnowledgeRetrieval.fromJson(value);
         case 'LoadPayload':
           return LoadPayload.fromJson(value);
         case 'LogoutRequest':
@@ -240,12 +276,22 @@ class ApiClient {
           return SelectedComponent.fromJson(value);
         case 'SetComponentPayload':
           return SetComponentPayload.fromJson(value);
+        case 'SuggestionsResponse':
+          return SuggestionsResponse.fromJson(value);
+        case 'ToolArguments':
+          return ToolArguments.fromJson(value);
+        case 'ToolCall':
+          return ToolCall.fromJson(value);
+        case 'ToolFunctionCall':
+          return ToolFunctionCall.fromJson(value);
         case 'UpdateCategoryPayload':
           return UpdateCategoryPayload.fromJson(value);
         case 'UpdateDocumentsPayload':
           return UpdateDocumentsPayload.fromJson(value);
         case 'UpdatePresetPayload':
           return UpdatePresetPayload.fromJson(value);
+        case 'UserInfo':
+          return UserInfo.fromJson(value);
         case 'UserToken':
           return UserToken.fromJson(value);
         case 'ValidationError':

@@ -183,7 +183,7 @@ This endpoint does not need any parameter.
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **getDocumentApiGetDocumentPost**
-> Object getDocumentApiGetDocumentPost(getDocumentPayload)
+> DocumentResponse getDocumentApiGetDocumentPost(getDocumentPayload)
 
 Get Document
 
@@ -212,7 +212,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**Object**](Object.md)
+[**DocumentResponse**](DocumentResponse.md)
 
 ### Authorization
 

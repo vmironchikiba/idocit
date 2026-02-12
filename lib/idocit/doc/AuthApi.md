@@ -69,7 +69,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **logoutApiLogoutPost**
-> Object logoutApiLogoutPost(logoutRequest)
+> String logoutApiLogoutPost(logoutRequest)
 
 Logout
 
@@ -98,7 +98,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**Object**](Object.md)
+**String**
 
 ### Authorization
 
@@ -112,7 +112,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **refreshApiTokenRefreshPost**
-> Object refreshApiTokenRefreshPost(refreshTokenRequest)
+> UserToken refreshApiTokenRefreshPost(refreshTokenRequest)
 
 Refresh
 
@@ -141,7 +141,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**Object**](Object.md)
+[**UserToken**](UserToken.md)
 
 ### Authorization
 

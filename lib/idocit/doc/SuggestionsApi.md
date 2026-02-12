@@ -53,7 +53,7 @@ This endpoint does not need any parameter.
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **suggestionsApiSuggestionsPost**
-> Object suggestionsApiSuggestionsPost(queryPayload)
+> SuggestionsResponse suggestionsApiSuggestionsPost(queryPayload)
 
 Suggestions
 
@@ -82,7 +82,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**Object**](Object.md)
+[**SuggestionsResponse**](SuggestionsResponse.md)
 
 ### Authorization
 

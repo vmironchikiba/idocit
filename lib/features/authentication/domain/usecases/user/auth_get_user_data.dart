@@ -5,7 +5,6 @@ import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/common/services/network_listener.dart';
 import 'package:idocit/features/authentication/domain/bloc/auth_bloc.dart';
 import 'package:idocit/features/authentication/domain/datasources/auth_remote_datasource.dart';
-import 'package:idocit/features/authentication/domain/models/user_data.dart';
 import 'package:idocit/idocit/lib/api.dart';
 
 class AuthGetUserData implements UseCase<Either<Failure, KeycloakUser>, NoParams> {
@@ -26,7 +25,7 @@ class AuthGetUserData implements UseCase<Either<Failure, KeycloakUser>, NoParams
       return const Left(NetworkFailure());
     }
 
-    final response = await authRemoteDataSource.getUserAttributes();
+    final response = await authRemoteDataSource.getUserAttributes(authBloc.state.userToken);
     return response.fold(
       (failure) async {
         LoggerService.logDebug('FAILURE: AuthGetUserData: authRemoteDataSource.getUserAttributes()');

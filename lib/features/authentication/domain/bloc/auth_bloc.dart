@@ -27,9 +27,9 @@ class AuthBloc extends Bloc<AuthBlocEvent, AuthState> {
       emit(state.clearAdditionalData());
     });
 
-    // on<SignOutAuthEvent>((event, emit) {
-    //   emit(AuthState.initial());
-    // });
+    on<LogOutAuthEvent>((event, emit) {
+      emit(AuthState.initial());
+    });
   }
 
   @override

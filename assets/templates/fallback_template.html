@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            padding: 20px; 
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1, h2, h3, h4, h5, h6 { margin-top: 1.5em; margin-bottom: 0.5em; }
+        pre, code { background-color: #f5f5f5; border-radius: 3px; }
+        pre { padding: 16px; overflow: auto; margin: 1em 0; }
+        code { padding: 2px 4px; font-family: 'SFMono-Regular', Consolas, monospace; }
+        blockquote { border-left: 4px solid #ddd; padding-left: 16px; margin-left: 0; color: #666; }
+        
+        mark.search-match { 
+            background-color: #FFEB3B !important;
+            border: 2px solid #FF9800 !important;
+            padding: 2px 4px !important;
+            border-radius: 3px !important;
+            display: inline-block;
+        }
+        
+        mark.search-match.current-match { 
+            background-color: #FF9800 !important;
+            color: white !important;
+            animation: pulse 2s infinite;
+            border-color: #F57C00 !important;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 152, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0); }
+        }
+        
+        .matches-nav {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <!-- CONTENT_PLACEHOLDER -->
+    
+    <!-- NAVIGATION_PLACEHOLDER -->
+    
+    <script>
+        let currentMatchIndex = 0;
+        let allMatches = [];
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            allMatches = Array.from(document.querySelectorAll('mark.search-match'));
+            const counter = document.getElementById('match-count');
+            if (counter) {
+                counter.textContent = allMatches.length;
+            }
+            
+            if (allMatches.length > 0) {
+                setTimeout(() => {
+                    allMatches[0].classList.add('current-match');
+                    allMatches[0].scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center',
+                        inline: 'nearest' 
+                    });
+                }, 300);
+            }
+        });
+        
+        window.scrollToFirstMatch = function() {
+            if (allMatches.length > 0) {
+                allMatches[0].scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                });
+                return { success: true, index: 0, total: allMatches.length };
+            }
+            return { success: false, message: 'No matches found' };
+        };
+        
+        window.goToNextMatch = function() {
+            if (allMatches.length === 0) {
+                return { success: false, message: 'No matches found' };
+            }
+            
+            const newIndex = (currentMatchIndex + 1) % allMatches.length;
+            
+            allMatches.forEach(match => {
+                match.classList.remove('current-match');
+            });
+            
+            const match = allMatches[newIndex];
+            match.classList.add('current-match');
+            match.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            currentMatchIndex = newIndex;
+            
+            return {
+                success: true,
+                currentIndex: newIndex,
+                total: allMatches.length
+            };
+        };
+        
+        window.goToPreviousMatch = function() {
+            if (allMatches.length === 0) {
+                return { success: false, message: 'No matches found' };
+            }
+            
+            const newIndex = (currentMatchIndex - 1 + allMatches.length) % allMatches.length;
+            
+            allMatches.forEach(match => {
+                match.classList.remove('current-match');
+            });
+            
+            const match = allMatches[newIndex];
+            match.classList.add('current-match');
+            match.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            currentMatchIndex = newIndex;
+            
+            return {
+                success: true,
+                currentIndex: newIndex,
+                total: allMatches.length
+            };
+        };
+        
+        window.getMatchesInfo = function() {
+            return {
+                total: allMatches.length,
+                currentIndex: currentMatchIndex,
+                hasMatches: allMatches.length > 0,
+                matches: allMatches.map((match, idx) => ({
+                    index: idx,
+                    id: match.id,
+                    text: match.textContent.substring(0, 100),
+                    isCurrent: idx === currentMatchIndex
+                }))
+            };
+        };
+        
+        window.debugInfo = function() {
+            return {
+                url: window.location.href,
+                matchesCount: allMatches.length,
+                scrollY: window.pageYOffset,
+                windowHeight: window.innerHeight,
+                documentHeight: document.body.scrollHeight
+            };
+        };
+    </script>
+</body>
+</html>

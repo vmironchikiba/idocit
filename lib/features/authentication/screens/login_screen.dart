@@ -30,8 +30,11 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _userController = TextEditingController(text: 'kaz_audit');
-  final _passwordController = TextEditingController(text: 'kaz_aud1t');
+  // final _userController = TextEditingController(text: 'kaz_audit');
+  // final _passwordController = TextEditingController(text: 'kaz_aud1t');
+
+  final _userController = TextEditingController(text: 'user');
+  final _passwordController = TextEditingController(text: 'uiDocIt7');
 
   final _userFocusNode = FocusNode();
   final _passwordFocusNode = FocusNode();
@@ -300,6 +303,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 callback: () => _onLogInHandler(context),
                 isBlocked: !_isButtonEnabled,
                 withProgress: _isRequestInProgress,
+                color: Color.fromARGB(255, 210, 159, 0),
+                contentWidget: Text('Log In', style: TextStyle(color: Colors.black, fontSize: 18)),
               ),
             ],
           ),
