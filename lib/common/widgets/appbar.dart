@@ -9,7 +9,7 @@ import 'package:swipeable_page_route/swipeable_page_route.dart';
 
 enum IdocItAppBarType { black, grey }
 
-class FootprintAppBar extends StatelessWidget implements PreferredSizeWidget {
+class IdocItAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? heroTag;
   final String? title;
   final Widget? titleContent;
@@ -24,7 +24,7 @@ class FootprintAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool isBlocked;
   final VoidCallback? backButtonCallback;
 
-  const FootprintAppBar({
+  const IdocItAppBar({
     Key? key,
     this.heroTag,
     this.title,

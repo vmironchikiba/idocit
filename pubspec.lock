@@ -894,10 +894,10 @@ packages:
     dependency: "direct main"
     description:
       name: swipeable_page_route
-      sha256: "3fa21771017efe12e9aeeafeb2c1221daef5effa34043980fc3cb689ae5df403"
+      sha256: "2ec747f65100d670a997b6209cb442d81bec08eb5bffa21867394513c65efee8"
       url: "https://pub.dev"
     source: hosted
-    version: "0.4.7"
+    version: "0.4.8"
   term_glyph:
     dependency: transitive
     description:

@@ -1,6 +1,7 @@
 import 'package:get_it/get_it.dart';
 import 'package:idocit/common/blocs/core_bloc.dart';
 import 'package:idocit/common/datasources/core_preferences_storage.dart';
+import 'package:idocit/common/services/in_app_failures/in_app_failure_provider.dart';
 import 'package:idocit/common/services/navigator.dart';
 import 'package:idocit/common/services/network_listener.dart';
 import 'package:idocit/common/usecases/core_update_in_app_toast.dart';
@@ -47,6 +48,7 @@ void initLocator() {
   locator.registerLazySingleton(() => DeviceService());
   locator.registerLazySingleton(() => ThemeProvider());
   locator.registerLazySingleton(() => CharlesProvider());
+  locator.registerLazySingleton(() => InAppFailureProvider());
   locator.registerLazySingleton(() => LoggerService());
   locator.registerLazySingleton(() => CorePreferencesStorage());
   locator.registerLazySingleton(() => NetworkListenerService());

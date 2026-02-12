@@ -51,7 +51,7 @@ dependencies:
   connectivity_plus: ^7.0.0
   flutter_svg: ^2.2.1
   provider: ^6.1.5+1
-  swipeable_page_route: ^0.4.7
+  swipeable_page_route: ^0.4.8
   flutter_html: ^3.0.0
   flutter_markdown_plus: ^1.0.7
   webview_flutter: ^4.13.1

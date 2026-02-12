@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:idocit/common/models/service/usecase.dart';
+import 'package:idocit/common/services/device.dart';
 import 'package:idocit/common/widgets/buttons/icon_button.dart';
 import 'package:idocit/constants/colors.dart';
 import 'package:idocit/constants/image.dart';
@@ -55,6 +56,8 @@ class UserProfile extends StatelessWidget {
             value: locator<AuthBloc>().state.userData?.role ?? '',
             icon: Icons.verified_user,
           ),
+          SizedBox(height: 20.0),
+          Text(locator<DeviceService>().currentBuildBanner()),
         ],
       ),
     );
