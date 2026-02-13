@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:idocit/common/models/service/usecase.dart';
 import 'package:idocit/common/widgets/buttons/text_button.dart';
+import 'package:idocit/common/widgets/indicators/loading_indicator.dart';
 import 'package:idocit/constants/colors.dart';
 import 'package:idocit/features/idocit/domain/blocs/idocit/idocit_bloc.dart';
 import 'package:idocit/features/idocit/domain/usecases/idocit_lazy_init_chats.dart';
@@ -25,6 +26,17 @@ class _SliderMenuState extends State<SliderMenu> {
     super.initState();
     _isRequestInProgress = true;
     locator<IdocItLazyInitChats>().call(NoParams()).then((onValue) {
+      setState(() {
+        _isRequestInProgress = false;
+      });
+    });
+  }
+
+  Future<void> _onRefresh() async {
+    setState(() {
+      _isRequestInProgress = false;
+    });
+    await locator<IdocItLazyInitChats>().call(NoParams()).then((onValue) {
       setState(() {
         _isRequestInProgress = false;
       });
@@ -56,21 +68,26 @@ class _SliderMenuState extends State<SliderMenu> {
           return Material(
             // Добавлен Material виджет как предок для ListTile
             color: ColorConstants.black300,
-            child: ListView(
-              children: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4.0),
-                  child: IdocItTextButton(
-                    contentText: 'New chat',
-                    callback: () async {
-                      await widget.onItemClick!('', 'New chat');
-                    },
-                    color: ColorConstants.black400,
-                  ),
-                ),
-                ...chatsButtons,
-                UserProfile(),
-              ],
+            child: RefreshIndicator(
+              onRefresh: _onRefresh,
+              child: _isRequestInProgress
+                  ? Center(child: IdocItLoadingIndicator())
+                  : ListView(
+                      children: <Widget>[
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: IdocItTextButton(
+                            contentText: 'New chat',
+                            callback: () async {
+                              await widget.onItemClick!('', 'New chat');
+                            },
+                            color: ColorConstants.black400,
+                          ),
+                        ),
+                        ...chatsButtons,
+                        UserProfile(),
+                      ],
+                    ),
             ),
           );
         },
