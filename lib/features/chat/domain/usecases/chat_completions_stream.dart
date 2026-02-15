@@ -75,9 +75,7 @@ class ChatStartCompletionsStream implements UseCase<Either<Failure, void>, Compl
                   final Map second = (data[1] as Map?) ?? {};
                   final Map generation = (second['generation'] as Map?) ?? {};
                   if (toolCallId == 'generation.node_update') {
-                    final queryResponse = QueryResponse.fromJson(generation['knowledge']);
                     chatBloc.add(SetQueryResponse(queryResponse: QueryResponse.fromJson(generation['knowledge'])));
-                    // traceId = arguments['trace_id'];
                     chatBloc.add(SetTraceId(traceId: arguments['trace_id']));
                   }
                   final Map generationResult = (generation['generation_result'] as Map?) ?? {};
@@ -88,8 +86,6 @@ class ChatStartCompletionsStream implements UseCase<Either<Failure, void>, Compl
                 }
               }
             }
-
-            //  final toolCallsId = toolCalls != null ? toolCalls!['tool_calls'] : '';
 
             chatBloc.add(SetChunkEvent(chunk: chunk));
           },

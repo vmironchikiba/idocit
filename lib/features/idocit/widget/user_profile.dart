@@ -1,17 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:idocit/common/models/service/usecase.dart';
 import 'package:idocit/common/services/device.dart';
-import 'package:idocit/common/widgets/buttons/icon_button.dart';
+import 'package:idocit/common/utils/dialogs.dart';
 import 'package:idocit/constants/colors.dart';
-import 'package:idocit/constants/image.dart';
 import 'package:idocit/features/authentication/domain/bloc/auth_bloc.dart';
-import 'package:idocit/features/authentication/domain/usecases/sign/auth_sign_out.dart';
+import 'package:idocit/features/idocit/widget/profile_logout_dialog.dart';
+// import 'package:idocit/features/authentication/domain/usecases/sign/auth_sign_out.dart';
+import 'package:idocit/features/idocit/widget/profile_settings_dialog.dart';
 import 'package:idocit/injection_container.dart';
 
-class UserProfile extends StatelessWidget {
-  const UserProfile({super.key});
-  _handleLogOut() {
-    locator<AuthSignOut>().call(NoParams());
+class UserProfile extends StatefulWidget {
+  UserProfile({super.key});
+
+  @override
+  State<UserProfile> createState() => _UserProfileState();
+}
+
+class _UserProfileState extends State<UserProfile> {
+  bool _isDialogHidden = false;
+  bool _isRequestInProgress = false;
+
+  Future<void> _handleLogOut() async {
+    if (_isRequestInProgress) {
+      return;
+    }
+
+    setState(() {
+      _isRequestInProgress = true;
+    });
+    final isCompleted = await idocitShowDialog(const ProfileLogOutDialog(), context: context);
+    if (isCompleted == true) {
+      return;
+    }
+
+    setState(() {
+      _isRequestInProgress = false;
+      _isDialogHidden = false;
+    });
+
+    setState(() {
+      _isRequestInProgress = false;
+    });
   }
 
   @override

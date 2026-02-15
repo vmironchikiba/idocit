@@ -1,7 +1,9 @@
 import 'package:dartz/dartz.dart';
 import 'package:idocit/common/models/service/failure.dart';
 import 'package:idocit/common/models/service/usecase.dart';
+import 'package:idocit/common/services/in_app_failures/in_app_failure_provider.dart';
 import 'package:idocit/common/services/logger.dart';
+import 'package:idocit/common/services/network_listener.dart';
 import 'package:idocit/constants/errors.dart';
 import 'package:idocit/features/authentication/domain/bloc/auth_bloc.dart';
 import 'package:idocit/features/authentication/domain/datasources/auth_remote_datasource.dart';
@@ -9,8 +11,10 @@ import 'package:idocit/features/authentication/domain/datasources/auth_secure_st
 import 'package:idocit/features/authentication/domain/usecases/auth_update_status.dart';
 import 'package:idocit/features/authentication/domain/usecases/sign/auth_sign_in.dart';
 import 'package:idocit/features/authentication/domain/usecases/user/auth_get_user_data.dart';
+import 'package:idocit/injection_container.dart';
 
 class AuthAutoSignIn implements UseCase<Either<Failure, void>, NoParams> {
+  final NetworkListenerService networkListenerService;
   final AuthBloc authBloc;
   final AuthGetUserData authGetUserData;
   final AuthRemoteDataSource authRemoteDataSource;
@@ -19,6 +23,7 @@ class AuthAutoSignIn implements UseCase<Either<Failure, void>, NoParams> {
   final AuthSignIn authSignIn;
 
   const AuthAutoSignIn({
+    required this.networkListenerService,
     required this.authBloc,
     required this.authGetUserData,
     required this.authRemoteDataSource,
@@ -30,6 +35,17 @@ class AuthAutoSignIn implements UseCase<Either<Failure, void>, NoParams> {
   @override
   Future<Either<Failure, void>> call(NoParams params) async {
     LoggerService.logDebug('AuthAutoSignIn -> call()');
+    if (!await networkListenerService.checkNetworkConnection(() => call(NoParams()))) {
+      return const Left(NetworkFailure());
+    }
+    locator<InAppFailureProvider>().addEvent(toString());
+    if (!await networkListenerService.checkNetworkConnection(() => call(params))) {
+      locator<InAppFailureProvider>().removeEvent(toString());
+      return const Left(NetworkFailure());
+    }
+
+    locator<InAppFailureProvider>().removeEvent(toString());
+
     final token = await authSecureStorage.readTokensData();
     if (token == null) return Left(NetworkFailure());
     final refreshToken = await authRemoteDataSource.refreshTokenRequest(token.refreshToken);

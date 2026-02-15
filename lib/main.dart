@@ -28,14 +28,12 @@ void main() async {
   initLocator();
   await locator<DeviceService>().init();
   await AbstractSharedPreferencesDatasource.init();
-  // Future.wait([locator<DeviceService>().init(), AbstractSharedPreferencesDatasource.init()]);
+  Future.wait([locator<DeviceService>().init(), AbstractSharedPreferencesDatasource.init()]);
   runApp(const IDocItApp());
 }
 
 class IDocItApp extends StatefulWidget {
   const IDocItApp({super.key});
-
-  final String title = 'Flutter Demo Home Page';
 
   @override
   State<IDocItApp> createState() => _IDocItAppState();
@@ -97,8 +95,6 @@ class _IDocItAppState extends State<IDocItApp> {
                   //   child: InAppNotificationBackground(),
                   // ),
                   const Positioned.fill(child: InAppFailureBackground()),
-                  // if (locator<DeviceService>().currentBuildMode() != BuildMode.prod)
-                  //   const Positioned(bottom: 0.0, right: 0.0, child: FootprintBuildVersionBanner()),
                 ],
               );
             },

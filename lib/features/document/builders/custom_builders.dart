@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
+import 'package:idocit/common/services/logger.dart';
 import 'package:markdown/markdown.dart' as md;
 
 class MultilineHighlightBuilder extends MarkdownElementBuilder {
@@ -27,7 +28,7 @@ class MultilineHighlightBuilder extends MarkdownElementBuilder {
     TextStyle? preferredStyle,
     TextStyle? parentStyle,
   ) {
-    print('Билдер вызван для тега: ${element.tag}, текст: "${element.textContent}"');
+    LoggerService.logDebug('Билдер вызван для тега: ${element.tag}, текст: "${element.textContent}"');
 
     final text = element.textContent;
     final colorAttr = element.attributes['color'];

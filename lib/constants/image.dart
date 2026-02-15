@@ -176,7 +176,7 @@ class ImageConstants {
   static const icLBS = 'assets/icons/logo/ic_lbs_logo.svg';
   static const icSplashLogo = 'assets/icons/logo/ic_splash_logo.png';
   static const icLBSSmallLabel = 'assets/icons/logo/ic_lbs_small_label.svg';
-  static const icIdocItLogo = 'assets/icons/logo/ic_livefootprint_logo.svg';
+  static const icIdocItLogo = 'assets/icons/logo/ic_idocit_logo.svg';
 
   /// Custom LF GIF-s
   static const igSplashLogoGIF = 'assets/gifs/ig_splash_logo.gif';

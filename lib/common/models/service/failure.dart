@@ -24,6 +24,10 @@ class NetworkFailure extends Failure {
   const NetworkFailure() : super('No Internet connection');
 }
 
+class UnautorizedFailure extends Failure {
+  const UnautorizedFailure() : super('Autorization failed');
+}
+
 class AuthFailure extends Failure {
   final AuthErrorType type;
 

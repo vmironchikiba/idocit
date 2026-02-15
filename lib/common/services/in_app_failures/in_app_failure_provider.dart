@@ -5,11 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:idocit/common/services/in_app_failures/in_app_failure_data.dart';
 import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/constants/image.dart';
-// import 'package:live_footprint/common/services/in_app_failures/in_app_failure_data.dart';
-// import 'package:live_footprint/common/services/logger.dart';
-// import 'package:live_footprint/constants/image.dart';
-// import 'package:live_footprint/features/dashboard/domain/enums/consumption_enum.dart';
-// import 'package:live_footprint/features/profile/domain/models/consumption_provider.dart';
 
 class InAppFailureProvider with ChangeNotifier {
   final _inProgressEvents = <String>[];
@@ -20,7 +15,7 @@ class InAppFailureProvider with ChangeNotifier {
   bool _isProcessing = false;
 
   bool get isShowing => isHaveFailures || _isProcessing;
-  bool get isShowingDialog => primaryType == InAppFailureType.linkProviders && isShowing;
+  bool get isShowingDialog => true; //primaryType == InAppFailureType.linkProviders && isShowing;
   bool get isHaveFailures => _inProgressEvents.isEmpty && _inAppFailures.isNotEmpty;
   bool get isImportant => _inAppFailureOptions.map((option) => option.isImportant).contains(true);
 

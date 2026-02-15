@@ -4,9 +4,6 @@ import 'package:idocit/common/models/service/usecase.dart';
 import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/common/services/network_listener.dart';
 import 'package:idocit/features/chat/domain/bloc/chat_bloc.dart';
-import 'package:idocit/features/chat/domain/usecases/chat_lazy_init_suggestions.dart';
-
-import 'package:idocit/injection_container.dart';
 
 class ChaReset implements UseCase<Either<Failure, void>, NoParams> {
   final NetworkListenerService networkListenerService;

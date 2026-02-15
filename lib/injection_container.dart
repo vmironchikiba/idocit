@@ -142,6 +142,7 @@ void initLocator() {
   );
   locator.registerLazySingleton(
     () => AuthAutoSignIn(
+      networkListenerService: locator<NetworkListenerService>(),
       authBloc: locator<AuthBloc>(),
       authGetUserData: locator<AuthGetUserData>(),
       authUpdateStatus: locator<AuthUpdateStatus>(),
