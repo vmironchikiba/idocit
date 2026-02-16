@@ -99,7 +99,7 @@ class _IdocItChatState extends State<IdocItChat> {
                             LastCompletionRequestCard(text: state.completionRequests.last.content),
 
                           if (state.preMessageArray.isNotEmpty && state.generationResultSystem == null)
-                            LastUserPendingMessage(text: state.preMessageArray.last),
+                            LastUserPendingArray(preMessageArray: state.preMessageArray),
 
                           if (state.generationResultSystem != null)
                             SystemResponseCard(message: state.generationResultSystem!),
@@ -108,13 +108,9 @@ class _IdocItChatState extends State<IdocItChat> {
                             items: state.queryResponse?.categories.expand((c) => c.knowledgeData).toList() ?? [],
                             onItemTap: (udid, index) {},
                           ),
-
-                          // DocNamesExpandableList(
-                          //   docNames: state.queryResponse?.categories.expand((c) => c.knowledgeData).toList() ?? [],
-                          // ),
                         ],
                       ),
-                      if (state.isInProcess) Center(child: IdocItLoadingIndicator(size: 30.0)),
+                      // if (state.isInProcess) Center(child: IdocItLoadingIndicator(size: 30.0)),
                     ],
                   );
                 },

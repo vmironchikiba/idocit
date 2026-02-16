@@ -40,7 +40,7 @@ class ChatStartCompletionsStream implements UseCase<Either<Failure, void>, Compl
           (chunk) {
             if (chunk.choices.isEmpty) return;
             LoggerService.logDebug('EEEEEEEEEEEEEEEEEEEEE ${chunk.toString()}EEEEEEEE');
-            final choice = chunk.choices[0];
+            final choice = chunk.choices.first;
             final delta = choice.delta;
             final toolCalls = delta['tool_calls'] as List<dynamic>? ?? [];
             final content = delta['content'] as String?;
