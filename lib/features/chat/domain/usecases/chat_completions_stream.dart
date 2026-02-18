@@ -39,54 +39,40 @@ class ChatStartCompletionsStream implements UseCase<Either<Failure, void>, Compl
         .listen(
           (chunk) {
             if (chunk.choices.isEmpty) return;
-            LoggerService.logDebug('EEEEEEEEEEEEEEEEEEEEE ${chunk.toString()}EEEEEEEE');
             final choice = chunk.choices.first;
-            final delta = choice.delta;
-            final toolCalls = delta['tool_calls'] as List<dynamic>? ?? [];
-            final content = delta['content'] as String?;
+            final delta = Delta.fromJson(choice.delta);
+            final content = delta.content;
+            final toolCalls = delta.toolCalls ?? [];
             if (content != null) {
               buffer += content.replaceAll('\n', ' ');
               previewBuffer += content;
             }
-
-            //
-            if (toolCalls.isNotEmpty) {
-              final finishReasonIsToolCalls = choice.finishReason == 'tool_calls';
-
-              final Map toolCall = (toolCalls[0] as Map?) ?? {};
-              final toolCallId = toolCall['id'] as String?;
-              final Map function = (toolCall['function'] as Map?) ?? {};
-              final Map arguments = (function['arguments'] as Map?) ?? {};
-              final isReasonSystemToken = (arguments['type'] as String?) == 'system.token';
-              if (finishReasonIsToolCalls) {
-                if (isReasonSystemToken) {
-                  final message = (arguments['message'] as String?) ?? '';
-                  if (message.isNotEmpty) {
-                    final preMessageArray = chatBloc.state.preMessageArray;
-                    preMessageArray.add(message);
-                    chatBloc.add(SetPreMessageArray(preMessageArray: preMessageArray));
-                  }
-                }
-              }
-              final data = arguments['data'] as List? ?? [];
-              if (data.length > 1) {
-                final first = data[0];
-                if (first == 'updates') {
-                  final Map second = (data[1] as Map?) ?? {};
-                  final Map generation = (second['generation'] as Map?) ?? {};
-                  if (toolCallId == 'generation.node_update') {
-                    chatBloc.add(SetQueryResponse(queryResponse: QueryResponse.fromJson(generation['knowledge'])));
-                    chatBloc.add(SetTraceId(traceId: arguments['trace_id']));
-                  }
-                  final Map generationResult = (generation['generation_result'] as Map?) ?? {};
-                  final system = generationResult['system'] as String?;
-                  if (system != null) {
-                    chatBloc.add(SetGenerationResultSystem(generationResultSystem: system));
-                  }
+            final toolCall = toolCalls.isNotEmpty ? ToolCall.fromJson(toolCalls.first) : null;
+            final arguments = toolCall?.function?.arguments;
+            final updates = arguments?.updatesPayload;
+            if (choice.finishReason == 'tool_calls') {
+              if (arguments?.type == 'system.token') {
+                final message = arguments?.message ?? '';
+                if (message.isNotEmpty) {
+                  final preMessageArray = chatBloc.state.preMessageArray;
+                  preMessageArray.add(message);
+                  chatBloc.add(SetPreMessageArray(preMessageArray: preMessageArray));
                 }
               }
             }
+            if (updates != null) {
+              final system = updates.generation?.generationResult?.system;
 
+              if (system != null) {
+                chatBloc.add(SetGenerationResultSystem(generationResultSystem: system));
+              }
+              if (toolCall?.id == 'generation.node_update') {
+                if (updates.generation?.knowledge != null) {
+                  chatBloc.add(SetQueryResponse(queryResponse: updates.generation?.knowledge));
+                }
+                chatBloc.add(SetTraceId(traceId: arguments?.traceId));
+              }
+            }
             chatBloc.add(SetChunkEvent(chunk: chunk));
           },
           onError: (err) {

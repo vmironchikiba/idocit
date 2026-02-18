@@ -28,7 +28,7 @@ void main() async {
   initLocator();
   await locator<DeviceService>().init();
   await AbstractSharedPreferencesDatasource.init();
-  Future.wait([locator<DeviceService>().init(), AbstractSharedPreferencesDatasource.init()]);
+  Future.wait([AbstractSharedPreferencesDatasource.init()]);
   runApp(const IDocItApp());
 }
 
