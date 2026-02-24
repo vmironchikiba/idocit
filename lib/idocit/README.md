@@ -132,6 +132,7 @@ Class | Method | HTTP request | Description
  - [ChatCompletionChoice](doc//ChatCompletionChoice.md)
  - [ChatCompletionChunk](doc//ChatCompletionChunk.md)
  - [ChatCompletionRequest](doc//ChatCompletionRequest.md)
+ - [ChatDeleteSuccess](doc//ChatDeleteSuccess.md)
  - [ChatHistoryMessage](doc//ChatHistoryMessage.md)
  - [ChatListResponse](doc//ChatListResponse.md)
  - [ChatMessage](doc//ChatMessage.md)

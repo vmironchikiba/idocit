@@ -87,29 +87,30 @@ class _IdocItChatState extends State<IdocItChat> {
               BlocBuilder<ChatBloc, ChatState>(
                 builder: (context, state) {
                   WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
-                  return ListView(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.only(bottom: 65),
+                  return Stack(
                     children: [
-                      ChatHistoryList(messages: state.chatHistoryMessages),
+                      ListView(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.only(bottom: 65),
+                        children: [
+                          if (!state.isInProcess) ChatHistoryList(messages: state.chatHistoryMessages),
 
-                      if (state.completionRequests.isNotEmpty)
-                        LastCompletionRequestCard(text: state.completionRequests.last.content),
+                          if (state.completionRequests.isNotEmpty)
+                            LastCompletionRequestCard(text: state.completionRequests.last.content),
 
-                      if (state.preMessageArray.isNotEmpty && state.generationResultSystem == null)
-                        LastUserPendingMessage(text: state.preMessageArray.last),
+                          if (state.preMessageArray.isNotEmpty && state.generationResultSystem == null)
+                            LastUserPendingArray(preMessageArray: state.preMessageArray),
 
-                      if (state.generationResultSystem != null)
-                        SystemResponseCard(message: state.generationResultSystem!),
+                          if (state.generationResultSystem != null)
+                            SystemResponseCard(message: state.generationResultSystem!),
 
-                      InlineExpandableList(
-                        items: state.queryResponse?.categories.expand((c) => c.knowledgeData).toList() ?? [],
-                        onItemTap: (udid, index) {},
+                          InlineExpandableList(
+                            items: state.queryResponse?.categories.expand((c) => c.knowledgeData).toList() ?? [],
+                            onItemTap: (udid, index) {},
+                          ),
+                        ],
                       ),
-
-                      // DocNamesExpandableList(
-                      //   docNames: state.queryResponse?.categories.expand((c) => c.knowledgeData).toList() ?? [],
-                      // ),
+                      // if (state.isInProcess) Center(child: IdocItLoadingIndicator(size: 30.0)),
                     ],
                   );
                 },

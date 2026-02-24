@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 enum Role { user, assistant, unknown }
 
 extension StringRole on Role {

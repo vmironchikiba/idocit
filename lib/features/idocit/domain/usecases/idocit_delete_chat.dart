@@ -8,35 +8,32 @@ import 'package:idocit/constants/errors.dart';
 import 'package:idocit/features/authentication/domain/bloc/auth_bloc.dart';
 import 'package:idocit/features/idocit/domain/blocs/idocit/idocit_bloc.dart';
 import 'package:idocit/features/idocit/domain/datasources/idocit_remote_datasource.dart';
+import 'package:idocit/features/idocit/domain/usecases/idocit_lazy_init_chats.dart';
 
-class IdocItLazyInitChats implements UseCase<Either<Failure, void>, NoParams> {
+class IdocItDeleteChat implements UseCase<Either<Failure, void>, String> {
   final NetworkListenerService networkListenerService;
   final IdocItBloc idocItBloc;
   final AuthBloc authBloc;
   final IdocItRemoteDataSource idocItRemoteDataSource;
+  final IdocItLazyInitChats idocItLazyInitChats;
 
-  const IdocItLazyInitChats({
+  const IdocItDeleteChat({
     required this.networkListenerService,
     required this.idocItBloc,
     required this.authBloc,
     required this.idocItRemoteDataSource,
+    required this.idocItLazyInitChats,
   });
 
   @override
-  Future<Either<Failure, void>> call(NoParams params) async {
-    LoggerService.logDebug('IdocItLazyInitChats -> call()');
+  Future<Either<Failure, void>> call(String chatId) async {
+    LoggerService.logDebug('IdocItDeleteChat -> call()');
     idocItBloc.add(IdocItResetEvent());
     final token = authBloc.state.userToken;
     if (token == null) return Left(AuthFailure(message: 'Token is empty', type: AuthErrorType.badTokensData));
-    final chatsResult = await idocItRemoteDataSource.getChats(token);
-    return chatsResult.fold(
-      (failure) async {
-        return Left(NetworkFailure());
-      },
-      (result) async {
-        idocItBloc.add(SetChatsEvent(chats: result));
-        return Right(null);
-      },
-    );
+    final deleteChatResult = await idocItRemoteDataSource.deleteChat(token, chatId: chatId);
+    return deleteChatResult.fold((failure) async {
+      return Left(failure);
+    }, (_) async => await idocItLazyInitChats.call(NoParams()));
   }
 }

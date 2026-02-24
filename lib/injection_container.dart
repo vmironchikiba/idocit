@@ -37,6 +37,7 @@ import 'package:idocit/features/document/domain/datasources/document_datasource.
 import 'package:idocit/features/document/domain/usecases/get_document_by_id.dart';
 import 'package:idocit/features/idocit/domain/blocs/idocit/idocit_bloc.dart';
 import 'package:idocit/features/idocit/domain/datasources/idocit_remote_datasource.dart';
+import 'package:idocit/features/idocit/domain/usecases/idocit_delete_chat.dart';
 import 'package:idocit/features/idocit/domain/usecases/idocit_reset.dart';
 import 'package:idocit/features/idocit/domain/usecases/idocit_lazy_init_chats.dart';
 import 'package:idocit/idocit/lib/api.dart';
@@ -142,6 +143,7 @@ void initLocator() {
   );
   locator.registerLazySingleton(
     () => AuthAutoSignIn(
+      networkListenerService: locator<NetworkListenerService>(),
       authBloc: locator<AuthBloc>(),
       authGetUserData: locator<AuthGetUserData>(),
       authUpdateStatus: locator<AuthUpdateStatus>(),
@@ -165,6 +167,16 @@ void initLocator() {
       idocItRemoteDataSource: locator<IdocItRemoteDataSource>(),
     ),
   );
+  locator.registerLazySingleton(
+    () => IdocItDeleteChat(
+      networkListenerService: locator<NetworkListenerService>(),
+      idocItBloc: locator<IdocItBloc>(),
+      authBloc: locator<AuthBloc>(),
+      idocItRemoteDataSource: locator<IdocItRemoteDataSource>(),
+      idocItLazyInitChats: locator<IdocItLazyInitChats>(),
+    ),
+  );
+  //IdocItDeleteChat
   locator.registerLazySingleton(
     () => GetChatHistory(
       networkListenerService: locator<NetworkListenerService>(),

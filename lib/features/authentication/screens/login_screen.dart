@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:idocit/common/models/in_app_toast_data.dart';
 import 'package:idocit/common/models/service/failure.dart';
+import 'package:idocit/common/services/in_app_failures/in_app_failure_widget.dart';
 import 'package:idocit/common/usecases/core_update_in_app_toast.dart';
 import 'package:idocit/common/widgets/buttons/text_button.dart';
+import 'package:idocit/common/widgets/in_app_elements/in_app_toast.dart';
 import 'package:idocit/common/widgets/input_fields/input_validators.dart';
 import 'package:idocit/common/widgets/input_fields/text_input_field.dart';
 import 'package:idocit/common/widgets/texts.dart';
@@ -297,7 +299,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 12.0),
                 ],
               ),
-              const SizedBox(height: 24.0),
+              const SizedBox(height: 12.0),
+              const InAppToastBackground(key: ValueKey(LoginScreen.routeName), margin: 4.0),
+              const SizedBox(height: 12.0),
               IdocItTextButton(
                 contentText: 'Log In',
                 callback: () => _onLogInHandler(context),

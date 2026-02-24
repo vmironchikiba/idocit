@@ -15,6 +15,9 @@ class AuthRemoteDataSource {
       final result = await locator<AuthApi>().loginApiLoginPost(data.email, data.password);
       return result != null ? Right(result) : Left(NetworkFailure());
     } on ApiException catch (exception) {
+      if (exception.code == 400) {
+        return Left(UnautorizedFailure());
+      }
       if (exception.code == 401) {
         return Left(
           TokenExpiredFailure(message: exception.message ?? 'Token expired', type: AuthErrorType.tokenExpired),

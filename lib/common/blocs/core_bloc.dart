@@ -9,6 +9,9 @@ class CoreBloc extends Bloc<CoreBlocEvent, CoreState> {
     on<UpdateInAppToastEvent>((event, emit) {
       emit(state.updateInfoMessage(infoMessage: event.inAppToastData));
     });
+    on<SignOutCoreEvent>((event, emit) {
+      emit(CoreState.initial());
+    });
   }
 
   @override

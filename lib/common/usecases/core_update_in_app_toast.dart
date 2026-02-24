@@ -14,9 +14,9 @@ class CoreUpdateInAppToast implements UseCase<void, InAppToastData?> {
       return;
     }
 
-    if (data?.type == InAppToastType.network) {
-      return;
-    }
+    // if (data?.type == InAppToastType.network) {
+    //   return;
+    // }
 
     LoggerService.logDebug('CoreUpdateInAppToast -> call(id: ${data?.id}, key: ${data?.key})');
     if (data == null) {

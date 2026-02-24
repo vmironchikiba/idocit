@@ -3,13 +3,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:idocit/common/widgets/indicators/loading_indicator.dart';
 import 'package:idocit/constants/sizes.dart';
 
-class FootprintPinnedRefreshIndicator extends StatelessWidget {
+class IdocItPinnedRefreshIndicator extends StatelessWidget {
   final Future<void> Function() onRefresh;
   final Color? backgroundColor;
   final double marginMultiplier;
   final bool isOnTopPosition;
 
-  const FootprintPinnedRefreshIndicator({
+  const IdocItPinnedRefreshIndicator({
     super.key,
     required this.onRefresh,
     this.backgroundColor,

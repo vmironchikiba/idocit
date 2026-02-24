@@ -19,7 +19,7 @@ class ScrollableWrapper extends StatefulWidget {
   final ScrollController? controller;
   final Widget child;
   final IdocItSliverAppBar? sliverAppBar;
-  final FootprintPinnedRefreshIndicator? sliverRefreshIndicator;
+  final IdocItPinnedRefreshIndicator? sliverRefreshIndicator;
   final Axis direction;
   final MainAxisAlignment mainAxisAlignment;
   final CrossAxisAlignment crossAxisAlignment;

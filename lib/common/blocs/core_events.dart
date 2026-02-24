@@ -9,3 +9,7 @@ class UpdateInAppToastEvent extends CoreBlocEvent {
 
   UpdateInAppToastEvent({required this.inAppToastData}) : super([inAppToastData]);
 }
+
+class SignOutCoreEvent extends CoreBlocEvent {
+  SignOutCoreEvent() : super();
+}

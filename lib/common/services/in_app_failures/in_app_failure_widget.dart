@@ -45,16 +45,17 @@ class _InAppFailureBackgroundState extends State<InAppFailureBackground> {
     setState(() {
       _isRequestInProgress = true;
     });
-    _inAppFailureProvider.primaryType!.getTitle();
-    await idocitShowDialog<bool?>(
-      IdocItWarningDialog(
-        label: _inAppFailureProvider.primaryType!.getTitle(),
-        description: _inAppFailureProvider.primaryType!.getDescription(),
-        iconSrc: _inAppFailureProvider.iconSrc,
-        buttonText: _inAppFailureProvider.primaryType!.getButtonTitle(),
-        buttonCallback: _onTryAgainHandler,
-      ),
-    );
+    if (_inAppFailureProvider.primaryType != null) {
+      await idocitShowDialog<bool?>(
+        IdocItWarningDialog(
+          label: _inAppFailureProvider.primaryType?.getTitle() ?? 'getTitle',
+          description: _inAppFailureProvider.primaryType?.getDescription() ?? 'getTitle',
+          iconSrc: _inAppFailureProvider.iconSrc,
+          buttonText: _inAppFailureProvider.primaryType?.getButtonTitle() ?? 'getTitle',
+          buttonCallback: _onTryAgainHandler,
+        ),
+      );
+    }
 
     if (_inAppFailureProvider.primaryOptions?.onGoBack != null) {
       _inAppFailureProvider.primaryOptions!.onGoBack!();

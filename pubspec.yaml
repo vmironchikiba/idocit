@@ -57,6 +57,7 @@ dependencies:
   webview_flutter: ^4.13.1
   flutter_sliding_drawer: ^2.0.0
   flutter_slider_drawer: ^3.0.2
+  flutter_tts: ^4.2.5
 
 dev_dependencies:
   flutter_test:
