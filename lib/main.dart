@@ -20,6 +20,7 @@ import 'package:idocit/features/document/domain/bloc/document_bloc.dart';
 import 'package:idocit/features/idocit/domain/blocs/idocit/idocit_bloc.dart';
 import 'package:idocit/features/idocit/screens/idocit_screen.dart';
 import 'package:idocit/features/screen_builder.dart';
+import 'package:idocit/features/tts/domain/blocs/tts_bloc.dart';
 import 'package:idocit/injection_container.dart';
 import 'package:provider/provider.dart';
 
@@ -52,6 +53,7 @@ class _IDocItAppState extends State<IDocItApp> {
     return MultiBlocProvider(
       providers: [
         BlocProvider.value(value: locator<CoreBloc>()),
+        BlocProvider.value(value: locator<TtsBloc>()),
         BlocProvider.value(value: locator<AuthBloc>()),
         BlocProvider.value(value: locator<IdocItBloc>()),
         BlocProvider.value(value: locator<ComponentsBloc>()),

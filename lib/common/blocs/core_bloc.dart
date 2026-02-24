@@ -5,7 +5,7 @@ part 'core_events.dart';
 part 'core_state.dart';
 
 class CoreBloc extends Bloc<CoreBlocEvent, CoreState> {
-  CoreBloc(CoreState initialState) : super(initialState) {
+  CoreBloc(super.initialState) {
     on<UpdateInAppToastEvent>((event, emit) {
       emit(state.updateInfoMessage(infoMessage: event.inAppToastData));
     });

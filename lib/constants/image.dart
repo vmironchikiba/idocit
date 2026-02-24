@@ -188,4 +188,5 @@ class ImageConstants {
   static const addSvg = 'assets/icons/add.svg';
   static const chatPreviewSvg = 'assets/icons/chatPreview.svg';
   static const chatPreviewPng = 'assets/icons/chatPreview.png';
+  static const microphoneSvg = 'assets/icons/microphone.svg';
 }
