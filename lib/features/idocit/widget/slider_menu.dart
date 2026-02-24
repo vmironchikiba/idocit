@@ -21,11 +21,13 @@ class SliderMenu extends StatefulWidget {
 
 class _SliderMenuState extends State<SliderMenu> {
   bool _isRequestInProgress = false;
+  bool _isNewChatAdded = false;
 
   @override
   void initState() {
     super.initState();
     _isRequestInProgress = true;
+    _isNewChatAdded = false;
     locator<IdocItLazyInitChats>().call(NoParams()).then((onValue) {
       setState(() {
         _isRequestInProgress = false;
@@ -62,7 +64,6 @@ class _SliderMenuState extends State<SliderMenu> {
                           contentText: chat.title,
                           callback: () async {
                             widget.onItemClick!(chat.id, chat.title);
-                            // await _onChatClickHandler(chat.id);
                           },
                           color: ColorConstants.black400,
                         ),
@@ -98,16 +99,78 @@ class _SliderMenuState extends State<SliderMenu> {
                   ? Center(child: IdocItLoadingIndicator())
                   : ListView(
                       children: <Widget>[
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4.0),
-                          child: IdocItTextButton(
-                            contentText: 'New chat',
-                            callback: () async {
-                              await widget.onItemClick!('', 'New chat');
-                            },
-                            color: ColorConstants.black400,
-                          ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Text('Chats', style: TextStyle(color: ColorConstants.white500, fontSize: 20.0)),
+                                SizedBox(width: 10.0),
+                                Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(color: ColorConstants.white500, shape: BoxShape.circle),
+                                  constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                                  child: Center(
+                                    child: Text(
+                                      chatsButtons.length.toString(),
+                                      style: const TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  _isNewChatAdded = true;
+                                });
+                              },
+                              icon: Icon(Icons.add, color: ColorConstants.white500),
+                              color: ColorConstants.white500,
+                            ),
+                          ],
                         ),
+                        if (_isNewChatAdded)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4.0),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: IdocItTextButton(
+                                    contentText: 'New chat',
+                                    callback: () async {
+                                      widget.onItemClick!('', 'New chat');
+                                    },
+                                    color: ColorConstants.black400,
+                                  ),
+                                ),
+                                InkWell(
+                                  onTap: () async {
+                                    setState(() {
+                                      _isNewChatAdded = false;
+                                    });
+                                  },
+                                  borderRadius: BorderRadius.circular(4),
+                                  child: const Padding(
+                                    padding: EdgeInsets.all(2),
+                                    child: Icon(Icons.delete, size: 24, color: ColorConstants.white500),
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            // IdocItTextButton(
+                            //   contentText: 'New chat',
+                            //   callback: () async {
+                            //     await widget.onItemClick!('', 'New chat');
+                            //   },
+                            //   color: ColorConstants.black400,
+                            // ),
+                          ),
                         ...chatsButtons,
                         UserProfile(),
                       ],
