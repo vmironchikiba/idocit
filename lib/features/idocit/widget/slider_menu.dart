@@ -134,43 +134,47 @@ class _SliderMenuState extends State<SliderMenu> {
                             ),
                           ],
                         ),
-                        if (_isNewChatAdded)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4.0),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: IdocItTextButton(
-                                    contentText: 'New chat',
-                                    callback: () async {
-                                      widget.onItemClick!('', 'New chat');
-                                    },
-                                    color: ColorConstants.black400,
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          transitionBuilder: (child, animation) {
+                            return SizeTransition(
+                              sizeFactor: animation,
+                              axisAlignment: -1.0, // animate from top
+                              child: FadeTransition(opacity: animation, child: child),
+                            );
+                          },
+                          child: _isNewChatAdded
+                              ? Padding(
+                                  key: const ValueKey('new_chat'),
+                                  padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: IdocItTextButton(
+                                          contentText: 'New chat',
+                                          callback: () async {
+                                            widget.onItemClick!('', 'New chat');
+                                          },
+                                          color: ColorConstants.black400,
+                                        ),
+                                      ),
+                                      InkWell(
+                                        onTap: () {
+                                          setState(() {
+                                            _isNewChatAdded = false;
+                                          });
+                                        },
+                                        borderRadius: BorderRadius.circular(4),
+                                        child: const Padding(
+                                          padding: EdgeInsets.all(2),
+                                          child: Icon(Icons.delete, size: 24, color: ColorConstants.white500),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                                InkWell(
-                                  onTap: () async {
-                                    setState(() {
-                                      _isNewChatAdded = false;
-                                    });
-                                  },
-                                  borderRadius: BorderRadius.circular(4),
-                                  child: const Padding(
-                                    padding: EdgeInsets.all(2),
-                                    child: Icon(Icons.delete, size: 24, color: ColorConstants.white500),
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                            // IdocItTextButton(
-                            //   contentText: 'New chat',
-                            //   callback: () async {
-                            //     await widget.onItemClick!('', 'New chat');
-                            //   },
-                            //   color: ColorConstants.black400,
-                            // ),
-                          ),
+                                )
+                              : const SizedBox(key: ValueKey('empty')),
+                        ),
                         ...chatsButtons,
                         UserProfile(),
                       ],
