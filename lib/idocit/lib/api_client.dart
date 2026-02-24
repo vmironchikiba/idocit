@@ -192,6 +192,8 @@ class ApiClient {
           return ChatCompletionChunk.fromJson(value);
         case 'ChatCompletionRequest':
           return ChatCompletionRequest.fromJson(value);
+        case 'ChatDeleteSuccess':
+          return ChatDeleteSuccess.fromJson(value);
         case 'ChatHistoryMessage':
           return ChatHistoryMessage.fromJson(value);
         case 'ChatListResponse':

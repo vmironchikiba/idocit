@@ -56,6 +56,7 @@ part 'model/admin_query_payload.dart';
 part 'model/chat_completion_choice.dart';
 part 'model/chat_completion_chunk.dart';
 part 'model/chat_completion_request.dart';
+part 'model/chat_delete_success.dart';
 part 'model/chat_history_message.dart';
 part 'model/chat_list_response.dart';
 part 'model/chat_message.dart';

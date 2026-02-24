@@ -54,7 +54,7 @@ class ChatApi {
   /// Parameters:
   ///
   /// * [String] chatId (required):
-  Future<Object?> deleteChatApiChatsChatIdDelete(String chatId,) async {
+  Future<ChatDeleteSuccess?> deleteChatApiChatsChatIdDelete(String chatId,) async {
     final response = await deleteChatApiChatsChatIdDeleteWithHttpInfo(chatId,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
@@ -63,7 +63,7 @@ class ChatApi {
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
     if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Object',) as Object;
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'ChatDeleteSuccess',) as ChatDeleteSuccess;
     
     }
     return null;

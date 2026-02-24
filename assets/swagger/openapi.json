@@ -2640,7 +2640,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/ChatDeleteSuccess"
+                }
               }
             }
           },
@@ -2790,6 +2792,19 @@
   },
   "components": {
     "schemas": {
+      "ChatDeleteSuccess": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "ok"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ]
+      },
       "HTTPUnauthorizedError": {
         "type": "object",
         "properties": {

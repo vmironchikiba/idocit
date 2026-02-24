@@ -13,6 +13,7 @@ doc/ChatApi.md
 doc/ChatCompletionChoice.md
 doc/ChatCompletionChunk.md
 doc/ChatCompletionRequest.md
+doc/ChatDeleteSuccess.md
 doc/ChatHistoryMessage.md
 doc/ChatListResponse.md
 doc/ChatMessage.md
@@ -120,6 +121,7 @@ lib/model/admin_query_payload.dart
 lib/model/chat_completion_choice.dart
 lib/model/chat_completion_chunk.dart
 lib/model/chat_completion_request.dart
+lib/model/chat_delete_success.dart
 lib/model/chat_history_message.dart
 lib/model/chat_list_response.dart
 lib/model/chat_message.dart
@@ -175,3 +177,4 @@ lib/model/validation_error.dart
 lib/model/validation_error_loc_inner.dart
 lib/model/verba_options.dart
 pubspec.yaml
+test/chat_delete_success_test.dart

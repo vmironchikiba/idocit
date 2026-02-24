@@ -17,7 +17,7 @@ Method | HTTP request | Description
 
 
 # **deleteChatApiChatsChatIdDelete**
-> Object deleteChatApiChatsChatIdDelete(chatId)
+> ChatDeleteSuccess deleteChatApiChatsChatIdDelete(chatId)
 
 Delete Chat
 
@@ -46,7 +46,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**Object**](Object.md)
+[**ChatDeleteSuccess**](ChatDeleteSuccess.md)
 
 ### Authorization
 
