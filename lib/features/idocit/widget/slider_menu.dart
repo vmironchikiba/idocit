@@ -162,14 +162,6 @@ class _SliderMenuState extends State<SliderMenu> {
                                 ),
                               ],
                             ),
-
-                            // IdocItTextButton(
-                            //   contentText: 'New chat',
-                            //   callback: () async {
-                            //     await widget.onItemClick!('', 'New chat');
-                            //   },
-                            //   color: ColorConstants.black400,
-                            // ),
                           ),
                         ...chatsButtons,
                         UserProfile(),
