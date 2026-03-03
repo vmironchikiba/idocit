@@ -10,6 +10,7 @@ class ChatState {
   final String? generationResultSystem;
   final QueryResponse? queryResponse;
   final String? traceId;
+  final String? chatId;
   final List<String> preMessageArray;
   final List<ChatHistoryMessage> chatHistoryMessages;
   const ChatState({
@@ -22,6 +23,7 @@ class ChatState {
     this.generationResultSystem,
     this.queryResponse,
     this.traceId,
+    this.chatId,
     required this.preMessageArray,
     this.chatHistoryMessages = const [],
   });
@@ -37,6 +39,7 @@ class ChatState {
       generationResultSystem: null,
       queryResponse: null,
       traceId: null,
+      chatId: null,
       preMessageArray: [],
       chatHistoryMessages: [],
     );
@@ -52,6 +55,7 @@ class ChatState {
     String? generationResultSystem,
     QueryResponse? queryResponse,
     String? traceId,
+    String? chatId,
     List<String>? preMessageArray,
     List<ChatHistoryMessage>? chatHistoryMessages,
   }) {
@@ -65,6 +69,7 @@ class ChatState {
       generationResultSystem: generationResultSystem ?? this.generationResultSystem,
       queryResponse: queryResponse ?? this.queryResponse,
       traceId: traceId ?? this.traceId,
+      chatId: chatId ?? this.chatId,
       preMessageArray: preMessageArray ?? this.preMessageArray,
       chatHistoryMessages: chatHistoryMessages ?? this.chatHistoryMessages,
     );
@@ -80,6 +85,7 @@ class ChatState {
       generationResultSystem: generationResultSystem,
       queryResponse: queryResponse,
       traceId: traceId,
+      chatId: chatId,
       preMessageArray: preMessageArray,
       chatHistoryMessages: chatHistoryMessages,
     );

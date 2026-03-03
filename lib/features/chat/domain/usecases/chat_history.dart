@@ -27,6 +27,8 @@ class GetChatHistory implements UseCase<Either<Failure, void>, String> {
     final token = authBloc.state.userToken;
     if (token == null) return Left(AuthFailure(message: 'Token is empty', type: AuthErrorType.badTokensData));
     chatBloc.add(SetIsInProcess(isInProcess: true));
+    chatBloc.add(SetChatHistoryMessages(chatHistoryMessages: []));
+    if (chatId.trim().isEmpty) return Right(null);
     final chatsResult = await chatHistoryRemoteDataSource.getChats(token, chatId);
     return chatsResult.fold(
       (failure) async {

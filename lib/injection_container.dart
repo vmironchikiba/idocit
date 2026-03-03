@@ -40,13 +40,20 @@ import 'package:idocit/features/idocit/domain/datasources/idocit_remote_datasour
 import 'package:idocit/features/idocit/domain/usecases/idocit_delete_chat.dart';
 import 'package:idocit/features/idocit/domain/usecases/idocit_reset.dart';
 import 'package:idocit/features/idocit/domain/usecases/idocit_lazy_init_chats.dart';
+import 'package:idocit/features/tts/domain/blocs/tts_bloc.dart';
+import 'package:idocit/features/tts/domain/services/tts_service.dart';
+import 'package:idocit/features/tts/domain/usecases/tts_get_engines.dart';
+import 'package:idocit/features/tts/domain/usecases/tts_get_languages.dart';
+import 'package:idocit/features/tts/domain/usecases/tts_get_voices.dart';
 import 'package:idocit/idocit/lib/api.dart';
 
 final locator = GetIt.instance;
 
 void initLocator() {
   locator.registerLazySingleton(() => CoreBloc(CoreState.initial()));
+  locator.registerLazySingleton(() => TtsBloc(TtsState.initial()));
   locator.registerLazySingleton(() => DeviceService());
+  locator.registerLazySingleton(() => TtsService());
   locator.registerLazySingleton(() => ThemeProvider());
   locator.registerLazySingleton(() => CharlesProvider());
   locator.registerLazySingleton(() => InAppFailureProvider());
@@ -207,4 +214,25 @@ void initLocator() {
       componentsRemoteDataSource: locator<ComponentsRemoteDataSource>(),
     ),
   );
+  // locator.registerLazySingleton(
+  //   () => TtsGetEngines(
+  //     networkListenerService: locator<NetworkListenerService>(),
+  //     ttsBloc: locator<TtsBloc>(),
+  //     ttsService: locator<TtsService>(),
+  //   ),
+  // );
+  // locator.registerLazySingleton(
+  //   () => TtsGetVoices(
+  //     networkListenerService: locator<NetworkListenerService>(),
+  //     ttsBloc: locator<TtsBloc>(),
+  //     ttsService: locator<TtsService>(),
+  //   ),
+  // );
+  // locator.registerLazySingleton(
+  //   () => TtsGetLanguages(
+  //     networkListenerService: locator<NetworkListenerService>(),
+  //     ttsBloc: locator<TtsBloc>(),
+  //     ttsService: locator<TtsService>(),
+  //   ),
+  // );
 }

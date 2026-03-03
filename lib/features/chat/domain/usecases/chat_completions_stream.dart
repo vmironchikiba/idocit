@@ -38,6 +38,10 @@ class ChatStartCompletionsStream implements UseCase<Either<Failure, void>, Compl
         .streamChatCompletions(request.toChatCompletionRequest(), token.accessToken)
         .listen(
           (chunk) {
+            final currentChatId = chunk.id;
+            if (currentChatId != null) {
+              chatBloc.add(SetChatId(chatId: currentChatId));
+            }
             if (chunk.choices.isEmpty) return;
             final choice = chunk.choices.first;
             final delta = Delta.fromJson(choice.delta);

@@ -22,6 +22,7 @@ class IdocItTextButton extends StatelessWidget {
   final bool withShadow;
   final IdocItButtonType type;
   final Color? color;
+  final bool isSelected;
 
   const IdocItTextButton({
     Key? key,
@@ -42,6 +43,7 @@ class IdocItTextButton extends StatelessWidget {
     this.withShadow = true,
     this.type = IdocItButtonType.scaffold,
     this.color = const Color(0xFF00454F),
+    this.isSelected = false,
   }) : super(key: key);
 
   Color? _getButtonColor(BuildContext context) {
@@ -51,6 +53,9 @@ class IdocItTextButton extends StatelessWidget {
 
     if (isBlocked && type == IdocItButtonType.dialog) {
       return ColorConstants.black500;
+    }
+    if (!isBlocked && isSelected) {
+      return ColorConstants.black200;
     }
 
     return null;

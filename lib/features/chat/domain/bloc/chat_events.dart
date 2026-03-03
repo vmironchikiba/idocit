@@ -50,6 +50,11 @@ class SetTraceId extends ChatBlocEvent {
   SetTraceId({required this.traceId}) : super([traceId]);
 }
 
+class SetChatId extends ChatBlocEvent {
+  String chatId;
+  SetChatId({required this.chatId}) : super([chatId]);
+}
+
 class SetPreMessageArray extends ChatBlocEvent {
   List<String> preMessageArray;
   SetPreMessageArray({required this.preMessageArray}) : super([preMessageArray]);

@@ -7,6 +7,7 @@ import 'package:idocit/features/authentication/domain/bloc/auth_bloc.dart';
 import 'package:idocit/features/chat/domain/bloc/chat_bloc.dart';
 import 'package:idocit/features/chat/domain/usecases/chat_history.dart';
 import 'package:idocit/features/chat/domain/usecases/chat_lazy_init_suggestions.dart';
+import 'package:idocit/features/chat/domain/usecases/chat_reset.dart';
 import 'package:idocit/injection_container.dart';
 import 'package:idocit/features/idocit/widget/idocit_chat.dart';
 import 'package:idocit/features/idocit/widget/slider_menu.dart';
@@ -66,16 +67,14 @@ class _IdocItScreenState extends State<IdocItScreen> {
             ),
             sliderOpenSize: 300,
             slider: SliderMenu(
-              onItemClick: (chatId, chatTitle) {
-                locator<ChatLazyInitSuggestions>().call(NoParams());
-                locator<ChatBloc>().stream.listen(((state) {
-                  // _scrollToBottom();
-                }));
-                locator<GetChatHistory>().call(chatId).then((result) {
-                  if (result.isRight()) {
-                    // _scrollToBottom();
-                  }
-                });
+              currentChatId: chatId,
+              onItemClick: (chatId, chatTitle) async {
+                final reset = await locator<ChaReset>().call(NoParams());
+                if (reset.isLeft()) return _sliderDrawerKey.currentState?.closeSlider();
+                final suggestions = await locator<ChatLazyInitSuggestions>().call(NoParams());
+                if (suggestions.isLeft()) return _sliderDrawerKey.currentState?.closeSlider();
+                final history = await locator<GetChatHistory>().call(chatId);
+                if (history.isLeft()) return _sliderDrawerKey.currentState?.closeSlider();
                 _sliderDrawerKey.currentState?.closeSlider();
                 setState(() {
                   this.chatTitle = chatTitle;
