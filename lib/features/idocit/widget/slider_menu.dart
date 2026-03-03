@@ -11,9 +11,10 @@ import 'package:idocit/injection_container.dart';
 import 'package:flutter/material.dart';
 
 class SliderMenu extends StatefulWidget {
+  final String? currentChatId;
   final Function(String, String)? onItemClick;
 
-  const SliderMenu({super.key, this.onItemClick});
+  const SliderMenu({super.key, this.currentChatId, this.onItemClick});
 
   @override
   State<SliderMenu> createState() => _SliderMenuState();
@@ -63,9 +64,11 @@ class _SliderMenuState extends State<SliderMenu> {
                         child: IdocItTextButton(
                           contentText: chat.title,
                           callback: () async {
+                            _isNewChatAdded = false;
                             widget.onItemClick!(chat.id, chat.title);
                           },
                           color: ColorConstants.black400,
+                          isSelected: chat.id == widget.currentChatId,
                         ),
                       ),
                       InkWell(
@@ -156,6 +159,7 @@ class _SliderMenuState extends State<SliderMenu> {
                                             widget.onItemClick!('', 'New chat');
                                           },
                                           color: ColorConstants.black400,
+                                          isSelected: widget.currentChatId == '',
                                         ),
                                       ),
                                       InkWell(
