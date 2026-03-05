@@ -47,6 +47,10 @@ class _UserProfileState extends State<UserProfile> {
   }
 
   Future<void> _handleTtsSettings() async {
+    Navigator.push(context, CupertinoPageRoute(builder: (_) => TtsSettingsScreen()));
+  }
+
+  Future<void> _handleSttSettings() async {
     Navigator.push(context, CupertinoPageRoute(builder: (_) => SttSettingsScreen()));
   }
 
@@ -107,6 +111,20 @@ class _UserProfileState extends State<UserProfile> {
                 callback: _handleTtsSettings,
               ),
               Text('TTS Settings'),
+            ],
+          ),
+          Row(
+            children: [
+              IdocItImageButton(
+                image: SvgPicture.asset(
+                  ImageConstants.microphoneSvg,
+                  width: 22.0,
+                  height: 22.0,
+                  color: ColorConstants.white500,
+                ),
+                callback: _handleSttSettings,
+              ),
+              Text('STT Settings'),
             ],
           ),
           SizedBox(height: 10.0),
