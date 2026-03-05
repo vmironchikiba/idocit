@@ -90,4 +90,77 @@ class ChatState {
       chatHistoryMessages: chatHistoryMessages,
     );
   }
+
+  ChatState deleteCompletionRequest() {
+    return ChatState(
+      selectedDate: selectedDate,
+      isInProcess: isInProcess,
+      suggestionsResponse: suggestionsResponse,
+      query: query,
+      chunk: chunk,
+      completionRequests: [],
+      generationResultSystem: generationResultSystem,
+      queryResponse: queryResponse,
+      traceId: traceId,
+      chatId: chatId,
+      preMessageArray: preMessageArray,
+      chatHistoryMessages: chatHistoryMessages,
+    );
+  }
+
+  ChatState deleteGenerationResultSystem() {
+    return ChatState(
+      selectedDate: selectedDate,
+      isInProcess: isInProcess,
+      suggestionsResponse: suggestionsResponse,
+      query: query,
+      chunk: chunk,
+      completionRequests: completionRequests,
+      generationResultSystem: null,
+      queryResponse: queryResponse,
+      traceId: traceId,
+      chatId: chatId,
+      preMessageArray: preMessageArray,
+      chatHistoryMessages: chatHistoryMessages,
+    );
+  }
+
+  ChatState deletePreMessageArray() {
+    return ChatState(
+      selectedDate: selectedDate,
+      isInProcess: isInProcess,
+      suggestionsResponse: suggestionsResponse,
+      query: query,
+      chunk: chunk,
+      completionRequests: completionRequests,
+      generationResultSystem: generationResultSystem,
+      queryResponse: queryResponse,
+      traceId: traceId,
+      chatId: chatId,
+      preMessageArray: [],
+      chatHistoryMessages: chatHistoryMessages,
+    );
+  }
+
+  ChatState deleteQueryResponse() {
+    return ChatState(
+      selectedDate: selectedDate,
+      isInProcess: isInProcess,
+      suggestionsResponse: suggestionsResponse,
+      query: query,
+      chunk: chunk,
+      completionRequests: completionRequests,
+      generationResultSystem: generationResultSystem,
+      queryResponse: null,
+      traceId: traceId,
+      chatId: chatId,
+      preMessageArray: preMessageArray,
+      chatHistoryMessages: chatHistoryMessages,
+    );
+  }
+
+  ChatState deleteRequestedData() {
+    return deleteCompletionRequest().deleteGenerationResultSystem().deletePreMessageArray().deleteQueryResponse();
+  }
 }
+//

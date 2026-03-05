@@ -5,12 +5,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:idocit/common/services/logger.dart';
-import 'package:idocit/common/widgets/texts.dart';
 import 'package:idocit/constants/colors.dart';
 import 'package:idocit/features/tts/domain/blocs/tts_bloc.dart';
 import 'package:idocit/features/tts/domain/entities/tts_engine.dart';
-import 'package:idocit/features/tts/domain/entities/tts_voice.dart';
 import 'package:idocit/features/tts/domain/enums/tts_state_enum.dart';
 import 'package:idocit/features/tts/domain/services/tts_service.dart';
 import 'package:idocit/injection_container.dart';
@@ -25,27 +22,35 @@ class TtsSettingsScreen extends StatefulWidget {
   TtsSettingsScreenState createState() => TtsSettingsScreenState();
 }
 
-//enum TtsState { playing, stopped, paused, continued }
+// enum TtsState { playing, stopped, paused, continued }
 
 class TtsSettingsScreenState extends State<TtsSettingsScreen> {
-  // late FlutterTts flutterTts;
+  late FlutterTts flutterTts;
   List<String?> rawEngines = [];
   List<DropdownMenuItem<String?>> engineItems = [];
   String? engine;
-  TtsEngine? engineTts;
   List<Map<String, String>?> rawVoices = [];
   List<DropdownMenuItem<Map<String, String>?>> voiceItems = [];
   Completer<void> _voiceDataReadyCompleter = Completer<void>();
   Map<String, String>? voice;
-  TtsVoice? voiceTts;
   bool getDefaultVoiceRetried = false;
   List<String?> rawLanguages = [];
   List<DropdownMenuItem<String?>> languageItems = [];
   String? language;
+  double volume = 0.8;
+  double pitch = 1.0;
+  double rate = !kIsWeb ? 0.5 : 0.9;
   bool isCurrentLanguageInstalled = false;
 
+  String? _newVoiceText;
   int? _inputLength;
 
+  // TtsStateEnum ttsState = TtsStateEnum.stopped;
+
+  // bool get isPlaying => ttsState == TtsStateEnum.playing;
+  // bool get isStopped => ttsState == TtsStateEnum.stopped;
+  // bool get isPaused => ttsState == TtsStateEnum.paused;
+  // bool get isContinued => ttsState == TtsStateEnum.continued;
   bool get isPlaying => locator<TtsBloc>().state.ttsState == TtsStateEnum.playing;
   bool get isStopped => locator<TtsBloc>().state.ttsState == TtsStateEnum.stopped;
   bool get isPaused => locator<TtsBloc>().state.ttsState == TtsStateEnum.paused;
@@ -60,50 +65,175 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
   @override
   initState() {
     super.initState();
+    initTts();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _getDefaults(); // invoked after initial build of context is complete
     });
   }
 
-  Future<void> _getDefaults() async {
-    if (kDebugMode) debugPrint('_getDefaults...');
-    if (isAndroid) await _getDefaultEngineTts();
-    if (kIsWeb) setState(() {}); // Tickle the UI
-    await _getDefaultVoiceTts();
+  // from initState()
+  void initTts() {
+    flutterTts = locator<TtsService>().tts;
+    locator<TtsService>().initTts();
+    // flutterTts = FlutterTts();
+
+    // _setAwaitOptions();
+
+    // flutterTts.setStartHandler(() {
+    //   setState(() {
+    //     if (kDebugMode) debugPrint("TtsStateEnum: Playing");
+    //     ttsState = TtsStateEnum.playing;
+    //   });
+    // });
+
+    // flutterTts.setCompletionHandler(() {
+    //   setState(() {
+    //     if (kDebugMode) debugPrint("TtsStateEnum: Complete");
+    //     ttsState = TtsStateEnum.stopped;
+    //   });
+    // });
+
+    // flutterTts.setCancelHandler(() {
+    //   setState(() {
+    //     if (kDebugMode) debugPrint("TtsStateEnum: Cancel");
+    //     ttsState = TtsStateEnum.stopped;
+    //   });
+    // });
+
+    // flutterTts.setPauseHandler(() {
+    //   setState(() {
+    //     if (kDebugMode) debugPrint("TtsStateEnum: Paused");
+    //     ttsState = TtsStateEnum.paused;
+    //   });
+    // });
+
+    // flutterTts.setContinueHandler(() {
+    //   setState(() {
+    //     if (kDebugMode) debugPrint("TtsStateEnum: Continued");
+    //     ttsState = TtsStateEnum.continued;
+    //   });
+    // });
+
+    // flutterTts.setErrorHandler((msg) {
+    //   setState(() {
+    //     if (kDebugMode) debugPrint("TtsStateEnum: Error: $msg");
+    //     ttsState = TtsStateEnum.stopped;
+    //   });
+    // });
   }
 
-  Future<void> _getDefaultEngine() => locator<TtsService>().getDefaultEngine();
-  Future<void> _getDefaultEngineTts() => locator<TtsService>().getDefaultEngineTts();
+  Future<void> _getDefaults() async {
+    if (kDebugMode) debugPrint('_getDefaults...');
+    if (isAndroid) await _getDefaultEngine();
+    if (kIsWeb) setState(() {}); // Tickle the UI
+    await _getDefaultVoice();
+  }
 
-  Future<void> _getDefaultVoice() => locator<TtsService>().getDefaultVoice();
-  Future<void> _getDefaultVoiceTts() => locator<TtsService>().getDefaultVoiceTts();
+  Future<dynamic> _getEngines() async => await flutterTts.getEngines;
+
+  Future<dynamic> _getVoices() async => await flutterTts.getVoices;
+
+  Future<dynamic> _getLanguages() async => await flutterTts.getLanguages;
+
+  Future<void> _getDefaultEngine() async {
+    if (!isAndroid) return; // safety-check
+    if (kDebugMode) debugPrint('_getDefaultEngine...');
+    var e = await flutterTts.getDefaultEngine;
+    if (e != null) {
+      if (kDebugMode) debugPrint('Default Engine: $e');
+      setState(() => engine = e as String);
+    }
+  }
+
+  Future<void> _getDefaultVoice() async {
+    if (kDebugMode) debugPrint('_getDefaultVoice..');
+    try {
+      await _voiceDataReadyCompleter.future.timeout(const Duration(seconds: 2));
+    } on TimeoutException {
+      if (kDebugMode) debugPrint("Timeout waiting for voice data");
+      if (!getDefaultVoiceRetried) {
+        getDefaultVoiceRetried = true; // run only once
+        _voiceDataReadyCompleter = Completer<void>(); // re-use
+        setState(() {}); // Tickle the UI
+        _getDefaultVoice();
+      }
+      return;
+    } catch (e) {
+      if (kDebugMode) debugPrint("Error waiting for voice data: $e");
+      return;
+    }
+    if (kDebugMode) {
+      debugPrint('_voiceDataReadyCompleter.isCompleted, so continuing..');
+    }
+    if (kDebugMode) debugPrint("rawVoices count: ${rawVoices.length}");
+    if (rawVoices.isEmpty) return;
+
+    if (isAndroid) {
+      var defVoice = await flutterTts.getDefaultVoice;
+      if (kDebugMode) debugPrint('Android Default Voice: $defVoice');
+      if (defVoice != null) {
+        var rawVoice = rawVoices.firstWhere((v) => mapEquals(v, defVoice));
+        voice = rawVoice;
+        if (voice != null) changedVoicesDropDownItem(voice);
+      }
+    } else {
+      String myLocale;
+      // Web may return just the language code, e.g. "de", if the browser's
+      // Settings/Language contains preferred language entries containing only
+      // the language without a region (e.g. "German" and not "German (Germany)").
+      Locale deviceLocale = WidgetsBinding.instance.platformDispatcher.locale;
+      if (kDebugMode) debugPrint('Device Locale (ISO): $deviceLocale');
+      // TTS uses Unicode BCP47 Locale Identifiers instead of the ISO standard
+      myLocale = deviceLocale.toLanguageTag();
+      // if (kIsWeb && !myLocale.contains('-')) {
+      //   var webLocale = getBrowserLanguage();
+      //   if (kDebugMode) debugPrint('webLocale: $webLocale');
+      //   if (webLocale != null) myLocale = webLocale;
+      // }
+      if (kDebugMode) debugPrint('Device/Browser Locale (BCP47): $myLocale');
+      // TTS auto-selects the first matching raw voice with locale
+      var rawVoice = rawVoices.firstWhere(
+        (v) => v?['locale'] == myLocale,
+        orElse: () => rawVoices.firstWhere((v) => v?['locale']?.startsWith(myLocale) ?? false),
+      );
+      voice = rawVoice;
+      if (kDebugMode) debugPrint('Computed Default Voice: $voice');
+      if (voice != null) changedVoicesDropDownItem(voice);
+    }
+  }
 
   Future<void> _speak() async {
-    await locator<TtsService>().setVolume(locator<TtsBloc>().state.volume);
-    await locator<TtsService>().setSpeechRate(locator<TtsBloc>().state.rate);
-    await locator<TtsService>().setPitch(locator<TtsBloc>().state.pitch);
+    await flutterTts.setVolume(volume);
+    await flutterTts.setSpeechRate(rate);
+    await flutterTts.setPitch(pitch);
 
-    if (locator<TtsBloc>().state.voiceText != null) {
-      if (locator<TtsBloc>().state.voiceText!.isNotEmpty) {
-        await locator<TtsService>().speak(locator<TtsBloc>().state.voiceText!);
+    if (_newVoiceText != null) {
+      if (_newVoiceText!.isNotEmpty) {
+        await flutterTts.speak(_newVoiceText!);
       }
     }
   }
 
+  Future<void> _setAwaitOptions() async {
+    await flutterTts.awaitSpeakCompletion(true);
+  }
+
   Future<void> _stop() async {
-    var result = await locator<TtsService>().stop();
+    var result = await flutterTts.stop();
+    // if (result == 1) setState(() => ttsState = TtsStateEnum.stopped);
     if (result == 1) setState(() => locator<TtsBloc>().add(UpdateTtsState(ttsState: TtsStateEnum.stopped)));
   }
 
   Future<void> _pause() async {
-    var result = await locator<TtsService>().pause();
+    var result = await flutterTts.pause();
+    // if (result == 1) setState(() => ttsState = TtsStateEnum.paused);
     if (result == 1) setState(() => locator<TtsBloc>().add(UpdateTtsState(ttsState: TtsStateEnum.paused)));
   }
 
   @override
   void dispose() {
     super.dispose();
-    locator<TtsService>().stop();
+    flutterTts.stop();
   }
 
   List<DropdownMenuItem<String?>> getEnginesDropDownMenuItems(List<dynamic> engines) {
@@ -119,18 +249,17 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
     return engineItems;
   }
 
-  List<DropdownMenuItem<TtsEngine>> getEnginesDropDownMenuItemsTts(List<TtsEngine> engines) =>
-      engines.map((engine) => DropdownMenuItem<TtsEngine>(child: Text(engine.name))).toList();
-
   Future<void> changedEnginesDropDownItem(String? selectedEngine) async {
     if (selectedEngine == null || selectedEngine.trim().isEmpty) {
       return;
     }
     if (kDebugMode) debugPrint('changedEnginesDropDownItem...');
-    await locator<TtsService>().setEngine(selectedEngine);
+    await flutterTts.setEngine(selectedEngine);
     engine = selectedEngine;
+    // locator<TtsBloc>().add(UpdateTtsCurrentEngine(currentEngine: TtsEngine(selectedEngine)));
     voiceItems.clear();
     voice = null;
+    // locator<TtsBloc>().add(UpdateTtsCurrentVoice(currentVoice: null));
     languageItems.clear();
     language = null;
     isCurrentLanguageInstalled = false;
@@ -140,28 +269,34 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
     await _getDefaultVoice();
   }
 
-  //  Future<void> changedEnginesDropDownItemTts(TtsEngine? selectedEngine) async {
-  //     if (selectedEngine == null || selectedEngine.name.trim().isEmpty) {
-  //       return;
-  //     }
-  //     await locator<TtsService>().setEngineTts(selectedEngine);
-  //     engine = selectedEngine;
-  //     voiceItems.clear();
-  //     voice = null;
-  //     languageItems.clear();
-  //     language = null;
-  //     isCurrentLanguageInstalled = false;
-  //     _voiceDataReadyCompleter = Completer<void>(); // re-use
-  //     setState(() {});
-  //     getDefaultVoiceRetried = false;
-  //     await locator<TtsService>().getDefaultVoice();
-  //   }
-
-  List<DropdownMenuItem<TtsVoice>> getVoicesDropDownMenuItemsTts(List<TtsVoice> voices) {
-    final menuItems = voices
-        .map((voice) => DropdownMenuItem<TtsVoice>(value: voice, child: Text("${voice.name} (${voice.locale})")))
-        .toList();
-    return menuItems;
+  List<DropdownMenuItem<Map<String, String>?>> getVoicesDropDownMenuItems(List<dynamic> voices) {
+    if (kDebugMode) {
+      debugPrint('getVoicesDropDownMenuItems: voices count: ${voices.length}');
+    }
+    if (kDebugMode) debugPrint("voiceItems.count: ${voiceItems.length}");
+    if (voiceItems.isEmpty) {
+      rawVoices.clear();
+      for (dynamic item in voices) {
+        // if (kDebugMode) debugPrint('Voice: $item');
+        var v = Map<String, String>.from(item);
+        rawVoices.add(v); // remains unsorted
+        // if (kDebugMode) debugPrint('Raw Voice: $v');
+        var menuItem = DropdownMenuItem<Map<String, String>?>(value: v, child: Text("${v['name']} (${v['locale']})"));
+        if (!voiceItems.any((element) => mapEquals(element.value, menuItem.value))) {
+          voiceItems.add(menuItem);
+        }
+      }
+      voiceItems.sort((a, b) {
+        return a.child.toString().toLowerCase().compareTo(b.child.toString().toLowerCase());
+      });
+    }
+    if (voiceItems.isNotEmpty && !_voiceDataReadyCompleter.isCompleted) {
+      _voiceDataReadyCompleter.complete();
+      if (kDebugMode) {
+        debugPrint('_voiceDataReadyCompleter completed with ${voiceItems.length} voiceItems');
+      }
+    }
+    return voiceItems;
   }
 
   Future<void> changedVoicesDropDownItem(Map<String, String>? selectedVoice) async {
@@ -169,16 +304,10 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
       return;
     }
     if (kDebugMode) debugPrint('changedVoicesDropDownItem...');
-    await locator<TtsService>().setVoice(selectedVoice);
+    await flutterTts.setVoice(selectedVoice);
     voice = selectedVoice;
     language = selectedVoice['locale'];
     setState(() {});
-  }
-
-  Future<void> changedVoicesDropDownItemTts(TtsVoice? selectedVoice) async {
-    setState(() async {
-      if (selectedVoice != null) await locator<TtsService>().setVoiceTts(selectedVoice);
-    });
   }
 
   List<DropdownMenuItem<String?>> getLanguagesDropDownMenuItems(List<dynamic> languages) {
@@ -205,12 +334,10 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
       return;
     }
     if (kDebugMode) debugPrint('changedLanguagesDropDownItem...');
-    await locator<TtsService>().setLanguage(selectedLanguage);
+    await flutterTts.setLanguage(selectedLanguage);
     language = selectedLanguage;
     if (isAndroid) {
-      locator<TtsService>()
-          .isLanguageInstalled(language!)
-          .then((value) => isCurrentLanguageInstalled = (value as bool));
+      flutterTts.isLanguageInstalled(language!).then((value) => isCurrentLanguageInstalled = (value as bool));
     } else {
       isCurrentLanguageInstalled = false;
     }
@@ -225,7 +352,9 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
 
   void _onChange(String text) {
     locator<TtsBloc>().add(UpdateTtsVoiceText(voiceText: text));
-    setState(() {});
+    setState(() {
+      _newVoiceText = text;
+    });
   }
 
   Future<void> saveToFile(String? text) async {
@@ -240,39 +369,71 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
     myText = myText.substring(0, min(myText.length, 40));
     if (myText.isEmpty) return;
     String fileName = isAndroid ? '$myText.mp3' : '$myText.caf';
-    await locator<TtsService>().synthesizeToFile(text, fileName);
+    await flutterTts.synthesizeToFile(text, fileName);
     if (kDebugMode) debugPrint('synthesized to: $fileName');
   }
 
   @override
   Widget build(BuildContext context) {
-    // locator<TtsService>().getVoices().then((voices) {
-    //   LoggerService.logDebug(voices.length.toString());
-    // });
     return SafeArea(
       child: Scaffold(
-        appBar: AppBar(title: const Text('TTS Settings')),
+        appBar: AppBar(title: const Text('Flutter TTS')),
         body: SingleChildScrollView(
           scrollDirection: Axis.vertical,
-          child: Column(
-            children: [
-              _inputSection(),
-              _btnSection(),
-              _engineSection(), // _getEngines
-              _voiceSection(), // _getVoices
-              _languageSection(), // _getLanguages
-              _buildSliders(),
-              if (isAndroid) _getMaxSpeechInputLengthSection(),
-            ],
+          child: BlocBuilder<TtsBloc, TtsState>(
+            buildWhen: (previous, current) => previous.isEnabled != current.isEnabled,
+            builder: (context, state) {
+              return Column(
+                children: [
+                  SwitchListTile(
+                    title: const Text("Enabled", style: TextStyle(color: ColorConstants.white500)),
+                    value: state.isEnabled,
+                    onChanged: (value) {
+                      setState(() {
+                        locator<TtsBloc>().add(UpdateTtsIsEnabled(isEnabled: value));
+                        // isEnabled = value;
+                      });
+                    },
+                  ),
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    transitionBuilder: (child, animation) {
+                      return SizeTransition(
+                        sizeFactor: animation,
+                        axisAlignment: -1.0, // animate from top
+                        child: FadeTransition(opacity: animation, child: child),
+                      );
+                    },
+                    // transitionBuilder: (child, animation) {
+                    //   return FadeTransition(
+                    //     opacity: animation,
+                    //     child: SizeTransition(sizeFactor: animation, axisAlignment: -1.0, child: child),
+                    //   );
+                    // },
+                    child: state.isEnabled
+                        ? Column(
+                            key: const ValueKey(true),
+                            children: [
+                              _inputSection(),
+                              _btnSection(),
+                              _engineSection(), // _getEngines
+                              _voiceSection(), // _getVoices
+                              _languageSection(), // _getLanguages
+                              _buildSliders(),
+                              if (isAndroid) _getMaxSpeechInputLengthSection(),
+                            ],
+                          )
+                        : const SizedBox.shrink(key: ValueKey(false)),
+                  ),
+                ],
+              );
+            },
           ),
         ),
-        floatingActionButton:
-            (isAndroid || isIOS) &&
-                locator<TtsBloc>().state.voiceText != null &&
-                locator<TtsBloc>().state.voiceText!.trim().isNotEmpty
+        floatingActionButton: (isAndroid || isIOS) && _newVoiceText != null && _newVoiceText!.trim().isNotEmpty
             ? FloatingActionButton(
                 mini: true,
-                onPressed: () => saveToFile(locator<TtsBloc>().state.voiceText),
+                onPressed: () => saveToFile(_newVoiceText),
                 tooltip: 'Synthesize to File',
                 child: const Icon(Icons.save),
               )
@@ -281,24 +442,13 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
     );
   }
 
-  // Widget _engineSectionTts() {
-  //   return isAndroid
-  //       ? BlocBuilder<TtsBloc, TtsState>(
-  //           buildWhen: (previous, current) => previous.engines.length != current.engines.length,
-  //           builder: (context, state) {
-  //             return _enginesDropDownSectionTts(state.engines);
-  //           },
-  //         )
-  //       : const SizedBox.shrink();
-  // }
-
   Widget _engineSection() {
     if (isAndroid) {
       if (engineItems.isNotEmpty) {
         return _enginesDropDownSection(<dynamic>[]);
       } else {
         return FutureBuilder<dynamic>(
-          future: locator<TtsService>().getEnginesTts(),
+          future: _getEngines(),
           builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
             if (snapshot.connectionState == ConnectionState.done) {
               if (snapshot.hasData) {
@@ -323,62 +473,19 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
     }
   }
 
-  // Widget _voiceSectionTts() {
-  //   BlocBuilder<TtsBloc, TtsState>(
-  //     buildWhen: (previous, current) => previous.voices.length != current.voices.length,
-  //     builder: (context, state) {
-  //       if (!locator<TtsService>().voiceIsComplete) {
-  //         locator<TtsService>().setVoiceComplete();
-  //       }
-  //       return _enginesDropDownSectionTts(state.engines);
-  //     },
-  //   );
-
-  //   if (voiceItems.isNotEmpty) {
-  //     if (!_voiceDataReadyCompleter.isCompleted) {
-  //       _voiceDataReadyCompleter.complete(); // Safety complete
-  //     }
-  //     return _voicesDropDownSectionTts(<TtsVoice>[]);
-  //   } else {
-  //     return FutureBuilder<List<TtsVoice>>(
-  //       future: locator<TtsService>().getVoices(),
-  //       builder: (context, snapshot) {
-  //         if (snapshot.connectionState == ConnectionState.done) {
-  //           if (snapshot.hasData) {
-  //             return _voicesDropDownSectionTts(snapshot.data);
-  //           } else if (snapshot.hasError) {
-  //             if (!_voiceDataReadyCompleter.isCompleted) {
-  //               _voiceDataReadyCompleter.completeError(snapshot.error ?? "Unknown error loading voices");
-  //             }
-  //             return Text('Error: ${snapshot.error}');
-  //           } else {
-  //             return const Text('No data to load voices');
-  //           }
-  //         } else if (snapshot.connectionState == ConnectionState.waiting) {
-  //           return const Text('Loading voices...');
-  //         } else {
-  //           // Other states (e.g., ConnectionState.none,
-  //           // or if future is null initially)
-  //           return const Text('Waiting to start loading voices...');
-  //         }
-  //       },
-  //     );
-  //   }
-  // }
-
   Widget _voiceSection() {
     if (voiceItems.isNotEmpty) {
       if (!_voiceDataReadyCompleter.isCompleted) {
         _voiceDataReadyCompleter.complete(); // Safety complete
       }
-      return _voicesDropDownSectionTts(<TtsVoice>[]);
+      return _voicesDropDownSection(<dynamic>[]);
     } else {
-      return FutureBuilder<List<TtsVoice>>(
-        future: locator<TtsService>().getVoices(),
-        builder: (context, snapshot) {
+      return FutureBuilder<dynamic>(
+        future: _getVoices(),
+        builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             if (snapshot.hasData) {
-              return _voicesDropDownSectionTts(snapshot.data);
+              return _voicesDropDownSection(snapshot.data as List<dynamic>);
             } else if (snapshot.hasError) {
               if (!_voiceDataReadyCompleter.isCompleted) {
                 _voiceDataReadyCompleter.completeError(snapshot.error ?? "Unknown error loading voices");
@@ -404,7 +511,7 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
       return _languageDropDownSection(<dynamic>[]);
     } else {
       return FutureBuilder<dynamic>(
-        future: locator<TtsService>().getLanguagesTts(),
+        future: _getLanguages(),
         builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             if (snapshot.hasData) {
@@ -457,42 +564,21 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
       padding: const EdgeInsets.only(top: 50.0),
       child: DropdownButton<String?>(
         value: engine,
-        hint: const IdocItText(
-          text: 'Choose an engine',
-          style: TextStyle(color: ColorConstants.white500, fontSize: 16),
-        ),
+        hint: const Text('Choose an engine'),
         items: getEnginesDropDownMenuItems(engines),
         onChanged: changedEnginesDropDownItem,
       ),
     );
   }
 
-  // Widget _enginesDropDownSectionTts(List<TtsEngine> engines) {
-  //   return Container(
-  //     padding: const EdgeInsets.only(top: 50.0),
-  //     child: DropdownButton<TtsEngine?>(
-  //       value: engine,
-  //       hint: const IdocItText(
-  //         text: 'Choose an engine',
-  //         style: TextStyle(color: ColorConstants.white500, fontSize: 16),
-  //       ),
-  //       items: getEnginesDropDownMenuItemsTts(engines),
-  //       onChanged: changedEnginesDropDownItem,
-  //     ),
-  //   );
-  // }
-
-  Widget _voicesDropDownSectionTts(List<TtsVoice>? voices) {
+  Widget _voicesDropDownSection(List<dynamic> voices) {
     return Container(
       padding: const EdgeInsets.only(top: 10.0),
-      child: DropdownButton<TtsVoice>(
-        value: voiceTts,
-        hint: const IdocItText(
-          text: 'Choose a voice',
-          style: TextStyle(color: ColorConstants.white500, fontSize: 16),
-        ),
-        items: getVoicesDropDownMenuItemsTts(voices ?? []),
-        onChanged: changedVoicesDropDownItemTts,
+      child: DropdownButton<Map<String, String>?>(
+        value: voice,
+        hint: const Text('Choose a voice'),
+        items: getVoicesDropDownMenuItems(voices),
+        onChanged: changedVoicesDropDownItem,
       ),
     );
   }
@@ -505,10 +591,7 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
         children: [
           DropdownButton<String?>(
             value: language,
-            hint: const IdocItText(
-              text: 'Choose a language',
-              style: TextStyle(color: ColorConstants.white500, fontSize: 16),
-            ), //    Text('Choose a language'),
+            hint: const Text('Choose a language'),
             items: getLanguagesDropDownMenuItems(languages),
             onChanged: changedLanguagesDropDownItem,
           ),
@@ -524,7 +607,15 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        IconButton(icon: Icon(icon), color: color, splashColor: splashColor, onPressed: () => func()),
+        IconButton(
+          icon: Icon(icon),
+          color: color,
+          splashColor: splashColor,
+          onPressed: () {
+            FocusScope.of(context).unfocus();
+            func();
+          },
+        ),
         Container(
           margin: const EdgeInsets.only(top: 8.0),
           child: Text(
@@ -543,7 +634,7 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
         ElevatedButton(
           child: const Text('Get max speech input length'),
           onPressed: () async {
-            _inputLength = await locator<TtsService>().getMaxSpeechInputLengthTts();
+            _inputLength = await flutterTts.getMaxSpeechInputLength;
             setState(() {});
           },
         ),
@@ -557,76 +648,46 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
   }
 
   Widget _volume() {
-    return BlocBuilder<TtsBloc, TtsState>(
-      buildWhen: (previous, current) => previous.volume != current.volume,
-      builder: (context, state) {
-        return ListTile(
-          leading: Text(state.volume.toString(), style: TextStyle(color: ColorConstants.white500, fontSize: 16.0)),
-          title: Center(
-            child: Text('Volume', style: TextStyle(color: ColorConstants.white500, fontSize: 16.0)),
-          ),
-          subtitle: Slider(
-            value: state.volume,
-            onChanged: (newVolume) {
-              setState(() => locator<TtsBloc>().add(UpdateTtsVolume(volume: newVolume))); // volume = newVolume);
-            },
-            min: 0.0,
-            max: 1.0,
-            divisions: 10,
-            label: "Volume: ${state.volume}",
-          ),
-        );
+    return Slider(
+      value: volume,
+      onChanged: (newVolume) {
+        locator<TtsBloc>().add(UpdateTtsVolume(volume: newVolume));
+        setState(() => volume = newVolume);
       },
+      min: 0.0,
+      max: 1.0,
+      divisions: 10,
+      label: "Volume: $volume",
     );
   }
 
   Widget _pitch() {
-    return BlocBuilder<TtsBloc, TtsState>(
-      buildWhen: (previous, current) => previous.pitch != current.pitch,
-      builder: (context, state) {
-        return ListTile(
-          leading: Text(state.pitch.toString(), style: TextStyle(color: ColorConstants.white500, fontSize: 16.0)),
-          title: Center(
-            child: Text('Pitch', style: TextStyle(color: ColorConstants.white500, fontSize: 16.0)),
-          ),
-          subtitle: Slider(
-            value: state.pitch,
-            onChanged: (newPitch) {
-              setState(() => locator<TtsBloc>().add(UpdateTtsPitch(pitch: newPitch)));
-            },
-            min: 0.5,
-            max: 2.0,
-            divisions: 15,
-            label: "Pitch: ${state.pitch}",
-            activeColor: Colors.red,
-          ),
-        );
+    return Slider(
+      value: pitch,
+      onChanged: (newPitch) {
+        locator<TtsBloc>().add(UpdateTtsPitch(pitch: newPitch));
+        setState(() => pitch = newPitch);
       },
+      min: 0.5,
+      max: 2.0,
+      divisions: 15,
+      label: "Pitch: $pitch",
+      activeColor: Colors.red,
     );
   }
 
   Widget _rate() {
-    return BlocBuilder<TtsBloc, TtsState>(
-      buildWhen: (previous, current) => previous.rate != current.rate,
-      builder: (context, state) {
-        return ListTile(
-          leading: Text(state.rate.toString(), style: TextStyle(color: ColorConstants.white500, fontSize: 16.0)),
-          title: Center(
-            child: Text('Rate', style: TextStyle(color: ColorConstants.white500, fontSize: 16.0)),
-          ),
-          subtitle: Slider(
-            value: state.rate,
-            onChanged: (newRate) {
-              setState(() => locator<TtsBloc>().add(UpdateTtsRate(rate: newRate)));
-            },
-            min: 0.0,
-            max: 1.0,
-            divisions: 10,
-            label: "Rate: ${state.rate}",
-            activeColor: Colors.green,
-          ),
-        );
+    return Slider(
+      value: rate,
+      onChanged: (newRate) {
+        locator<TtsBloc>().add(UpdateTtsRate(rate: newRate));
+        setState(() => rate = newRate);
       },
+      min: 0.0,
+      max: 1.0,
+      divisions: 10,
+      label: "Rate: $rate",
+      activeColor: Colors.green,
     );
   }
 }

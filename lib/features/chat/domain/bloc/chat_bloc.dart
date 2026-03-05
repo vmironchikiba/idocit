@@ -40,10 +40,26 @@ class ChatBloc extends Bloc<ChatBlocEvent, ChatState> {
       LoggerService.logDebug('ChatBloc SetPreMessageArray ${event.preMessageArray}');
       emit(state.update(preMessageArray: event.preMessageArray));
     });
-    //
+
     on<AddCompletionRequest>((event, emit) {
       LoggerService.logDebug('ChatBloc SetPreMessageArray ${event.completionRequest}');
       emit(state.update(completionRequest: event.completionRequest));
+    });
+
+    on<ResetCompletionRequests>((event, emit) {
+      emit(state.deleteCompletionRequest());
+    });
+
+    on<ResetGenerationResultSystem>((event, emit) {
+      emit(state.deleteGenerationResultSystem());
+    });
+
+    on<ResetPreMessageArray>((event, emit) {
+      emit(state.deletePreMessageArray());
+    });
+
+    on<ResetRequestedData>((event, emit) {
+      emit(state.deleteRequestedData());
     });
 
     on<SetChatHistoryMessages>((event, emit) {

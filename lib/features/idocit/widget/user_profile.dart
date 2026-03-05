@@ -8,7 +8,7 @@ import 'package:idocit/constants/colors.dart';
 import 'package:idocit/constants/image.dart';
 import 'package:idocit/features/authentication/domain/bloc/auth_bloc.dart';
 import 'package:idocit/features/idocit/widget/profile_logout_dialog.dart';
-import 'package:idocit/features/tts/screens/tts_settings_screen.dart';
+import 'package:idocit/features/tts/screens/tts_settings_screen_s.dart';
 import 'package:idocit/injection_container.dart';
 
 class UserProfile extends StatefulWidget {

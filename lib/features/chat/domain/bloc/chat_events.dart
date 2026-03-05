@@ -65,6 +65,22 @@ class AddCompletionRequest extends ChatBlocEvent {
   AddCompletionRequest({required this.completionRequest}) : super([completionRequest]);
 }
 
+class ResetCompletionRequests extends ChatBlocEvent {
+  ResetCompletionRequests() : super([]);
+}
+
+class ResetGenerationResultSystem extends ChatBlocEvent {
+  ResetGenerationResultSystem() : super([]);
+}
+
+class ResetPreMessageArray extends ChatBlocEvent {
+  ResetPreMessageArray() : super([]);
+}
+
+class ResetRequestedData extends ChatBlocEvent {
+  ResetRequestedData() : super([]);
+}
+
 class SetChatHistoryMessages extends ChatBlocEvent {
   List<ChatHistoryMessage> chatHistoryMessages;
   SetChatHistoryMessages({required this.chatHistoryMessages}) : super([chatHistoryMessages]);

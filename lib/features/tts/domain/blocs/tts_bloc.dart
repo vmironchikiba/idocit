@@ -10,6 +10,9 @@ part 'tts_state.dart';
 
 class TtsBloc extends Bloc<TtsBlocEvent, TtsState> {
   TtsBloc(super.initialState) {
+    on<UpdateTtsIsEnabled>((event, emit) {
+      emit(state.update(isEnabled: event.isEnabled));
+    });
     on<UpdateTtsState>((event, emit) {
       emit(state.update(ttsState: event.ttsState));
     });
@@ -25,6 +28,24 @@ class TtsBloc extends Bloc<TtsBlocEvent, TtsState> {
 
     on<UpdateTtsEngines>((event, emit) {
       emit(state.update(engines: event.engines));
+    });
+
+    on<UpdateTtsVoices>((event, emit) {
+      emit(state.update(voices: event.voices));
+    });
+
+    on<UpdateTtsDefaultEngine>((event, emit) {
+      emit(state.update(defaultEngine: event.defaultEngine));
+    });
+    on<UpdateTtsCurrentEngine>((event, emit) {
+      emit(state.update(currentEngine: event.currentEngine));
+    });
+
+    on<UpdateTtsDefaultVoice>((event, emit) {
+      emit(state.update(defaultVoice: event.defaultVoice));
+    });
+    on<UpdateTtsCurrentVoice>((event, emit) {
+      emit(state.update(currentVoice: event.currentVoice));
     });
 
     on<UpdateTtsLanguages>((event, emit) {
