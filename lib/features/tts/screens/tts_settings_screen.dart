@@ -515,16 +515,19 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
 
   Widget _getMaxSpeechInputLengthSection() {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        ElevatedButton(
-          child: const Text('Get max speech input length'),
-          onPressed: () async {
-            _inputLength = await locator<TtsService>().getMaxSpeechInputLengthTts();
-            setState(() {});
-          },
+        Expanded(
+          child: ElevatedButton(
+            child: const Text('Get max speech input length'),
+            onPressed: () async {
+              _inputLength = await locator<TtsService>().getMaxSpeechInputLengthTts();
+              setState(() {});
+            },
+          ),
         ),
-        Text("$_inputLength characters"),
+        const SizedBox(width: 10),
+        Flexible(child: _inputLength == null ? Text("") : Text("$_inputLength characters")),
       ],
     );
   }
