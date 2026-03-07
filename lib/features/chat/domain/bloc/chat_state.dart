@@ -11,6 +11,7 @@ class ChatState {
   final QueryResponse? queryResponse;
   final String? traceId;
   final String? chatId;
+  final String? chatTitle;
   final List<String> preMessageArray;
   final List<ChatHistoryMessage> chatHistoryMessages;
   const ChatState({
@@ -24,6 +25,7 @@ class ChatState {
     this.queryResponse,
     this.traceId,
     this.chatId,
+    this.chatTitle,
     required this.preMessageArray,
     this.chatHistoryMessages = const [],
   });
@@ -40,6 +42,7 @@ class ChatState {
       queryResponse: null,
       traceId: null,
       chatId: null,
+      chatTitle: null,
       preMessageArray: [],
       chatHistoryMessages: [],
     );
@@ -56,6 +59,7 @@ class ChatState {
     QueryResponse? queryResponse,
     String? traceId,
     String? chatId,
+    String? chatTitle,
     List<String>? preMessageArray,
     List<ChatHistoryMessage>? chatHistoryMessages,
   }) {
@@ -70,6 +74,7 @@ class ChatState {
       queryResponse: queryResponse ?? this.queryResponse,
       traceId: traceId ?? this.traceId,
       chatId: chatId ?? this.chatId,
+      chatTitle: chatTitle ?? this.chatTitle,
       preMessageArray: preMessageArray ?? this.preMessageArray,
       chatHistoryMessages: chatHistoryMessages ?? this.chatHistoryMessages,
     );
@@ -86,6 +91,7 @@ class ChatState {
       queryResponse: queryResponse,
       traceId: traceId,
       chatId: chatId,
+      chatTitle: chatTitle,
       preMessageArray: preMessageArray,
       chatHistoryMessages: chatHistoryMessages,
     );
@@ -103,6 +109,7 @@ class ChatState {
       queryResponse: queryResponse,
       traceId: traceId,
       chatId: chatId,
+      chatTitle: chatTitle,
       preMessageArray: preMessageArray,
       chatHistoryMessages: chatHistoryMessages,
     );
@@ -120,6 +127,7 @@ class ChatState {
       queryResponse: queryResponse,
       traceId: traceId,
       chatId: chatId,
+      chatTitle: chatTitle,
       preMessageArray: preMessageArray,
       chatHistoryMessages: chatHistoryMessages,
     );
@@ -137,6 +145,7 @@ class ChatState {
       queryResponse: queryResponse,
       traceId: traceId,
       chatId: chatId,
+      chatTitle: chatTitle,
       preMessageArray: [],
       chatHistoryMessages: chatHistoryMessages,
     );
@@ -154,6 +163,7 @@ class ChatState {
       queryResponse: null,
       traceId: traceId,
       chatId: chatId,
+      chatTitle: chatTitle,
       preMessageArray: preMessageArray,
       chatHistoryMessages: chatHistoryMessages,
     );

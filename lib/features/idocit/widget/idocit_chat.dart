@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:idocit/common/models/service/usecase.dart';
+import 'package:idocit/common/providers/chats_notifier.dart';
 import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/common/widgets/indicators/loading_indicator.dart';
 import 'package:idocit/constants/image.dart';
@@ -26,9 +27,8 @@ import 'package:idocit/injection_container.dart';
 import 'package:flutter/material.dart';
 
 class IdocItChat extends StatefulWidget {
-  IdocItChat({super.key, required this.chatId, required this.chatTitle});
+  const IdocItChat({super.key, /*required this.chatTitle,*/ required this.chatId});
   final String chatId;
-  String chatTitle;
 
   @override
   State<IdocItChat> createState() => _IdocItChatState();
@@ -221,20 +221,19 @@ class _IdocItChatState extends State<IdocItChat> {
                               FocusScope.of(context).unfocus();
                               final request = CompletionRequest(
                                 tenant: locator<AuthBloc>().state.userData?.tenant ?? '',
-                                chatId: widget.chatId,
+                                chatId: state.chatId ?? widget.chatId,
                                 language: 'en-US',
                                 content: _controller.text,
                                 role: Role.user.asString(),
                                 onDone: (chatId) async {
                                   final reset = await locator<IdocItReset>().call(NoParams());
                                   if (reset.isLeft()) return;
-                                  // final chatId = locator<ChatBloc>().state.chatId;
                                   locator<ChatBloc>().add(ResetRequestedData());
-
                                   final history = await locator<GetChatHistory>().call(chatId);
                                   if (history.isLeft()) return;
                                   final chats = await locator<IdocItLazyInitChats>().call(NoParams());
                                   if (chats.isLeft()) return;
+                                  locator<ChatsNotifier>().send(ChatsEvent.close);
                                   setState(() {});
                                   LoggerService.logDebug('message');
                                 },

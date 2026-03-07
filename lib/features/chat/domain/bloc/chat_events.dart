@@ -55,6 +55,11 @@ class SetChatId extends ChatBlocEvent {
   SetChatId({required this.chatId}) : super([chatId]);
 }
 
+class SetChatTitle extends ChatBlocEvent {
+  String chatTitle;
+  SetChatTitle({required this.chatTitle}) : super([chatTitle]);
+}
+
 class SetPreMessageArray extends ChatBlocEvent {
   List<String> preMessageArray;
   SetPreMessageArray({required this.preMessageArray}) : super([preMessageArray]);

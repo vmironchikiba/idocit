@@ -36,6 +36,7 @@ class ChatStartCompletionsStream implements UseCase<Either<Failure, void>, Compl
     final token = authBloc.state.userToken;
     if (token == null) return Left(AuthFailure(message: 'Token is empty', type: AuthErrorType.badTokensData));
     chatId = '';
+    chatBloc.add(SetChatTitle(chatTitle: request.content));
     OpenAIStreamApi(basePath: StringsConstants.basePath)
         .streamChatCompletions(request.toChatCompletionRequest(), token.accessToken)
         .listen(
@@ -88,6 +89,7 @@ class ChatStartCompletionsStream implements UseCase<Either<Failure, void>, Compl
           },
           onDone: () {
             chatBloc.add(SetIsInProcess(isInProcess: false));
+            chatBloc.add(SetChatId(chatId: chatId));
             if (request.onDone != null) {
               request.onDone!(chatId);
             }

@@ -33,7 +33,12 @@ class ChatBloc extends Bloc<ChatBlocEvent, ChatState> {
 
     on<SetChatId>((event, emit) {
       LoggerService.logDebug('ChatBloc SetChatId ${event.chatId}');
-      emit(state.update(traceId: event.chatId));
+      emit(state.update(chatId: event.chatId));
+    });
+
+    on<SetChatTitle>((event, emit) {
+      LoggerService.logDebug('ChatBloc SetChatTitle ${event.chatTitle}');
+      emit(state.update(chatTitle: event.chatTitle));
     });
 
     on<SetPreMessageArray>((event, emit) {
