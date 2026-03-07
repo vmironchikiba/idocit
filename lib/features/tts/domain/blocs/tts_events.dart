@@ -4,6 +4,11 @@ abstract class TtsBlocEvent {
   const TtsBlocEvent([List props = const []]) : super();
 }
 
+class UpdateTtsIsEnabled extends TtsBlocEvent {
+  final bool isEnabled;
+  UpdateTtsIsEnabled({required this.isEnabled}) : super([isEnabled]);
+}
+
 class UpdateTtsState extends TtsBlocEvent {
   final TtsStateEnum ttsState;
   UpdateTtsState({required this.ttsState}) : super([ttsState]);
@@ -25,18 +30,38 @@ class UpdateTtsRate extends TtsBlocEvent {
 }
 
 class UpdateTtsLanguages extends TtsBlocEvent {
-  final List<String> languages;
+  final List<TtsLanguage> languages;
   UpdateTtsLanguages({required this.languages}) : super([languages]);
 }
 
 class UpdateTtsEngines extends TtsBlocEvent {
-  final List<String> engines;
+  final List<TtsEngine> engines;
   UpdateTtsEngines({required this.engines}) : super([engines]);
 }
 
 class UpdateTtsVoices extends TtsBlocEvent {
-  final List<Map<String, String>> voices;
+  final List<TtsVoice> voices;
   UpdateTtsVoices({required this.voices}) : super([voices]);
+}
+
+class UpdateTtsDefaultEngine extends TtsBlocEvent {
+  final TtsEngine defaultEngine;
+  UpdateTtsDefaultEngine({required this.defaultEngine}) : super([defaultEngine]);
+}
+
+class UpdateTtsCurrentEngine extends TtsBlocEvent {
+  final TtsEngine? currentEngine;
+  UpdateTtsCurrentEngine({required this.currentEngine}) : super([currentEngine]);
+}
+
+class UpdateTtsDefaultVoice extends TtsBlocEvent {
+  final TtsVoice defaultVoice;
+  UpdateTtsDefaultVoice({required this.defaultVoice}) : super([defaultVoice]);
+}
+
+class UpdateTtsCurrentVoice extends TtsBlocEvent {
+  final TtsVoice? currentVoice;
+  UpdateTtsCurrentVoice({required this.currentVoice}) : super([currentVoice]);
 }
 
 class UpdateTtsVoiceText extends TtsBlocEvent {

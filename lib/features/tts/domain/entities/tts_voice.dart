@@ -1,4 +1,6 @@
-class TtsVoice {
+import 'package:equatable/equatable.dart';
+
+class TtsVoice extends Equatable {
   final String name;
   final String locale;
   final String quality;
@@ -7,10 +9,16 @@ class TtsVoice {
   factory TtsVoice.fromJson(Map<String, dynamic> json) {
     return TtsVoice(name: json['name'], locale: json['locale'], quality: json['quality']);
   }
+  static TtsVoice get nullVoice => TtsVoice(name: '', locale: '', quality: '');
+
   Map<String, String> toJson() {
     final json = <String, String>{};
     json[r'name'] = name;
     json[r'locale'] = locale;
+    json[r'quality'] = quality;
     return json;
   }
+
+  @override
+  List<Object?> get props => [name, locale, quality];
 }

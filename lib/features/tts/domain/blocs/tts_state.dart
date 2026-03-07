@@ -1,15 +1,21 @@
 part of 'tts_bloc.dart';
 
 class TtsState {
+  final bool isEnabled;
   final TtsStateEnum ttsState;
   final double volume;
   final double pitch;
   final double rate;
-  final List<String> engines;
-  final List<String> languages;
-  final List<Map<String, String>> voices;
+  final List<TtsEngine> engines;
+  final List<TtsLanguage> languages;
+  final List<TtsVoice> voices;
+  final TtsEngine? defaultEngine;
+  final TtsEngine? currentEngine;
+  final TtsVoice? defaultVoice;
+  final TtsVoice? currentVoice;
   final String? voiceText;
   const TtsState({
+    required this.isEnabled,
     required this.ttsState,
     required this.volume,
     required this.pitch,
@@ -17,11 +23,16 @@ class TtsState {
     required this.engines,
     required this.languages,
     required this.voices,
+    required this.defaultEngine,
+    required this.currentEngine,
+    required this.defaultVoice,
+    required this.currentVoice,
     required this.voiceText,
   });
 
   factory TtsState.initial() {
     return const TtsState(
+      isEnabled: false,
       ttsState: TtsStateEnum.stopped,
       volume: 0.8,
       pitch: 1.0,
@@ -29,21 +40,31 @@ class TtsState {
       engines: [],
       languages: [],
       voices: [],
+      defaultEngine: null,
+      currentEngine: null,
+      defaultVoice: null,
+      currentVoice: null,
       voiceText: null,
     );
   }
 
   TtsState update({
+    bool? isEnabled,
     TtsStateEnum? ttsState,
     double? volume,
     double? pitch,
     double? rate,
-    List<String>? engines,
-    List<String>? languages,
-    List<Map<String, String>>? voices,
+    List<TtsEngine>? engines,
+    List<TtsLanguage>? languages,
+    List<TtsVoice>? voices,
+    TtsEngine? defaultEngine,
+    TtsEngine? currentEngine,
+    TtsVoice? defaultVoice,
+    TtsVoice? currentVoice,
     String? voiceText,
   }) {
     return TtsState(
+      isEnabled: isEnabled ?? this.isEnabled,
       ttsState: ttsState ?? this.ttsState,
       volume: volume ?? this.volume,
       pitch: pitch ?? this.pitch,
@@ -51,6 +72,10 @@ class TtsState {
       engines: engines ?? this.engines,
       languages: languages ?? this.languages,
       voices: voices ?? this.voices,
+      defaultEngine: defaultEngine ?? this.defaultEngine,
+      currentEngine: currentEngine ?? this.currentEngine,
+      defaultVoice: defaultVoice ?? this.defaultVoice,
+      currentVoice: currentVoice ?? this.currentVoice,
       voiceText: voiceText ?? this.voiceText,
     );
   }

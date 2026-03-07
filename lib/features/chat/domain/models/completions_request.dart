@@ -6,6 +6,7 @@ class CompletionRequest {
   final String language;
   final String role;
   final String content;
+  final Function(String)? onDone;
 
   const CompletionRequest({
     required this.tenant,
@@ -13,6 +14,7 @@ class CompletionRequest {
     required this.language,
     required this.content,
     required this.role,
+    this.onDone,
   });
   VerbaOptions _toVerbaOptions() =>
       VerbaOptions(tenant: tenant, language: language, chatId: chatId, embedder: {}, retriever: {}, generator: {});

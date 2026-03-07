@@ -3,6 +3,9 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:idocit/common/widgets/indicators/loading_indicator.dart';
 import 'package:idocit/constants/colors.dart';
 import 'package:idocit/constants/image.dart';
+import 'package:idocit/features/tts/domain/blocs/tts_bloc.dart';
+import 'package:idocit/features/tts/domain/services/tts_service.dart';
+import 'package:idocit/injection_container.dart';
 
 class LastUserPendingMessage extends StatelessWidget {
   final String text;
@@ -24,9 +27,22 @@ class LastUserPendingArray extends StatelessWidget {
   final List<String> preMessageArray;
 
   const LastUserPendingArray({super.key, required this.preMessageArray});
+  Future<void> _speak(String? text) async {
+    await locator<TtsService>().tts.setVolume(locator<TtsBloc>().state.volume);
+    await locator<TtsService>().tts.setSpeechRate(locator<TtsBloc>().state.rate);
+    await locator<TtsService>().tts.setPitch(locator<TtsBloc>().state.pitch);
+
+    if (text != null) {
+      if (text.isNotEmpty) {
+        await locator<TtsService>().tts.speak(text!);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final text = preMessageArray.join(' ');
+    // _speak(text);
     return Card(
       // color: ColorConstants.blue500.withValues(alpha: 0.1),
       color: ColorConstants.white500,

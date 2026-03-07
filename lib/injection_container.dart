@@ -1,6 +1,7 @@
 import 'package:get_it/get_it.dart';
 import 'package:idocit/common/blocs/core_bloc.dart';
 import 'package:idocit/common/datasources/core_preferences_storage.dart';
+import 'package:idocit/common/providers/chats_notifier.dart';
 import 'package:idocit/common/services/in_app_failures/in_app_failure_provider.dart';
 import 'package:idocit/common/services/navigator.dart';
 import 'package:idocit/common/services/network_listener.dart';
@@ -22,6 +23,7 @@ import 'package:idocit/features/authentication/domain/usecases/user/auth_get_use
 import 'package:idocit/features/chat/domain/bloc/chat_bloc.dart';
 import 'package:idocit/features/chat/domain/datasources/chat_history_remote_datasource.dart';
 import 'package:idocit/features/chat/domain/datasources/chat_suggestions_remote_data_source.dart';
+import 'package:idocit/features/chat/domain/models/stream_on_data_handler.dart';
 import 'package:idocit/features/chat/domain/usecases/chat_completions_stream.dart';
 import 'package:idocit/features/chat/domain/usecases/chat_history.dart';
 import 'package:idocit/features/chat/domain/usecases/chat_reset.dart';
@@ -55,6 +57,7 @@ void initLocator() {
   locator.registerLazySingleton(() => DeviceService());
   locator.registerLazySingleton(() => TtsService());
   locator.registerLazySingleton(() => ThemeProvider());
+  locator.registerLazySingleton(() => ChatsNotifier());
   locator.registerLazySingleton(() => CharlesProvider());
   locator.registerLazySingleton(() => InAppFailureProvider());
   locator.registerLazySingleton(() => LoggerService());

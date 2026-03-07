@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/constants/colors.dart';
 import 'package:idocit/constants/image.dart';
 import 'package:idocit/features/chat/domain/models/extensions/percent_string.dart';
@@ -45,11 +46,12 @@ class _InlineExpandableListState extends State<InlineExpandableList> with Single
       title: Card(
         elevation: 0,
         color: ColorConstants.white500.withValues(alpha: 1),
-        child: Text(
-          widget.items[0].text,
-          maxLines: 3,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(color: ColorConstants.black500),
+        child: KnowledgeCard(
+          knowledge: widget.items[0],
+          onItemTap: (docUuid) {
+            widget.onItemTap(docUuid, 0);
+            setState(() => _expanded = false);
+          },
         ),
       ),
       trailing: Icon(_expanded ? Icons.expand_less : Icons.expand_more),
@@ -88,46 +90,6 @@ class _InlineExpandableListState extends State<InlineExpandableList> with Single
           ),
         );
       }),
-    );
-
-    final rest2 = Column(
-      children: List.generate(
-        widget.items.length - 1,
-        (i) => ListTile(
-          leading: Column(
-            children: [
-              SvgPicture.asset(ImageConstants.igIdocIt, height: 21, width: 21),
-              SizedBox(height: 4.0),
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(4.0),
-                  color: widget.items[i + 1].score.toColor(),
-                ),
-                padding: EdgeInsets.all(3.0),
-                child: Text(
-                  widget.items[i + 1].score.toPercent(),
-                  style: TextStyle(color: ColorConstants.black500, fontSize: 12, fontWeight: FontWeight.w800),
-                ),
-              ),
-            ],
-          ),
-          title: Card(
-            elevation: 0,
-            color: ColorConstants.white500.withValues(alpha: 1),
-            child: Text(
-              widget.items[i + 1].text,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: ColorConstants.black500),
-            ),
-          ),
-          onTap: () {
-            widget.onItemTap(widget.items[i + 1].docUuid, i + 1);
-            // если нужно — закрывать после выбора:
-            setState(() => _expanded = false);
-          },
-        ),
-      ),
     );
 
     return Card(

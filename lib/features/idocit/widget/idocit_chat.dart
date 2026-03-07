@@ -1,6 +1,11 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:idocit/common/models/service/usecase.dart';
+import 'package:idocit/common/providers/chats_notifier.dart';
+import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/common/widgets/indicators/loading_indicator.dart';
+import 'package:idocit/constants/image.dart';
+import 'package:idocit/features/idocit/domain/usecases/idocit_lazy_init_chats.dart';
+import 'package:idocit/features/idocit/domain/usecases/idocit_reset.dart';
 import 'package:idocit/features/idocit/widget/inline_expandable_list.dart';
 import 'package:idocit/constants/colors.dart';
 import 'package:idocit/features/authentication/domain/bloc/auth_bloc.dart';
@@ -16,13 +21,14 @@ import 'package:idocit/features/idocit/widget/chat_history_list.dart';
 import 'package:idocit/features/idocit/widget/last_completion_request_card.dart';
 import 'package:idocit/features/idocit/widget/last_user_pending_message.dart';
 import 'package:idocit/features/idocit/widget/system_response_card.dart';
+import 'package:idocit/features/tts/domain/blocs/tts_bloc.dart';
+import 'package:idocit/features/tts/domain/services/tts_service.dart';
 import 'package:idocit/injection_container.dart';
 import 'package:flutter/material.dart';
 
 class IdocItChat extends StatefulWidget {
-  const IdocItChat({super.key, required this.chatId, required this.chatTitle});
+  const IdocItChat({super.key, /*required this.chatTitle,*/ required this.chatId});
   final String chatId;
-  final String chatTitle;
 
   @override
   State<IdocItChat> createState() => _IdocItChatState();
@@ -38,8 +44,18 @@ class _IdocItChatState extends State<IdocItChat> {
     super.initState();
     _scrollController = ScrollController();
 
+    List<String> preMessageArray = [];
+    List<String> preMessageArraySpoken = [];
+
     locator<ChatLazyInitSuggestions>().call(NoParams());
     locator<ChatBloc>().stream.listen(((state) {
+      if (locator<TtsBloc>().state.isEnabled && preMessageArray.length != state.preMessageArray.length) {
+        preMessageArraySpoken = preMessageArray;
+        preMessageArray = state.preMessageArray;
+        preMessageArray.removeWhere((element) => preMessageArraySpoken.contains(element));
+        final text = preMessageArray.join(' ');
+        _speak(text);
+      }
       _scrollToBottom();
     }));
     locator<GetChatHistory>().call(widget.chatId).then((result) {
@@ -47,6 +63,18 @@ class _IdocItChatState extends State<IdocItChat> {
         _scrollToBottom();
       }
     });
+  }
+
+  Future<void> _speak(String? text) async {
+    await locator<TtsService>().tts.setVolume(locator<TtsBloc>().state.volume);
+    await locator<TtsService>().tts.setSpeechRate(locator<TtsBloc>().state.rate);
+    await locator<TtsService>().tts.setPitch(locator<TtsBloc>().state.pitch);
+
+    if (text != null) {
+      if (text.isNotEmpty) {
+        await locator<TtsService>().tts.speak(text);
+      }
+    }
   }
 
   void _scrollToBottom() {
@@ -110,6 +138,13 @@ class _IdocItChatState extends State<IdocItChat> {
                           ),
                         ],
                       ),
+                      if (state.chatHistoryMessages.isEmpty &&
+                          state.completionRequests.isEmpty &&
+                          state.preMessageArray.isEmpty &&
+                          state.generationResultSystem == null &&
+                          state.queryResponse == null &&
+                          !state.isInProcess)
+                        Center(child: Image.asset(ImageConstants.chatPreviewPng)),
                       // if (state.isInProcess) Center(child: IdocItLoadingIndicator(size: 30.0)),
                     ],
                   );
@@ -160,7 +195,7 @@ class _IdocItChatState extends State<IdocItChat> {
               // INPUT FIELD
               // ======================================
               BlocBuilder<ChatBloc, ChatState>(
-                buildWhen: (p, c) => p.isInProcess != c.isInProcess,
+                buildWhen: (p, c) => p.isInProcess != c.isInProcess || p.chatId != c.chatId,
                 builder: (context, state) {
                   return Positioned(
                     bottom: 0,
@@ -186,10 +221,22 @@ class _IdocItChatState extends State<IdocItChat> {
                               FocusScope.of(context).unfocus();
                               final request = CompletionRequest(
                                 tenant: locator<AuthBloc>().state.userData?.tenant ?? '',
-                                chatId: widget.chatId,
+                                chatId: state.chatId ?? widget.chatId,
                                 language: 'en-US',
                                 content: _controller.text,
                                 role: Role.user.asString(),
+                                onDone: (chatId) async {
+                                  final reset = await locator<IdocItReset>().call(NoParams());
+                                  if (reset.isLeft()) return;
+                                  locator<ChatBloc>().add(ResetRequestedData());
+                                  final history = await locator<GetChatHistory>().call(chatId);
+                                  if (history.isLeft()) return;
+                                  final chats = await locator<IdocItLazyInitChats>().call(NoParams());
+                                  if (chats.isLeft()) return;
+                                  locator<ChatsNotifier>().send(ChatsEvent.close);
+                                  setState(() {});
+                                  LoggerService.logDebug('message');
+                                },
                               );
                               locator<ChatStartCompletionsStream>().call(request);
                               _controller.clear();

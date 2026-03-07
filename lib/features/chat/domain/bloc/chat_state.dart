@@ -11,6 +11,7 @@ class ChatState {
   final QueryResponse? queryResponse;
   final String? traceId;
   final String? chatId;
+  final String? chatTitle;
   final List<String> preMessageArray;
   final List<ChatHistoryMessage> chatHistoryMessages;
   const ChatState({
@@ -24,6 +25,7 @@ class ChatState {
     this.queryResponse,
     this.traceId,
     this.chatId,
+    this.chatTitle,
     required this.preMessageArray,
     this.chatHistoryMessages = const [],
   });
@@ -40,6 +42,7 @@ class ChatState {
       queryResponse: null,
       traceId: null,
       chatId: null,
+      chatTitle: null,
       preMessageArray: [],
       chatHistoryMessages: [],
     );
@@ -56,6 +59,7 @@ class ChatState {
     QueryResponse? queryResponse,
     String? traceId,
     String? chatId,
+    String? chatTitle,
     List<String>? preMessageArray,
     List<ChatHistoryMessage>? chatHistoryMessages,
   }) {
@@ -70,6 +74,7 @@ class ChatState {
       queryResponse: queryResponse ?? this.queryResponse,
       traceId: traceId ?? this.traceId,
       chatId: chatId ?? this.chatId,
+      chatTitle: chatTitle ?? this.chatTitle,
       preMessageArray: preMessageArray ?? this.preMessageArray,
       chatHistoryMessages: chatHistoryMessages ?? this.chatHistoryMessages,
     );
@@ -86,8 +91,86 @@ class ChatState {
       queryResponse: queryResponse,
       traceId: traceId,
       chatId: chatId,
+      chatTitle: chatTitle,
       preMessageArray: preMessageArray,
       chatHistoryMessages: chatHistoryMessages,
     );
   }
+
+  ChatState deleteCompletionRequest() {
+    return ChatState(
+      selectedDate: selectedDate,
+      isInProcess: isInProcess,
+      suggestionsResponse: suggestionsResponse,
+      query: query,
+      chunk: chunk,
+      completionRequests: [],
+      generationResultSystem: generationResultSystem,
+      queryResponse: queryResponse,
+      traceId: traceId,
+      chatId: chatId,
+      chatTitle: chatTitle,
+      preMessageArray: preMessageArray,
+      chatHistoryMessages: chatHistoryMessages,
+    );
+  }
+
+  ChatState deleteGenerationResultSystem() {
+    return ChatState(
+      selectedDate: selectedDate,
+      isInProcess: isInProcess,
+      suggestionsResponse: suggestionsResponse,
+      query: query,
+      chunk: chunk,
+      completionRequests: completionRequests,
+      generationResultSystem: null,
+      queryResponse: queryResponse,
+      traceId: traceId,
+      chatId: chatId,
+      chatTitle: chatTitle,
+      preMessageArray: preMessageArray,
+      chatHistoryMessages: chatHistoryMessages,
+    );
+  }
+
+  ChatState deletePreMessageArray() {
+    return ChatState(
+      selectedDate: selectedDate,
+      isInProcess: isInProcess,
+      suggestionsResponse: suggestionsResponse,
+      query: query,
+      chunk: chunk,
+      completionRequests: completionRequests,
+      generationResultSystem: generationResultSystem,
+      queryResponse: queryResponse,
+      traceId: traceId,
+      chatId: chatId,
+      chatTitle: chatTitle,
+      preMessageArray: [],
+      chatHistoryMessages: chatHistoryMessages,
+    );
+  }
+
+  ChatState deleteQueryResponse() {
+    return ChatState(
+      selectedDate: selectedDate,
+      isInProcess: isInProcess,
+      suggestionsResponse: suggestionsResponse,
+      query: query,
+      chunk: chunk,
+      completionRequests: completionRequests,
+      generationResultSystem: generationResultSystem,
+      queryResponse: null,
+      traceId: traceId,
+      chatId: chatId,
+      chatTitle: chatTitle,
+      preMessageArray: preMessageArray,
+      chatHistoryMessages: chatHistoryMessages,
+    );
+  }
+
+  ChatState deleteRequestedData() {
+    return deleteCompletionRequest().deleteGenerationResultSystem().deletePreMessageArray().deleteQueryResponse();
+  }
 }
+//

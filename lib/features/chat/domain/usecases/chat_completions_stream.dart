@@ -18,6 +18,7 @@ class ChatStartCompletionsStream implements UseCase<Either<Failure, void>, Compl
   final AuthBloc authBloc;
   var buffer = '';
   var previewBuffer = '';
+  var chatId = '';
   // final List<String> preMessageArray = [];
   // String? traceId;
   // QueryResponse? queryResponse;
@@ -34,12 +35,15 @@ class ChatStartCompletionsStream implements UseCase<Either<Failure, void>, Compl
     }
     final token = authBloc.state.userToken;
     if (token == null) return Left(AuthFailure(message: 'Token is empty', type: AuthErrorType.badTokensData));
+    chatId = '';
+    chatBloc.add(SetChatTitle(chatTitle: request.content));
     OpenAIStreamApi(basePath: StringsConstants.basePath)
         .streamChatCompletions(request.toChatCompletionRequest(), token.accessToken)
         .listen(
           (chunk) {
             final currentChatId = chunk.id;
             if (currentChatId != null) {
+              chatId = currentChatId;
               chatBloc.add(SetChatId(chatId: currentChatId));
             }
             if (chunk.choices.isEmpty) return;
@@ -83,7 +87,13 @@ class ChatStartCompletionsStream implements UseCase<Either<Failure, void>, Compl
             chatBloc.add(SetIsInProcess(isInProcess: false));
             return Left(CommonFailure(message: err.toString(), type: CommonErrorType.badResponseData));
           },
-          onDone: () => chatBloc.add(SetIsInProcess(isInProcess: false)),
+          onDone: () {
+            chatBloc.add(SetIsInProcess(isInProcess: false));
+            chatBloc.add(SetChatId(chatId: chatId));
+            if (request.onDone != null) {
+              request.onDone!(chatId);
+            }
+          },
         );
     chatBloc.add(AddCompletionRequest(completionRequest: request));
     return Right(null);

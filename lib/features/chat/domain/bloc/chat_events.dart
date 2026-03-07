@@ -55,6 +55,11 @@ class SetChatId extends ChatBlocEvent {
   SetChatId({required this.chatId}) : super([chatId]);
 }
 
+class SetChatTitle extends ChatBlocEvent {
+  String chatTitle;
+  SetChatTitle({required this.chatTitle}) : super([chatTitle]);
+}
+
 class SetPreMessageArray extends ChatBlocEvent {
   List<String> preMessageArray;
   SetPreMessageArray({required this.preMessageArray}) : super([preMessageArray]);
@@ -63,6 +68,22 @@ class SetPreMessageArray extends ChatBlocEvent {
 class AddCompletionRequest extends ChatBlocEvent {
   CompletionRequest completionRequest;
   AddCompletionRequest({required this.completionRequest}) : super([completionRequest]);
+}
+
+class ResetCompletionRequests extends ChatBlocEvent {
+  ResetCompletionRequests() : super([]);
+}
+
+class ResetGenerationResultSystem extends ChatBlocEvent {
+  ResetGenerationResultSystem() : super([]);
+}
+
+class ResetPreMessageArray extends ChatBlocEvent {
+  ResetPreMessageArray() : super([]);
+}
+
+class ResetRequestedData extends ChatBlocEvent {
+  ResetRequestedData() : super([]);
 }
 
 class SetChatHistoryMessages extends ChatBlocEvent {

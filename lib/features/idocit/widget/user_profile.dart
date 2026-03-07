@@ -8,7 +8,8 @@ import 'package:idocit/constants/colors.dart';
 import 'package:idocit/constants/image.dart';
 import 'package:idocit/features/authentication/domain/bloc/auth_bloc.dart';
 import 'package:idocit/features/idocit/widget/profile_logout_dialog.dart';
-import 'package:idocit/features/tts/screens/tts_settings_screen.dart';
+import 'package:idocit/features/stt/screens/stt_settings_creen.dart';
+import 'package:idocit/features/tts/screens/tts_settings_screen_s.dart';
 import 'package:idocit/injection_container.dart';
 
 class UserProfile extends StatefulWidget {
@@ -47,6 +48,10 @@ class _UserProfileState extends State<UserProfile> {
 
   Future<void> _handleTtsSettings() async {
     Navigator.push(context, CupertinoPageRoute(builder: (_) => TtsSettingsScreen()));
+  }
+
+  Future<void> _handleSttSettings() async {
+    Navigator.push(context, CupertinoPageRoute(builder: (_) => SttSettingsScreen()));
   }
 
   @override
@@ -106,6 +111,20 @@ class _UserProfileState extends State<UserProfile> {
                 callback: _handleTtsSettings,
               ),
               Text('TTS Settings'),
+            ],
+          ),
+          Row(
+            children: [
+              IdocItImageButton(
+                image: SvgPicture.asset(
+                  ImageConstants.microphoneSvg,
+                  width: 22.0,
+                  height: 22.0,
+                  color: ColorConstants.white500,
+                ),
+                callback: _handleSttSettings,
+              ),
+              Text('STT Settings'),
             ],
           ),
           SizedBox(height: 10.0),
