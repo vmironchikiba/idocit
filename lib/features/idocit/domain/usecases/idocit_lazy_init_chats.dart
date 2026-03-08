@@ -25,7 +25,7 @@ class IdocItLazyInitChats implements UseCase<Either<Failure, void>, NoParams> {
   @override
   Future<Either<Failure, void>> call(NoParams params) async {
     LoggerService.logDebug('IdocItLazyInitChats -> call()');
-    idocItBloc.add(IdocItResetEvent());
+    // idocItBloc.add(IdocItResetEvent());
     final token = authBloc.state.userToken;
     if (token == null) return Left(AuthFailure(message: 'Token is empty', type: AuthErrorType.badTokensData));
     final chatsResult = await idocItRemoteDataSource.getChats(token);

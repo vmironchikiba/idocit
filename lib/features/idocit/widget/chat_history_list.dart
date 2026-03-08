@@ -31,7 +31,7 @@ class ChatHistoryList extends StatelessWidget {
                 ? Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      SvgPicture.asset(ImageConstants.userChatAvatarSvg, height: 16, width: 16),
+                      SvgPicture.asset(ImageConstants.userChatAvatarSvg, height: 30, width: 30),
                       Text(
                         'You',
                         textAlign: TextAlign.center,
@@ -43,7 +43,7 @@ class ChatHistoryList extends StatelessWidget {
                 ? Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      SvgPicture.asset(ImageConstants.igIdocIt, height: 16, width: 16),
+                      SvgPicture.asset(ImageConstants.igIdocIt, height: 30, width: 30),
                       Text(
                         'iDocIt\nAI',
                         textAlign: TextAlign.center,

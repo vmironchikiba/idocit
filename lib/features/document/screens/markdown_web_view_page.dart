@@ -404,9 +404,16 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              widget.knowledge.docName.split('\n').firstOrNull ?? 'Документ',
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 9.0),
+            Expanded(
+              child: Text(
+                widget.knowledge.docName.split('\n').firstOrNull ?? 'Документ',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14.0,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ),
           ],
         ),

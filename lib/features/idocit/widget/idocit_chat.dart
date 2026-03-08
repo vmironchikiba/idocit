@@ -169,7 +169,7 @@ class _IdocItChatState extends State<IdocItChat> {
                       constraints: BoxConstraints(maxHeight: screenHeight - inputHeight - 30),
                       child: Material(
                         elevation: 6,
-                        color: ColorConstants.progressBarBackground,
+                        color: ColorConstants.greyBlue450,
                         borderRadius: BorderRadius.circular(8),
                         child: ListView.builder(
                           shrinkWrap: true,
@@ -177,7 +177,10 @@ class _IdocItChatState extends State<IdocItChat> {
                           itemBuilder: (_, index) {
                             final text = suggestions[index];
                             return ListTile(
-                              title: Text(text),
+                              title: Text(
+                                text,
+                                style: TextStyle(color: ColorConstants.black500, fontWeight: FontWeight.w500),
+                              ),
                               onTap: () {
                                 _controller.text = text;
                                 locator<ChatSuggestionsReset>().call(NoParams());

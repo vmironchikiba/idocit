@@ -28,7 +28,7 @@ class IdocItDeleteChat implements UseCase<Either<Failure, void>, String> {
   @override
   Future<Either<Failure, void>> call(String chatId) async {
     LoggerService.logDebug('IdocItDeleteChat -> call()');
-    idocItBloc.add(IdocItResetEvent());
+    // idocItBloc.add(IdocItResetEvent());
     final token = authBloc.state.userToken;
     if (token == null) return Left(AuthFailure(message: 'Token is empty', type: AuthErrorType.badTokensData));
     final deleteChatResult = await idocItRemoteDataSource.deleteChat(token, chatId: chatId);
