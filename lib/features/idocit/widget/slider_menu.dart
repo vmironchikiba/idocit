@@ -158,7 +158,7 @@ class _SliderMenuState extends State<SliderMenu> {
                                 },
                                 borderRadius: BorderRadius.circular(4),
                                 child: const Padding(
-                                  padding: EdgeInsets.all(2),
+                                  padding: EdgeInsets.all(1),
                                   child: Icon(Icons.delete, size: 24, color: ColorConstants.white500),
                                 ),
                               )

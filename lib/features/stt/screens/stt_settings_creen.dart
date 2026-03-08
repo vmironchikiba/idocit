@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:idocit/constants/colors.dart';
 import 'package:speech_to_text/speech_recognition_error.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
@@ -214,7 +215,13 @@ class RecognitionResultsWidget extends StatelessWidget {
             Container(
               constraints: const BoxConstraints(minHeight: 200),
               color: Theme.of(context).secondaryHeaderColor,
-              child: Center(child: Text(lastWords, textAlign: TextAlign.center)),
+              child: Center(
+                child: Text(
+                  lastWords,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: ColorConstants.black500),
+                ),
+              ),
             ),
             Positioned.fill(
               bottom: 10,

@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/common/widgets/indicators/loading_indicator.dart';
 import 'package:idocit/constants/colors.dart';
 import 'package:idocit/features/document/domain/usecases/get_document_by_id.dart';
@@ -45,35 +48,40 @@ class _KnowledgeCardState extends State<KnowledgeCard> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Stack(
-        alignment: AlignmentGeometry.center,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(4.0),
-            child: TextButton(
-              onPressed: () async {
-                if (_isLoading == false) {
-                  await _handleTap(widget.knowledge.docUuid);
-                }
-              },
-              child: Text(
-                widget.knowledge.text,
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: ColorConstants.black500),
-              ),
+    return Stack(
+      alignment: AlignmentGeometry.center,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(0.0),
+          child: TextButton(
+            style: TextButton.styleFrom(padding: EdgeInsets.zero),
+            onPressed: () async {
+              if (_isLoading == false) {
+                await _handleTap(widget.knowledge.docUuid);
+              }
+            },
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    widget.knowledge.docName,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: ColorConstants.black500),
+                  ),
+                ),
+              ],
             ),
           ),
+        ),
 
-          // Loading overlay
-          if (_isLoading)
-            Container(
-              color: Colors.white.withOpacity(0.7),
-              child: const Center(child: IdocItLoadingIndicator(color: ColorConstants.loading)),
-            ),
-        ],
-      ),
+        // Loading overlay
+        if (_isLoading)
+          Container(
+            color: Colors.white.withOpacity(0.7),
+            child: const Center(child: IdocItLoadingIndicator(color: ColorConstants.loading)),
+          ),
+      ],
     );
   }
 }

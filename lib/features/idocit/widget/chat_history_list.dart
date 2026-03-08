@@ -43,7 +43,7 @@ class ChatHistoryList extends StatelessWidget {
                 ? Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      SvgPicture.asset(ImageConstants.igIdocIt, height: 30, width: 30),
+                      SvgPicture.asset(ImageConstants.igIdocIt, height: 22, width: 22),
                       Text(
                         'iDocIt\nAI',
                         textAlign: TextAlign.center,
