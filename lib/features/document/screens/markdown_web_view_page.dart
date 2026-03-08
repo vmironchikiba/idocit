@@ -124,7 +124,11 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
 
     LoggerService.logDebug('🔍 Найдено совпадений: ${allMatches.length}');
     if (allMatches.isNotEmpty) {
-      LoggerService.logDebug('🔍 Первое совпадение: "${allMatches.first.group(0)?.substring(0, 50)}..."');
+      final debudInfo = allMatches.first.group(0);
+      if (debudInfo != null) {
+        final debug = debudInfo.length >= 50 ? debudInfo.substring(0, 50) : debudInfo.substring(0, debudInfo.length);
+        LoggerService.logDebug('🔍 Первое совпадение: "$debug..."');
+      }
     }
 
     final markedMarkdown = _markMatchesInMarkdown(allMatches);
