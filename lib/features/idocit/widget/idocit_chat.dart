@@ -121,20 +121,57 @@ class _IdocItChatState extends State<IdocItChat> {
                         controller: _scrollController,
                         padding: const EdgeInsets.only(bottom: 65),
                         children: [
-                          if (!state.isInProcess) ChatHistoryList(messages: state.chatHistoryMessages),
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 300),
+                            child: !state.isInProcess
+                                ? ChatHistoryList(
+                                    key: const ValueKey('chat_history'),
+                                    messages: state.chatHistoryMessages,
+                                  )
+                                : const SizedBox(key: ValueKey('empty_history')),
+                          ),
 
-                          if (state.completionRequests.isNotEmpty)
-                            LastCompletionRequestCard(text: state.completionRequests.last.content),
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 300),
+                            child: state.completionRequests.isNotEmpty
+                                ? LastCompletionRequestCard(
+                                    key: ValueKey(state.completionRequests.last.chatId),
+                                    text: state.completionRequests.last.content,
+                                  )
+                                : const SizedBox(key: ValueKey('empty_completion')),
+                          ),
 
-                          if (state.preMessageArray.isNotEmpty && state.generationResultSystem == null)
-                            LastUserPendingArray(preMessageArray: state.preMessageArray),
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 300),
+                            child: state.preMessageArray.isNotEmpty && state.generationResultSystem == null
+                                ? LastUserPendingArray(
+                                    key: const ValueKey('pending_array'),
+                                    preMessageArray: state.preMessageArray,
+                                  )
+                                : const SizedBox(key: ValueKey('empty_pending')),
+                          ),
 
-                          if (state.generationResultSystem != null)
-                            SystemResponseCard(message: state.generationResultSystem!),
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 300),
+                            child: state.generationResultSystem != null
+                                ? SystemResponseCard(
+                                    key: ValueKey(state.generationResultSystem!.hashCode),
+                                    message: state.generationResultSystem!,
+                                  )
+                                : const SizedBox(key: ValueKey('empty_system')),
+                          ),
 
-                          InlineExpandableList(
-                            items: state.queryResponse?.categories.expand((c) => c.knowledgeData).toList() ?? [],
-                            onItemTap: (udid, index) {},
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 300),
+                            child:
+                                (state.queryResponse?.categories.expand((c) => c.knowledgeData).toList() ?? [])
+                                    .isNotEmpty
+                                ? InlineExpandableList(
+                                    key: const ValueKey('knowledge_list'),
+                                    items: state.queryResponse!.categories.expand((c) => c.knowledgeData).toList(),
+                                    onItemTap: (udid, index) {},
+                                  )
+                                : const SizedBox(key: ValueKey('empty_knowledge')),
                           ),
                         ],
                       ),

@@ -26,6 +26,7 @@ class SliderMenu extends StatefulWidget {
 class _SliderMenuState extends State<SliderMenu> {
   bool _isRequestInProgress = false;
   bool _isChatInProgress = false;
+  String? _isChatInProgressId;
   bool _isNewChatAdded = false;
 
   @override
@@ -139,25 +140,32 @@ class _SliderMenuState extends State<SliderMenu> {
                             isSelected: chat.id == chatState.chatId,
                           ),
                         ),
-                        InkWell(
-                          onTap: () async {
-                            setState(() {
-                              _isChatInProgress = true;
-                            });
+                        _isChatInProgressId != chat.id
+                            ? InkWell(
+                                onTap: () async {
+                                  setState(() {
+                                    _isChatInProgress = true;
+                                    _isChatInProgressId = chat.id;
+                                  });
 
-                            await locator<IdocItDeleteChat>().call(chat.id);
-                            await locator<IdocItLazyInitChats>().call(NoParams());
+                                  await locator<IdocItDeleteChat>().call(chat.id);
+                                  await locator<IdocItLazyInitChats>().call(NoParams());
 
-                            setState(() {
-                              _isChatInProgress = false;
-                            });
-                          },
-                          borderRadius: BorderRadius.circular(4),
-                          child: const Padding(
-                            padding: EdgeInsets.all(2),
-                            child: Icon(Icons.delete, size: 24, color: ColorConstants.white500),
-                          ),
-                        ),
+                                  setState(() {
+                                    _isChatInProgress = false;
+                                    _isChatInProgressId = null;
+                                  });
+                                },
+                                borderRadius: BorderRadius.circular(4),
+                                child: const Padding(
+                                  padding: EdgeInsets.all(2),
+                                  child: Icon(Icons.delete, size: 24, color: ColorConstants.white500),
+                                ),
+                              )
+                            : Padding(
+                                padding: const EdgeInsets.all(2.0),
+                                child: IdocItLoadingIndicator(color: ColorConstants.white500),
+                              ),
                       ],
                     ),
                   ),
