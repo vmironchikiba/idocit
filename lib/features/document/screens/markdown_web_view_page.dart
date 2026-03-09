@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:idocit/common/services/logger.dart';
+import 'package:idocit/common/utils/dialogs.dart';
+import 'package:idocit/common/widgets/dialogs/warning_dialog.dart';
 import 'package:idocit/common/widgets/indicators/loading_indicator.dart';
 import 'package:idocit/constants/colors.dart';
 import 'package:idocit/constants/image.dart';
@@ -58,7 +60,16 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
           onPageFinished: (String url) {
             setState(() => _isLoading = false);
           },
-          onWebResourceError: (WebResourceError error) {
+          onWebResourceError: (WebResourceError error) async {
+            await idocitShowDialog<bool?>(
+              IdocItWarningDialog(
+                label: 'WebView error',
+                description: error.description,
+                // iconSrc: _inAppFailureProvider.iconSrc,
+                buttonText: 'OK',
+                // buttonCallback: _onTryAgainHandler,
+              ),
+            );
             LoggerService.logDebug('WebView error: ${error.description}');
           },
         ),
