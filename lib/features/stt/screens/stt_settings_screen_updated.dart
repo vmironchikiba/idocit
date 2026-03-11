@@ -22,7 +22,7 @@ class SttSettingsScreenUpdated extends StatefulWidget {
 /// SpeechToText plugin for using the speech recognition capability
 /// of the underlying platform.
 class _SttSettingsScreenUpdatedState extends State<SttSettingsScreenUpdated> {
-  SpeechExampleConfig currentOptions = SpeechExampleConfig(
+  SpeechToTextConfig currentOptions = SpeechToTextConfig(
     SpeechListenOptions(
       listenMode: ListenMode.confirmation,
       onDevice: false,
@@ -234,9 +234,9 @@ class SessionOptionsWidget extends StatelessWidget {
     required this.pauseForController,
   });
 
-  final SpeechExampleConfig options;
+  final SpeechToTextConfig options;
   final List<LocaleName> localeNames;
-  final void Function(SpeechExampleConfig newOptions) onChange;
+  final void Function(SpeechToTextConfig newOptions) onChange;
   final TextEditingController listenForController;
   final TextEditingController pauseForController;
 
@@ -406,7 +406,7 @@ class SpeechStatusWidget extends StatelessWidget {
 /// A class that holds the configuration for the speech recognition
 /// example app. This is used to pass the configuration to the
 /// setup dialog and to hold the current configuration.
-class SpeechExampleConfig {
+class SpeechToTextConfig {
   final SpeechListenOptions options;
   final String localeId;
   final bool logEvents;
@@ -414,9 +414,9 @@ class SpeechExampleConfig {
   final int pauseFor;
   final int listenFor;
 
-  SpeechExampleConfig(this.options, this.localeId, this.pauseFor, this.listenFor, this.logEvents, this.debugLogging);
+  SpeechToTextConfig(this.options, this.localeId, this.pauseFor, this.listenFor, this.logEvents, this.debugLogging);
 
-  SpeechExampleConfig copyWith({
+  SpeechToTextConfig copyWith({
     SpeechListenOptions? options,
     String? localeId,
     bool? logEvents,
@@ -424,7 +424,7 @@ class SpeechExampleConfig {
     int? listenFor,
     bool? debugLogging,
   }) {
-    return SpeechExampleConfig(
+    return SpeechToTextConfig(
       options ?? this.options,
       localeId ?? this.localeId,
       pauseFor ?? this.pauseFor,
@@ -437,9 +437,9 @@ class SpeechExampleConfig {
 
 /// Show the setup dialog to allow the user to change the
 /// configuration of the speech recognition session.
-Future<SpeechExampleConfig> showSetUp(
+Future<SpeechToTextConfig> showSetUp(
   BuildContext context,
-  SpeechExampleConfig currentOptions,
+  SpeechToTextConfig currentOptions,
   List<LocaleName> localeNames,
 ) async {
   var updatedOptions = currentOptions;
