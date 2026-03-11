@@ -21,6 +21,6 @@ class SttLazyInit implements UseCase<Either<Failure, void>, NoParams> {
     }
     await sttService.initSpeechState();
     sttBloc.add(UpdateSttIsEnabled(isEnabled: sttService.hasSpeech));
-    return sttService.hasSpeech ? Right(null) : Left(SttFailure());
+    return sttService.hasSpeech ? Right(null) : Left(SttNotExistsFailure());
   }
 }

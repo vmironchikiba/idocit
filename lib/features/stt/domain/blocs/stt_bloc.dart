@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:idocit/common/models/service/failure.dart';
 import 'package:speech_to_text/speech_recognition_error.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
@@ -23,8 +24,8 @@ class SttBloc extends Bloc<SttBlocEvent, SttState> {
       emit(state.update(lastWords: event.lastWords));
     });
 
-    on<UpdateSttLastError>((event, emit) {
-      emit(event.lastError == null ? state.resetLatError() : state.update(lastError: event.lastError));
+    on<UpdateSttLastFailure>((event, emit) {
+      emit(event.lastFailure == null ? state.resetFailure() : state.update(lastFailure: event.lastFailure));
     });
 
     on<UpdateSttLevel>((event, emit) {

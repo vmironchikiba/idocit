@@ -1,4 +1,5 @@
 import 'package:idocit/constants/errors.dart';
+import 'package:speech_to_text/speech_recognition_error.dart';
 
 abstract class Failure {
   final String message;
@@ -46,6 +47,11 @@ class ChunkFailure extends Failure {
   const ChunkFailure({required String message, required this.type}) : super(message);
 }
 
-class SttFailure extends Failure {
-  const SttFailure() : super('No speech-to-text');
+class SttNotExistsFailure extends Failure {
+  const SttNotExistsFailure() : super('No speech-to-text');
+}
+
+class SttSpeechFailure extends Failure {
+  final SpeechRecognitionError? error;
+  const SttSpeechFailure({this.error}) : super('Speech error');
 }

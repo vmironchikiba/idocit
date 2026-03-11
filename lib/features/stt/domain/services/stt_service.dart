@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:idocit/common/models/service/failure.dart';
 import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/features/stt/domain/blocs/stt_bloc.dart';
 import 'package:idocit/features/stt/domain/models/speech_to_text_config.dart';
@@ -70,7 +71,7 @@ class SttService {
 
   void errorListener(SpeechRecognitionError error) {
     _logEvent('Received error status: $error, listening: ${speech.isListening}');
-    sttBloc.add(UpdateSttLastError(lastError: error));
+    sttBloc.add(UpdateSttLastFailure(lastFailure: SttSpeechFailure(error: error)));
   }
 
   void _logEvent(String eventDescription) {
@@ -87,7 +88,7 @@ class SttService {
   void startListening() {
     _logEvent('start listening');
     sttBloc.add(UpdateSttLastWords(lastWords: ''));
-    sttBloc.add(UpdateSttLastError(lastError: null));
+    sttBloc.add(UpdateSttLastFailure(lastFailure: null));
 
     // Note that `listenFor` is the maximum, not the minimum, on some
     // systems recognition will be stopped before this value is reached.
@@ -106,6 +107,12 @@ class SttService {
   void stopListening() {
     _logEvent('stop');
     speech.stop();
+    sttBloc.add(UpdateSttLevel(level: 0.0));
+  }
+
+  void cancelListening() {
+    _logEvent('cancel');
+    speech.cancel();
     sttBloc.add(UpdateSttLevel(level: 0.0));
   }
 

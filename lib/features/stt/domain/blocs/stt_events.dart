@@ -24,11 +24,6 @@ class UpdateSttLastWords extends SttBlocEvent {
   UpdateSttLastWords({required this.lastWords}) : super([lastWords]);
 }
 
-class UpdateSttLastError extends SttBlocEvent {
-  final SpeechRecognitionError? lastError;
-  UpdateSttLastError({required this.lastError}) : super([lastError]);
-}
-
 class UpdateSttLevel extends SttBlocEvent {
   final double level;
   UpdateSttLevel({required this.level}) : super([level]);
@@ -47,6 +42,11 @@ class UpdateSttLocalNames extends SttBlocEvent {
 class UpdateSttSystemLocale extends SttBlocEvent {
   final LocaleName? systemLocale;
   UpdateSttSystemLocale({required this.systemLocale}) : super([systemLocale]);
+}
+
+class UpdateSttLastFailure extends SttBlocEvent {
+  final SttSpeechFailure? lastFailure;
+  UpdateSttLastFailure({required this.lastFailure}) : super([lastFailure]);
 }
 
 class SignOutCoreEvent extends SttBlocEvent {
