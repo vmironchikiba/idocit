@@ -45,3 +45,7 @@ class ChunkFailure extends Failure {
 
   const ChunkFailure({required String message, required this.type}) : super(message);
 }
+
+class SttFailure extends Failure {
+  const SttFailure() : super('No speech-to-text');
+}
