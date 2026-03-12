@@ -8,8 +8,8 @@ import 'package:idocit/constants/colors.dart';
 import 'package:idocit/constants/image.dart';
 import 'package:idocit/features/authentication/domain/bloc/auth_bloc.dart';
 import 'package:idocit/features/idocit/widget/profile_logout_dialog.dart';
+import 'package:idocit/features/stt/screens/stt_settings_screen_original.dart';
 import 'package:idocit/features/stt/screens/stt_settings_screen.dart';
-import 'package:idocit/features/stt/screens/stt_settings_screen_updated.dart';
 import 'package:idocit/features/tts/screens/tts_settings_screen_s.dart';
 import 'package:idocit/injection_container.dart';
 
@@ -52,7 +52,7 @@ class _UserProfileState extends State<UserProfile> {
   }
 
   Future<void> _handleSttSettings() async {
-    Navigator.push(context, CupertinoPageRoute(builder: (_) => SttSettingsScreenUpdated()));
+    Navigator.push(context, CupertinoPageRoute(builder: (_) => SttSettingsScreen()));
   }
 
   @override

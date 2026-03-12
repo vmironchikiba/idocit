@@ -1,28 +1,34 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:idocit/common/models/service/usecase.dart';
-import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/constants/colors.dart';
-import 'package:idocit/features/stt/domain/blocs/stt_bloc.dart';
-import 'package:idocit/features/stt/domain/usecases/stt_lazy_init.dart';
-import 'package:idocit/features/stt/domain/usecases/stt_start_stop.dart';
-import 'package:idocit/injection_container.dart';
+import 'package:speech_to_text/speech_recognition_error.dart';
+import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
-class SttSettingsScreenUpdated extends StatefulWidget {
-  const SttSettingsScreenUpdated({super.key});
+class SttSettingsScreenOriginal extends StatefulWidget {
+  const SttSettingsScreenOriginal({Key? key}) : super(key: key);
 
   @override
-  State<SttSettingsScreenUpdated> createState() => _SttSettingsScreenUpdatedState();
+  State<SttSettingsScreenOriginal> createState() => _SttSettingsScreenOriginalState();
 }
 
 /// An example that demonstrates the basic functionality of the
 /// SpeechToText plugin for using the speech recognition capability
 /// of the underlying platform.
-class _SttSettingsScreenUpdatedState extends State<SttSettingsScreenUpdated> {
-  SpeechToTextConfig currentOptions = SpeechToTextConfig(
+class _SttSettingsScreenOriginalState extends State<SttSettingsScreenOriginal> {
+  bool _hasSpeech = false;
+  double level = 0.0;
+  double minSoundLevel = 50000;
+  double maxSoundLevel = -50000;
+  String lastWords = '';
+  String lastError = '';
+  String lastStatus = '';
+  List<LocaleName> _localeNames = [];
+  final SpeechToText speech = SpeechToText();
+
+  SpeechExampleConfig currentOptions = SpeechExampleConfig(
     SpeechListenOptions(
       listenMode: ListenMode.confirmation,
       onDevice: false,
@@ -40,13 +46,6 @@ class _SttSettingsScreenUpdatedState extends State<SttSettingsScreenUpdated> {
 
   @override
   void initState() {
-    locator<SttLazyInit>().call(NoParams()).then((result) {
-      setState(() {
-        result.fold((failure) {
-          LoggerService.logDebug(failure.message);
-        }, (_) {});
-      });
-    });
     super.initState();
   }
 
@@ -55,11 +54,37 @@ class _SttSettingsScreenUpdatedState extends State<SttSettingsScreenUpdated> {
   /// it also does nothing. The UX of the sample app ensures that
   /// it can only be called once.
   Future<void> initSpeechState() async {
-    locator<SttLazyInit>().call(NoParams()).then((result) {
+    _logEvent('Initialize');
+    try {
+      var hasSpeech = await speech.initialize(
+        onError: errorListener,
+        onStatus: statusListener,
+        debugLogging: currentOptions.debugLogging,
+      );
+      if (hasSpeech) {
+        speech.unexpectedPhraseAggregator = _punctAggregator;
+        // Get the list of languages installed on the supporting platform so they
+        // can be displayed in the UI for selection by the user.
+        _localeNames = await speech.locales();
+
+        var systemLocale = await speech.systemLocale();
+        currentOptions = currentOptions.copyWith(localeId: systemLocale?.localeId ?? '');
+      }
+      if (!mounted) return;
+
       setState(() {
-        result.fold((failure) {}, (_) {});
+        _hasSpeech = hasSpeech;
       });
-    });
+    } catch (e) {
+      setState(() {
+        lastError = 'Speech recognition failed: ${e.toString()}';
+        _hasSpeech = false;
+      });
+    }
+  }
+
+  String _punctAggregator(List<String> phrases) {
+    return phrases.join('. ');
   }
 
   @override
@@ -73,21 +98,21 @@ class _SttSettingsScreenUpdatedState extends State<SttSettingsScreenUpdated> {
               children: [
                 Row(
                   children: [
-                    Expanded(child: InitSpeechWidget(initSpeechState)),
+                    Expanded(child: InitSpeechWidget(_hasSpeech, initSpeechState)),
                     TextButton.icon(
                       // key: ,
                       onPressed: () async {
-                        currentOptions = await showSetUp(ctx, currentOptions, locator<SttBloc>().state.localeNames);
+                        currentOptions = await showSetUp(ctx, currentOptions, _localeNames);
                       },
                       icon: const Icon(Icons.settings),
                       label: const Text('Session Options'),
                     ),
                   ],
                 ),
-                SpeechControlWidget(startListening, stopListening, cancelListening),
-                RecognitionResultsWidget(),
-                SpeechStatusWidget(),
-                ErrorWidget(),
+                SpeechControlWidget(_hasSpeech, speech.isListening, startListening, stopListening, cancelListening),
+                RecognitionResultsWidget(lastWords: lastWords, level: level),
+                SpeechStatusWidget(lastStatus: lastStatus),
+                ErrorWidget(lastError: lastError),
               ],
             ),
           ),
@@ -99,73 +124,115 @@ class _SttSettingsScreenUpdatedState extends State<SttSettingsScreenUpdated> {
   // This is called each time the users wants to start a new speech
   // recognition session
   void startListening() {
-    locator<SttStartStop>().call(TssActions.started).then((result) {
-      setState(() {
-        result.fold((failure) {
-          LoggerService.logDebug(failure.message);
-        }, (_) => null);
-      });
-    });
+    _logEvent('start listening');
+    lastWords = '';
+    lastError = '';
+    // Note that `listenFor` is the maximum, not the minimum, on some
+    // systems recognition will be stopped before this value is reached.
+    // Similarly `pauseFor` is a maximum not a minimum and may be ignored
+    // on some devices.
+    speech.listen(
+      onResult: resultListener,
+      listenFor: Duration(seconds: currentOptions.listenFor),
+      pauseFor: Duration(seconds: currentOptions.pauseFor),
+      localeId: currentOptions.localeId,
+      onSoundLevelChange: soundLevelListener,
+      listenOptions: currentOptions.options,
+    );
+    setState(() {});
   }
 
   void stopListening() {
-    locator<SttStartStop>().call(TssActions.stopped).then((result) {
-      setState(() {
-        result.fold((failure) {
-          LoggerService.logDebug(failure.message);
-        }, (_) => null);
-      });
+    _logEvent('stop');
+    speech.stop();
+    setState(() {
+      level = 0.0;
     });
   }
 
   void cancelListening() {
-    locator<SttStartStop>().call(TssActions.canceled).then((result) {
-      setState(() {
-        result.fold((failure) {
-          LoggerService.logDebug(failure.message);
-        }, (_) => null);
-      });
+    _logEvent('cancel');
+    speech.cancel();
+    setState(() {
+      level = 0.0;
     });
+  }
+
+  /// This callback is invoked each time new recognition results are
+  /// available after `listen` is called.
+  void resultListener(SpeechRecognitionResult result) {
+    _logEvent('Result listener final: ${result.finalResult}, words: ${result.recognizedWords}');
+    setState(() {
+      lastWords = '${result.recognizedWords} - ${result.finalResult}';
+    });
+  }
+
+  void soundLevelListener(double level) {
+    minSoundLevel = min(minSoundLevel, level);
+    maxSoundLevel = max(maxSoundLevel, level);
+    // _logEvent('sound level $level: $minSoundLevel - $maxSoundLevel ');
+    setState(() {
+      this.level = level;
+    });
+  }
+
+  void errorListener(SpeechRecognitionError error) {
+    _logEvent('Received error status: $error, listening: ${speech.isListening}');
+    setState(() {
+      lastError = '${error.errorMsg} - ${error.permanent}';
+    });
+  }
+
+  void statusListener(String status) {
+    _logEvent('Received listener status: $status, listening: ${speech.isListening}');
+    setState(() {
+      lastStatus = status;
+    });
+  }
+
+  void _logEvent(String eventDescription) {
+    if (currentOptions.logEvents) {
+      var eventTime = DateTime.now().toIso8601String();
+      debugPrint('$eventTime $eventDescription');
+    }
   }
 }
 
 /// Displays the most recently recognized words and the sound level.
 class RecognitionResultsWidget extends StatelessWidget {
-  const RecognitionResultsWidget({super.key});
+  const RecognitionResultsWidget({Key? key, required this.lastWords, required this.level}) : super(key: key);
+
+  final String lastWords;
+  final double level;
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<SttBloc, SttState>(
-      buildWhen: (p, c) => p.lastWords != c.lastWords || p.level != c.level,
-      builder: (context, state) {
-        return Column(
+    return Column(
+      children: <Widget>[
+        Center(child: Text('Recognized Words', style: Theme.of(context).textTheme.titleMedium)),
+        Stack(
           children: <Widget>[
-            Center(child: Text('Recognized Words', style: Theme.of(context).textTheme.titleMedium)),
-            Stack(
-              children: <Widget>[
-                Container(
-                  constraints: const BoxConstraints(minHeight: 200),
-                  color: Theme.of(context).secondaryHeaderColor,
-                  child: Center(
-                    child: Text(
-                      state.lastWords,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: ColorConstants.black500),
-                    ),
-                  ),
+            Container(
+              constraints: const BoxConstraints(minHeight: 200),
+              color: Theme.of(context).secondaryHeaderColor,
+              child: Center(
+                child: Text(
+                  lastWords,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: ColorConstants.black500),
                 ),
-                Positioned.fill(
-                  bottom: 10,
-                  child: Align(
-                    alignment: Alignment.bottomCenter,
-                    child: MicrophoneWidget(level: state.level),
-                  ),
-                ),
-              ],
+              ),
+            ),
+            Positioned.fill(
+              bottom: 10,
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: MicrophoneWidget(level: level),
+              ),
             ),
           ],
-        );
-      },
+        ),
+      ],
     );
   }
 }
@@ -173,53 +240,52 @@ class RecognitionResultsWidget extends StatelessWidget {
 /// Display the current error status from the speech
 /// recognizer
 class ErrorWidget extends StatelessWidget {
-  const ErrorWidget({super.key});
+  const ErrorWidget({Key? key, required this.lastError}) : super(key: key);
+
+  final String lastError;
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<SttBloc, SttState>(
-      builder: (context, state) {
-        return (state.lastFailure?.error?.errorMsg ?? '').isNotEmpty
-            ? Column(
-                children: <Widget>[
-                  Container(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text('Error', style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center),
-                  ),
-                  Center(child: SelectableText((state.lastFailure?.error?.errorMsg ?? ''))),
-                ],
-              )
-            : const SizedBox();
-      },
-    );
+    return lastError.isNotEmpty
+        ? Column(
+            children: <Widget>[
+              Container(
+                padding: const EdgeInsets.all(8.0),
+                child: Text('Error', style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center),
+              ),
+              Center(child: SelectableText(lastError)),
+            ],
+          )
+        : const SizedBox();
   }
 }
 
 /// Controls to start and stop speech recognition
 class SpeechControlWidget extends StatelessWidget {
-  const SpeechControlWidget(this.startListening, this.stopListening, this.cancelListening, {super.key});
+  const SpeechControlWidget(
+    this.hasSpeech,
+    this.isListening,
+    this.startListening,
+    this.stopListening,
+    this.cancelListening, {
+    Key? key,
+  }) : super(key: key);
 
+  final bool hasSpeech;
+  final bool isListening;
   final void Function() startListening;
   final void Function() stopListening;
   final void Function() cancelListening;
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<SttBloc, SttState>(
-      buildWhen: (p, c) => p.isEnabled != c.isEnabled || p.isStarted != c.isStarted,
-      builder: (context, state) {
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: <Widget>[
-            TextButton(
-              onPressed: !state.isEnabled || state.isStarted ? null : startListening,
-              child: const Text('Start'),
-            ),
-            TextButton(onPressed: state.isStarted ? stopListening : null, child: const Text('Stop')),
-            TextButton(onPressed: state.isStarted ? cancelListening : null, child: const Text('Cancel')),
-          ],
-        );
-      },
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: <Widget>[
+        TextButton(onPressed: !hasSpeech || isListening ? null : startListening, child: const Text('Start')),
+        TextButton(onPressed: isListening ? stopListening : null, child: const Text('Stop')),
+        TextButton(onPressed: isListening ? cancelListening : null, child: const Text('Cancel')),
+      ],
     );
   }
 }
@@ -228,15 +294,15 @@ class SessionOptionsWidget extends StatelessWidget {
   const SessionOptionsWidget({
     required this.options,
     required this.localeNames,
-    super.key,
+    Key? key,
     required this.onChange,
     required this.listenForController,
     required this.pauseForController,
-  });
+  }) : super(key: key);
 
-  final SpeechToTextConfig options;
+  final SpeechExampleConfig options;
   final List<LocaleName> localeNames;
-  final void Function(SpeechToTextConfig newOptions) onChange;
+  final void Function(SpeechExampleConfig newOptions) onChange;
   final TextEditingController listenForController;
   final TextEditingController pauseForController;
 
@@ -358,47 +424,38 @@ class SessionOptionsWidget extends StatelessWidget {
 }
 
 class InitSpeechWidget extends StatelessWidget {
-  const InitSpeechWidget(this.initSpeechState, {Key? key}) : super(key: key);
+  const InitSpeechWidget(this.hasSpeech, this.initSpeechState, {Key? key}) : super(key: key);
 
-  // final bool hasSpeech;
+  final bool hasSpeech;
   final Future<void> Function() initSpeechState;
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<SttBloc, SttState>(
-      builder: (context, state) {
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: <Widget>[
-            OutlinedButton(onPressed: state.isEnabled ? null : initSpeechState, child: const Text('Initialize')),
-          ],
-        );
-      },
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: <Widget>[
+        OutlinedButton(onPressed: hasSpeech ? null : initSpeechState, child: const Text('Initialize')),
+      ],
     );
   }
 }
 
 /// Display the current status of the listener
 class SpeechStatusWidget extends StatelessWidget {
-  const SpeechStatusWidget({Key? key}) : super(key: key);
+  const SpeechStatusWidget({Key? key, required this.lastStatus}) : super(key: key);
 
-  // final String lastStatus;
+  final String lastStatus;
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<SttBloc, SttState>(
-      buildWhen: (p, c) => p.lastStatus != c.lastStatus,
-      builder: (context, state) {
-        return Column(
-          children: <Widget>[
-            Container(
-              padding: const EdgeInsets.all(8.0),
-              child: Text('Status', style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center),
-            ),
-            Center(child: SelectableText(state.lastStatus)),
-          ],
-        );
-      },
+    return Column(
+      children: <Widget>[
+        Container(
+          padding: const EdgeInsets.all(8.0),
+          child: Text('Status', style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center),
+        ),
+        Center(child: SelectableText(lastStatus)),
+      ],
     );
   }
 }
@@ -406,7 +463,7 @@ class SpeechStatusWidget extends StatelessWidget {
 /// A class that holds the configuration for the speech recognition
 /// example app. This is used to pass the configuration to the
 /// setup dialog and to hold the current configuration.
-class SpeechToTextConfig {
+class SpeechExampleConfig {
   final SpeechListenOptions options;
   final String localeId;
   final bool logEvents;
@@ -414,9 +471,9 @@ class SpeechToTextConfig {
   final int pauseFor;
   final int listenFor;
 
-  SpeechToTextConfig(this.options, this.localeId, this.pauseFor, this.listenFor, this.logEvents, this.debugLogging);
+  SpeechExampleConfig(this.options, this.localeId, this.pauseFor, this.listenFor, this.logEvents, this.debugLogging);
 
-  SpeechToTextConfig copyWith({
+  SpeechExampleConfig copyWith({
     SpeechListenOptions? options,
     String? localeId,
     bool? logEvents,
@@ -424,7 +481,7 @@ class SpeechToTextConfig {
     int? listenFor,
     bool? debugLogging,
   }) {
-    return SpeechToTextConfig(
+    return SpeechExampleConfig(
       options ?? this.options,
       localeId ?? this.localeId,
       pauseFor ?? this.pauseFor,
@@ -437,9 +494,9 @@ class SpeechToTextConfig {
 
 /// Show the setup dialog to allow the user to change the
 /// configuration of the speech recognition session.
-Future<SpeechToTextConfig> showSetUp(
+Future<SpeechExampleConfig> showSetUp(
   BuildContext context,
-  SpeechToTextConfig currentOptions,
+  SpeechExampleConfig currentOptions,
   List<LocaleName> localeNames,
 ) async {
   var updatedOptions = currentOptions;

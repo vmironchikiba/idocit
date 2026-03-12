@@ -21,6 +21,8 @@ import 'package:idocit/features/idocit/domain/blocs/idocit/idocit_bloc.dart';
 import 'package:idocit/features/idocit/screens/idocit_screen.dart';
 import 'package:idocit/features/screen_builder.dart';
 import 'package:idocit/features/stt/domain/blocs/stt_bloc.dart';
+import 'package:idocit/features/stt/domain/models/speech_to_text_config.dart';
+import 'package:idocit/features/stt/domain/usecases/stt_lazy_init.dart';
 import 'package:idocit/features/tts/domain/blocs/tts_bloc.dart';
 import 'package:idocit/injection_container.dart';
 import 'package:provider/provider.dart';
@@ -47,6 +49,7 @@ class _IDocItAppState extends State<IDocItApp> {
     super.initState();
     locator<NetworkListenerService>().listenNetworkChanges();
     locator<CoreInit>().call(NoParams());
+    locator<SttLazyInit>().call(SpeechToTextConfig.startOptions);
   }
 
   @override

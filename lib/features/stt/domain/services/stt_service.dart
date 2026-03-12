@@ -20,28 +20,27 @@ class SttService {
 
   SttBloc sttBloc = locator<SttBloc>();
 
-  SpeechToTextConfig currentOptions = SpeechToTextConfig(
-    SpeechListenOptions(
-      listenMode: ListenMode.confirmation,
-      onDevice: false,
-      cancelOnError: true,
-      partialResults: true,
-      autoPunctuation: true,
-      enableHapticFeedback: true,
-    ),
-    "",
-    3,
-    30,
-    false,
-    false,
-  );
+  // SpeechToTextConfig currentOptions = SpeechToTextConfig(
+  //   SpeechListenOptions(
+  //     listenMode: ListenMode.confirmation,
+  //     onDevice: false,
+  //     cancelOnError: true,
+  //     partialResults: true,
+  //     autoPunctuation: true,
+  //     enableHapticFeedback: true,
+  //   ),
+  //   "",
+  //   3,
+  //   30,
+  //   false,
+  //   false,
+  // );
 
-  SttService() {
-    //initTts();
-  }
+  SttService();
 
-  Future<void> initSpeechState() async {
+  Future<void> initSpeechState({required final SpeechToTextConfig currentOptions}) async {
     LoggerService.logDebug('Initialize');
+    sttBloc.add(UpdateSttCurrentOptions(currentOptions: currentOptions));
     try {
       var hasSpeech = await speech.initialize(
         onError: errorListener,
@@ -55,7 +54,9 @@ class SttService {
         sttBloc.add(UpdateSttLocalNames(localeNames: await speech.locales()));
         var systemLocale = await speech.systemLocale();
         sttBloc.add(UpdateSttSystemLocale(systemLocale: await speech.systemLocale()));
-        currentOptions = currentOptions.copyWith(localeId: systemLocale?.localeId ?? '');
+        sttBloc.add(
+          UpdateSttCurrentOptions(currentOptions: currentOptions.copyWith(localeId: systemLocale?.localeId ?? '')),
+        );
       }
 
       _hasSpeech = hasSpeech;
@@ -75,7 +76,7 @@ class SttService {
   }
 
   void _logEvent(String eventDescription) {
-    if (currentOptions.logEvents) {
+    if (sttBloc.state.currentOptions?.logEvents != null) {
       var eventTime = DateTime.now().toIso8601String();
       LoggerService.logDebug('$eventTime $eventDescription');
     }
@@ -96,11 +97,11 @@ class SttService {
     // on some devices.
     speech.listen(
       onResult: resultListener,
-      listenFor: Duration(seconds: currentOptions.listenFor),
-      pauseFor: Duration(seconds: currentOptions.pauseFor),
-      localeId: currentOptions.localeId,
+      listenFor: Duration(seconds: sttBloc.state.currentOptions?.listenFor ?? 0),
+      pauseFor: Duration(seconds: sttBloc.state.currentOptions?.pauseFor ?? 0),
+      localeId: sttBloc.state.currentOptions?.localeId,
       onSoundLevelChange: soundLevelListener,
-      listenOptions: currentOptions.options,
+      listenOptions: sttBloc.state.currentOptions?.options,
     );
   }
 

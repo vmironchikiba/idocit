@@ -26,4 +26,20 @@ class SpeechToTextConfig {
       debugLogging ?? this.debugLogging,
     );
   }
+
+  static SpeechToTextConfig get startOptions => SpeechToTextConfig(
+    SpeechListenOptions(
+      listenMode: ListenMode.confirmation,
+      onDevice: false,
+      cancelOnError: true,
+      partialResults: true,
+      autoPunctuation: true,
+      enableHapticFeedback: true,
+    ),
+    "",
+    3,
+    30,
+    false,
+    false,
+  );
 }

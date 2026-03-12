@@ -10,6 +10,7 @@ class SttState {
   final List<LocaleName> localeNames;
   final LocaleName? systemLocale;
   final SttSpeechFailure? lastFailure;
+  final SpeechToTextConfig? currentOptions;
 
   const SttState({
     required this.isEnabled,
@@ -21,6 +22,7 @@ class SttState {
     required this.localeNames,
     required this.systemLocale,
     required this.lastFailure,
+    required this.currentOptions,
   });
 
   factory SttState.initial() {
@@ -34,6 +36,7 @@ class SttState {
       localeNames: [],
       systemLocale: null,
       lastFailure: null,
+      currentOptions: null,
     );
   }
 
@@ -47,6 +50,7 @@ class SttState {
     List<LocaleName>? localeNames,
     LocaleName? systemLocale,
     SttSpeechFailure? lastFailure,
+    SpeechToTextConfig? currentOptions,
   }) {
     return SttState(
       isEnabled: isEnabled ?? this.isEnabled,
@@ -58,6 +62,7 @@ class SttState {
       localeNames: localeNames ?? this.localeNames,
       systemLocale: systemLocale ?? this.systemLocale,
       lastFailure: lastFailure ?? this.lastFailure,
+      currentOptions: currentOptions ?? this.currentOptions,
     );
   }
 
@@ -72,6 +77,7 @@ class SttState {
       localeNames: localeNames,
       systemLocale: null,
       lastFailure: lastFailure,
+      currentOptions: currentOptions,
     );
   }
 
@@ -86,6 +92,22 @@ class SttState {
       localeNames: localeNames,
       systemLocale: systemLocale,
       lastFailure: null,
+      currentOptions: currentOptions,
+    );
+  }
+
+  SttState resetCurrentOptions() {
+    return SttState(
+      isEnabled: isEnabled,
+      isStarted: isStarted,
+      finalResult: finalResult,
+      lastWords: lastWords,
+      level: level,
+      lastStatus: lastStatus,
+      localeNames: localeNames,
+      systemLocale: systemLocale,
+      lastFailure: lastFailure,
+      currentOptions: null,
     );
   }
 }

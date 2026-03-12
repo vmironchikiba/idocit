@@ -21,6 +21,11 @@ import 'package:idocit/features/idocit/widget/chat_history_list.dart';
 import 'package:idocit/features/idocit/widget/last_completion_request_card.dart';
 import 'package:idocit/features/idocit/widget/last_user_pending_message.dart';
 import 'package:idocit/features/idocit/widget/system_response_card.dart';
+import 'package:idocit/features/stt/domain/blocs/stt_bloc.dart';
+import 'package:idocit/features/stt/domain/models/speech_to_text_config.dart';
+import 'package:idocit/features/stt/widgets/help_widget.dart';
+import 'package:idocit/features/stt/widgets/microphone_widget.dart';
+import 'package:idocit/features/stt/widgets/session_options_widget.dart';
 import 'package:idocit/features/tts/domain/blocs/tts_bloc.dart';
 import 'package:idocit/features/tts/domain/services/tts_service.dart';
 import 'package:idocit/injection_container.dart';
@@ -253,35 +258,52 @@ class _IdocItChatState extends State<IdocItChat> {
                               decoration: const InputDecoration(hintText: "Type here...", border: OutlineInputBorder()),
                             ),
                           ),
-                          IconButton(
-                            icon: state.isInProcess
-                                ? IdocItLoadingIndicator(color: ColorConstants.white500)
-                                : const Icon(Icons.send, color: ColorConstants.white500),
-                            onPressed: () {
-                              FocusScope.of(context).unfocus();
-                              final request = CompletionRequest(
-                                tenant: locator<AuthBloc>().state.userData?.tenant ?? '',
-                                chatId: state.chatId ?? widget.chatId,
-                                language: 'en-US',
-                                content: _controller.text,
-                                role: Role.user.asString(),
-                                onDone: (chatId) async {
-                                  final reset = await locator<IdocItReset>().call(NoParams());
-                                  if (reset.isLeft()) return;
-                                  locator<ChatBloc>().add(ResetRequestedData());
-                                  final history = await locator<GetChatHistory>().call(chatId);
-                                  if (history.isLeft()) return;
-                                  final chats = await locator<IdocItLazyInitChats>().call(NoParams());
-                                  if (chats.isLeft()) return;
-                                  locator<ChatsNotifier>().send(ChatsEvent.close);
-                                  setState(() {});
-                                  LoggerService.logDebug('message');
-                                },
-                              );
-                              locator<ChatStartCompletionsStream>().call(request);
-                              _controller.clear();
-                              locator<ChatSuggestionsReset>().call(NoParams());
-                              _scrollToBottom();
+                          SizedBox(width: 3.0),
+                          BlocBuilder<SttBloc, SttState>(
+                            builder: (context, sttState) {
+                              return state.isInProcess
+                                  ? IdocItLoadingIndicator(color: ColorConstants.white500)
+                                  : sttState.isStarted
+                                  ? MicrophoneWidget()
+                                  : LongPressButton(
+                                      onTap: () {
+                                        FocusScope.of(context).unfocus();
+                                        final request = CompletionRequest(
+                                          tenant: locator<AuthBloc>().state.userData?.tenant ?? '',
+                                          chatId: state.chatId ?? widget.chatId,
+                                          language: 'en-US',
+                                          content: _controller.text,
+                                          role: Role.user.asString(),
+                                          onDone: (chatId) async {
+                                            final reset = await locator<IdocItReset>().call(NoParams());
+                                            if (reset.isLeft()) return;
+                                            locator<ChatBloc>().add(ResetRequestedData());
+                                            final history = await locator<GetChatHistory>().call(chatId);
+                                            if (history.isLeft()) return;
+                                            final chats = await locator<IdocItLazyInitChats>().call(NoParams());
+                                            if (chats.isLeft()) return;
+                                            locator<ChatsNotifier>().send(ChatsEvent.close);
+                                            setState(() {});
+                                            LoggerService.logDebug('message');
+                                          },
+                                        );
+                                        locator<ChatStartCompletionsStream>().call(request);
+                                        _controller.clear();
+                                        locator<ChatSuggestionsReset>().call(NoParams());
+                                        _scrollToBottom();
+                                      },
+                                      onDoubleTap: () {
+                                        LoggerService.logDebug('onDoubleTap');
+                                      },
+                                      onLongPress: () async {
+                                        final currentOptions =
+                                            sttState.currentOptions ?? SpeechToTextConfig.startOptions;
+
+                                        final options = await showSetUp(context, currentOptions);
+                                        locator<SttBloc>().add(UpdateSttCurrentOptions(currentOptions: options));
+                                        LoggerService.logDebug('onLongPress');
+                                      },
+                                    );
                             },
                           ),
                         ],
@@ -294,6 +316,91 @@ class _IdocItChatState extends State<IdocItChat> {
           );
         },
       ),
+    );
+  }
+
+  Future<SpeechToTextConfig> showSetUp(BuildContext context, SpeechToTextConfig currentOptions) async {
+    var updatedOptions = currentOptions;
+    var listenController = TextEditingController()..text = updatedOptions.listenFor.toString();
+    var pauseController = TextEditingController()..text = updatedOptions.pauseFor.toString();
+    var showHelp = false;
+    await showModalBottomSheet(
+      elevation: 0,
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return Material(
+          child: Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).copyWith().size.height * 0.75,
+              minHeight: MediaQuery.of(context).copyWith().size.height * 0.5,
+              maxWidth: double.infinity,
+            ),
+            child: StatefulBuilder(
+              builder: (context, setState) => Stack(
+                children: [
+                  Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text("Session Options", style: Theme.of(context).textTheme.titleMedium),
+                      ),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
+                          child: showHelp
+                              ? const HelpWidget()
+                              : SessionOptionsWidget(
+                                  onChange: (newOptions) {
+                                    setState(() {
+                                      updatedOptions = newOptions;
+                                    });
+                                  },
+                                  listenForController: listenController,
+                                  pauseForController: pauseController,
+                                  options: updatedOptions,
+                                ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Positioned(
+                    right: 0.0,
+                    top: 0.0,
+                    child: IconButton(
+                      onPressed: () => setState(() => showHelp = !showHelp),
+                      icon: Icon(showHelp ? Icons.settings : Icons.question_mark),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+    updatedOptions = updatedOptions.copyWith(
+      listenFor: int.tryParse(listenController.text) ?? updatedOptions.listenFor,
+      pauseFor: int.tryParse(pauseController.text) ?? updatedOptions.pauseFor,
+    );
+    return updatedOptions;
+  }
+}
+
+class LongPressButton extends StatelessWidget {
+  final VoidCallback? onTap;
+  final VoidCallback? onDoubleTap;
+  final VoidCallback? onLongPress;
+
+  const LongPressButton({super.key, this.onTap, this.onDoubleTap, this.onLongPress});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      onDoubleTap: onDoubleTap,
+      onLongPress: onLongPress,
+      child: const Icon(Icons.send, color: ColorConstants.white500),
     );
   }
 }

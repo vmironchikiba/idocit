@@ -49,6 +49,11 @@ class UpdateSttLastFailure extends SttBlocEvent {
   UpdateSttLastFailure({required this.lastFailure}) : super([lastFailure]);
 }
 
+class UpdateSttCurrentOptions extends SttBlocEvent {
+  final SpeechToTextConfig? currentOptions;
+  UpdateSttCurrentOptions({required this.currentOptions}) : super([currentOptions]);
+}
+
 class SignOutCoreEvent extends SttBlocEvent {
   SignOutCoreEvent() : super();
 }
