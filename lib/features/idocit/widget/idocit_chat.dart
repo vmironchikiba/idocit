@@ -43,10 +43,12 @@ class _IdocItChatState extends State<IdocItChat> {
   final TextEditingController _controller = TextEditingController();
   late final ScrollController _scrollController;
   List<String> suggestions = [];
+  late bool _locals_presented;
 
   @override
   initState() {
     super.initState();
+    _locals_presented = false;
     _scrollController = ScrollController();
 
     List<String> preMessageArray = [];
@@ -237,6 +239,60 @@ class _IdocItChatState extends State<IdocItChat> {
               ),
 
               // ======================================
+              // LOCALS PANEL
+              // ======================================
+              Positioned(
+                bottom: inputHeight,
+                left: 0,
+                right: 0,
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  transitionBuilder: (child, animation) {
+                    return SizeTransition(
+                      sizeFactor: animation,
+                      axisAlignment: -1.0, // animate from top
+                      child: FadeTransition(opacity: animation, child: child),
+                    );
+                  },
+                  child: _locals_presented
+                      ? BlocBuilder<SttBloc, SttState>(
+                          key: const ValueKey('opened_locals'),
+                          buildWhen: (p, c) =>
+                              p.localeNames.length != c.localeNames.length ||
+                              p.systemLocale?.name != c.systemLocale?.name,
+                          builder: (context, state) {
+                            return ConstrainedBox(
+                              constraints: BoxConstraints(maxHeight: screenHeight - inputHeight - 30),
+                              child: Material(
+                                elevation: 6,
+                                color: ColorConstants.greyBlue450,
+                                borderRadius: BorderRadius.circular(8),
+                                child: ListView.builder(
+                                  shrinkWrap: true,
+                                  itemCount: state.localeNames.length,
+                                  itemBuilder: (_, index) {
+                                    final localName = state.localeNames[index];
+                                    return ListTile(
+                                      title: Text(
+                                        localName.name,
+                                        style: TextStyle(color: ColorConstants.black500, fontWeight: FontWeight.w500),
+                                      ),
+                                      onTap: () {
+                                        _controller.text = localName.name;
+                                        locator<SttBloc>().add(UpdateSttSystemLocale(systemLocale: localName));
+                                      },
+                                    );
+                                  },
+                                ),
+                              ),
+                            );
+                          },
+                        )
+                      : const SizedBox(key: ValueKey('closed_locals')),
+                ),
+              ),
+
+              // ======================================
               // INPUT FIELD
               // ======================================
               BlocBuilder<ChatBloc, ChatState>(
@@ -293,6 +349,9 @@ class _IdocItChatState extends State<IdocItChat> {
                                         _scrollToBottom();
                                       },
                                       onDoubleTap: () {
+                                        setState(() {
+                                          _locals_presented = !_locals_presented;
+                                        });
                                         LoggerService.logDebug('onDoubleTap');
                                       },
                                       onLongPress: () async {
