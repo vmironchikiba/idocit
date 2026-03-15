@@ -29,7 +29,7 @@ import 'package:idocit/features/idocit/widget/last_user_pending_message.dart';
 import 'package:idocit/features/idocit/widget/system_response_card.dart';
 import 'package:idocit/features/stt/domain/blocs/stt_bloc.dart';
 import 'package:idocit/features/stt/domain/models/speech_to_text_config.dart';
-import 'package:idocit/features/stt/domain/usecases/stt_set_current_local.dart';
+import 'package:idocit/features/stt/domain/usecases/stt_set_current_options.dart';
 import 'package:idocit/features/stt/domain/usecases/stt_start_stop.dart';
 import 'package:idocit/features/stt/widgets/help_widget.dart';
 import 'package:idocit/features/stt/widgets/microphone_widget.dart';
