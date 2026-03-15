@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:idocit/features/stt/domain/blocs/stt_bloc.dart';
 import 'package:idocit/features/stt/domain/models/speech_to_text_config.dart';
+import 'package:idocit/injection_container.dart';
 
 class SessionOptionsWidget extends StatelessWidget {
   const SessionOptionsWidget({
@@ -32,7 +33,12 @@ class SessionOptionsWidget extends StatelessWidget {
                   child: DropdownButton<String>(
                     value: state.localeNames.any((l) => l.localeId == options.localeId) ? options.localeId : null,
                     isExpanded: true,
-                    onChanged: (selectedVal) => onChange(options.copyWith(localeId: selectedVal ?? options.localeId)),
+                    onChanged: (selectedVal) {
+                      final selectedOption = state.currentOptions?.copyWith(localeId: selectedVal ?? options.localeId);
+                      if (selectedOption == null) return;
+                      locator<SttBloc>().add(UpdateSttCurrentOptions(currentOptions: selectedOption));
+                      onChange(selectedOption);
+                    },
                     items: state.localeNames
                         .map((localeName) => DropdownMenuItem(value: localeName.localeId, child: Text(localeName.name)))
                         .toList(),

@@ -1,9 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:idocit/common/models/service/usecase.dart';
 import 'package:idocit/common/providers/chats_notifier.dart';
 import 'package:idocit/common/services/logger.dart';
+import 'package:idocit/common/utils/dialogs.dart';
+import 'package:idocit/common/widgets/dialogs/warning_dialog.dart';
 import 'package:idocit/common/widgets/indicators/loading_indicator.dart';
 import 'package:idocit/constants/image.dart';
+import 'package:idocit/features/components/domain/blocs/components_bloc.dart';
+import 'package:idocit/features/components/domain/usecases/components_init_components.dart';
 import 'package:idocit/features/idocit/domain/usecases/idocit_lazy_init_chats.dart';
 import 'package:idocit/features/idocit/domain/usecases/idocit_reset.dart';
 import 'package:idocit/features/idocit/widget/inline_expandable_list.dart';
@@ -23,6 +29,8 @@ import 'package:idocit/features/idocit/widget/last_user_pending_message.dart';
 import 'package:idocit/features/idocit/widget/system_response_card.dart';
 import 'package:idocit/features/stt/domain/blocs/stt_bloc.dart';
 import 'package:idocit/features/stt/domain/models/speech_to_text_config.dart';
+import 'package:idocit/features/stt/domain/usecases/stt_set_current_local.dart';
+import 'package:idocit/features/stt/domain/usecases/stt_start_stop.dart';
 import 'package:idocit/features/stt/widgets/help_widget.dart';
 import 'package:idocit/features/stt/widgets/microphone_widget.dart';
 import 'package:idocit/features/stt/widgets/session_options_widget.dart';
@@ -30,6 +38,7 @@ import 'package:idocit/features/tts/domain/blocs/tts_bloc.dart';
 import 'package:idocit/features/tts/domain/services/tts_service.dart';
 import 'package:idocit/injection_container.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class IdocItChat extends StatefulWidget {
   const IdocItChat({super.key, /*required this.chatTitle,*/ required this.chatId});
@@ -44,6 +53,8 @@ class _IdocItChatState extends State<IdocItChat> {
   late final ScrollController _scrollController;
   List<String> suggestions = [];
   late bool _locals_presented;
+  late StreamSubscription<SttState> sttStateSubscription;
+  late StreamSubscription<ChatState> chatStateSubscription;
 
   @override
   initState() {
@@ -54,8 +65,12 @@ class _IdocItChatState extends State<IdocItChat> {
     List<String> preMessageArray = [];
     List<String> preMessageArraySpoken = [];
 
+    locator<ComponentsInit>().call(NoParams()).then((result) {
+      result.fold((failure) {}, (_) {});
+    });
+
     locator<ChatLazyInitSuggestions>().call(NoParams());
-    locator<ChatBloc>().stream.listen(((state) {
+    chatStateSubscription = locator<ChatBloc>().stream.listen(((state) {
       if (locator<TtsBloc>().state.isEnabled && preMessageArray.length != state.preMessageArray.length) {
         preMessageArraySpoken = preMessageArray;
         preMessageArray = state.preMessageArray;
@@ -63,6 +78,12 @@ class _IdocItChatState extends State<IdocItChat> {
         final text = preMessageArray.join(' ');
         _speak(text);
       }
+      sttStateSubscription = locator<SttBloc>().stream.listen((sttState) {
+        if (sttState.finalResult && sttState.lastWords.isNotEmpty) {
+          _controller.text = sttState.lastWords;
+          locator<ChatSuggestionsWithQuery>().call(sttState.lastWords);
+        }
+      });
       _scrollToBottom();
     }));
     locator<GetChatHistory>().call(widget.chatId).then((result) {
@@ -70,6 +91,13 @@ class _IdocItChatState extends State<IdocItChat> {
         _scrollToBottom();
       }
     });
+  }
+
+  @override
+  dispose() {
+    sttStateSubscription.cancel();
+    chatStateSubscription.cancel();
+    super.dispose();
   }
 
   Future<void> _speak(String? text) async {
@@ -255,36 +283,99 @@ class _IdocItChatState extends State<IdocItChat> {
                     );
                   },
                   child: _locals_presented
-                      ? BlocBuilder<SttBloc, SttState>(
+                      ? BlocBuilder<ComponentsBloc, ComponentsState>(
                           key: const ValueKey('opened_locals'),
-                          buildWhen: (p, c) =>
-                              p.localeNames.length != c.localeNames.length ||
-                              p.systemLocale?.name != c.systemLocale?.name,
-                          builder: (context, state) {
-                            return ConstrainedBox(
-                              constraints: BoxConstraints(maxHeight: screenHeight - inputHeight - 30),
-                              child: Material(
-                                elevation: 6,
-                                color: ColorConstants.greyBlue450,
-                                borderRadius: BorderRadius.circular(8),
-                                child: ListView.builder(
-                                  shrinkWrap: true,
-                                  itemCount: state.localeNames.length,
-                                  itemBuilder: (_, index) {
-                                    final localName = state.localeNames[index];
-                                    return ListTile(
-                                      title: Text(
-                                        localName.name,
-                                        style: TextStyle(color: ColorConstants.black500, fontWeight: FontWeight.w500),
-                                      ),
-                                      onTap: () {
-                                        _controller.text = localName.name;
-                                        locator<SttBloc>().add(UpdateSttSystemLocale(systemLocale: localName));
+                          buildWhen: (previous, current) =>
+                              (previous.componentConfig?.defaultValues?.preferredLanguages ?? []).length !=
+                              (current.componentConfig?.defaultValues?.preferredLanguages ?? []).length,
+                          builder: (context, componentsState) {
+                            return BlocBuilder<SttBloc, SttState>(
+                              buildWhen: (p, c) =>
+                                  p.localeNames.length != c.localeNames.length ||
+                                  p.systemLocale?.name != c.systemLocale?.name,
+                              builder: (context, state) {
+                                return ConstrainedBox(
+                                  constraints: BoxConstraints(maxHeight: screenHeight - inputHeight - 30),
+                                  child: Material(
+                                    elevation: 6,
+                                    color: ColorConstants.transparent,
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: ListView.builder(
+                                      shrinkWrap: true,
+                                      itemCount:
+                                          componentsState.componentConfig?.defaultValues?.preferredLanguages.length ??
+                                          0,
+                                      itemBuilder: (_, index) {
+                                        final localName =
+                                            componentsState.componentConfig?.defaultValues?.preferredLanguages[index];
+                                        return IconButton(
+                                          onPressed: () async {
+                                            final currentOptions =
+                                                state.currentOptions ?? SpeechToTextConfig.startOptions;
+
+                                            final preferredLanguages =
+                                                locator<ComponentsBloc>()
+                                                    .state
+                                                    .componentConfig
+                                                    ?.defaultValues
+                                                    ?.preferredLanguages ??
+                                                [];
+                                            final localeNames = state.localeNames;
+                                            final contains = localeNames.map((e) => e.localeId).contains(localName);
+                                            if (contains) {
+                                              locator<SttBloc>().add(
+                                                UpdateSttCurrentOptions(
+                                                  currentOptions: currentOptions.copyWith(localeId: localName),
+                                                ),
+                                              );
+                                              final result = await locator<SttStartStop>().call(TssActions.started);
+                                              result.fold((failure) {
+                                                LoggerService.logDebug(failure.message);
+                                              }, (_) => null);
+                                            } else {
+                                              await idocitShowDialog(
+                                                IdocItWarningDialog(
+                                                  label: 'STT Alert',
+                                                  description: '${localName ?? ''} is not supported by STT',
+                                                ),
+                                              );
+                                            }
+
+                                            // locator<SttBloc>().add(UpdateSttSystemLocale(systemLocale: localName));
+                                            // final result = await locator<SttStartStop>().call(TssActions.started);
+                                            // result.fold((failure) {
+                                            //   LoggerService.logDebug(failure.message);
+                                            // }, (_) => null);
+                                            setState(() {
+                                              _locals_presented = false;
+                                            });
+                                          },
+                                          icon: Row(
+                                            mainAxisAlignment: MainAxisAlignment.end,
+                                            children: [
+                                              Container(
+                                                decoration: BoxDecoration(
+                                                  color: ColorConstants.greyBlue450,
+                                                  borderRadius: BorderRadius.circular(6), // радиус скругления
+                                                ),
+                                                padding: EdgeInsets.symmetric(vertical: 4.0, horizontal: 6.0),
+                                                child: Text(
+                                                  textAlign: TextAlign.end,
+                                                  localName ?? "No locals",
+                                                  style: TextStyle(
+                                                    color: ColorConstants.black450,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
                                       },
-                                    );
-                                  },
-                                ),
-                              ),
+                                    ),
+                                  ),
+                                );
+                              },
                             );
                           },
                         )
@@ -355,11 +446,10 @@ class _IdocItChatState extends State<IdocItChat> {
                                         LoggerService.logDebug('onDoubleTap');
                                       },
                                       onLongPress: () async {
-                                        final currentOptions =
-                                            sttState.currentOptions ?? SpeechToTextConfig.startOptions;
-
-                                        final options = await showSetUp(context, currentOptions);
-                                        locator<SttBloc>().add(UpdateSttCurrentOptions(currentOptions: options));
+                                        final options = await showSetUp(
+                                          context,
+                                          sttState.currentOptions ?? SpeechToTextConfig.startOptions,
+                                        );
                                         LoggerService.logDebug('onLongPress');
                                       },
                                     );

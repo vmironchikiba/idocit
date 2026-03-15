@@ -23,7 +23,6 @@ import 'package:idocit/features/authentication/domain/usecases/user/auth_get_use
 import 'package:idocit/features/chat/domain/bloc/chat_bloc.dart';
 import 'package:idocit/features/chat/domain/datasources/chat_history_remote_datasource.dart';
 import 'package:idocit/features/chat/domain/datasources/chat_suggestions_remote_data_source.dart';
-import 'package:idocit/features/chat/domain/models/stream_on_data_handler.dart';
 import 'package:idocit/features/chat/domain/usecases/chat_completions_stream.dart';
 import 'package:idocit/features/chat/domain/usecases/chat_history.dart';
 import 'package:idocit/features/chat/domain/usecases/chat_reset.dart';
@@ -45,6 +44,7 @@ import 'package:idocit/features/idocit/domain/usecases/idocit_lazy_init_chats.da
 import 'package:idocit/features/stt/domain/blocs/stt_bloc.dart';
 import 'package:idocit/features/stt/domain/services/stt_service.dart';
 import 'package:idocit/features/stt/domain/usecases/stt_lazy_init.dart';
+import 'package:idocit/features/stt/domain/usecases/stt_set_current_options.dart';
 import 'package:idocit/features/stt/domain/usecases/stt_start_stop.dart';
 import 'package:idocit/features/tts/domain/blocs/tts_bloc.dart';
 import 'package:idocit/features/tts/domain/services/tts_service.dart';
@@ -233,6 +233,14 @@ void initLocator() {
       sttService: locator<SttService>(),
     ),
   );
+  locator.registerLazySingleton(
+    () => SttSetCurrentOptions(
+      networkListenerService: locator<NetworkListenerService>(),
+      sttBloc: locator<SttBloc>(),
+      sttService: locator<SttService>(),
+    ),
+  );
+
   locator.registerLazySingleton(
     () => SttStartStop(
       networkListenerService: locator<NetworkListenerService>(),

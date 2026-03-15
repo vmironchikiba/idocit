@@ -218,6 +218,8 @@ class ApiClient {
           return CreateKeyRequest.fromJson(value);
         case 'CreatePresetPayload':
           return CreatePresetPayload.fromJson(value);
+        case 'DefaultValues':
+          return DefaultValues.fromJson(value);
         case 'DeleteCategoriesPayload':
           return DeleteCategoriesPayload.fromJson(value);
         case 'DeleteDocumentsPayload':
@@ -260,8 +262,12 @@ class ApiClient {
           return LoadPayload.fromJson(value);
         case 'LogoutRequest':
           return LogoutRequest.fromJson(value);
+        case 'Model':
+          return Model.fromJson(value);
         case 'OneDriveReadFilesPayload':
           return OneDriveReadFilesPayload.fromJson(value);
+        case 'Provider':
+          return Provider.fromJson(value);
         case 'QueryPayload':
           return QueryPayload.fromJson(value);
         case 'QueryRelatedCategoryPayload':

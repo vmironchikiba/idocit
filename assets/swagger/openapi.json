@@ -3243,6 +3243,113 @@
           }
         }
       },
+      "DefaultValues": {
+        "type": "object",
+        "properties": {
+          "selected_reader": {
+            "$ref": "#/components/schemas/ComponentItem"
+          },
+          "selected_chunker": {
+            "$ref": "#/components/schemas/ComponentItem"
+          },
+          "selected_embedder": {
+            "$ref": "#/components/schemas/ComponentItem"
+          },
+          "selected_retriever": {
+            "$ref": "#/components/schemas/ComponentItem"
+          },
+          "selected_provider": {
+            "$ref": "#/components/schemas/Provider"
+          },
+          "selected_model": {
+            "$ref": "#/components/schemas/Model"
+          },
+          "enable_cache": {
+            "type": "boolean"
+          },
+          "preferred_languages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "default_language": {
+            "type": "string"
+          },
+          "CONVERSATION_SUMMARY_PERCENT": {
+            "type": "number"
+          },
+          "CONVERSATION_SUMMARY_MESSAGE_LIMIT": {
+            "type": "integer"
+          },
+          "last_document_type": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Provider": {
+        "type": "object",
+        "required": [
+          "provider_id",
+          "name",
+          "description",
+          "default_model_id",
+          "available",
+          "message"
+        ],
+        "properties": {
+          "provider_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "default_model_id": {
+            "type": "string"
+          },
+          "available": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "Model": {
+        "type": "object",
+        "required": [
+          "provider_id",
+          "model_id",
+          "name",
+          "context_window",
+          "available",
+          "message"
+        ],
+        "properties": {
+          "provider_id": {
+            "type": "string"
+          },
+          "model_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "context_window": {
+            "type": "integer"
+          },
+          "available": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
       "ComponentItem": {
         "type": "object",
         "required": [
@@ -3308,10 +3415,16 @@
               "$ref": "#/components/schemas/ComponentItem"
             }
           },
-          "generator": {
+          "providers": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ComponentItem"
+              "$ref": "#/components/schemas/Provider"
+            }
+          },
+          "models": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Model"
             }
           },
           "enable_cache": {
@@ -3327,14 +3440,13 @@
             }
           },
           "default_language": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "default_values": {
-            "type": "object",
-            "additionalProperties": true
+            "$ref": "#/components/schemas/DefaultValues"
           }
         }
       },

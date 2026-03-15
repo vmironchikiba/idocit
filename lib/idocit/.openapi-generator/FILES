@@ -29,6 +29,7 @@ doc/CreateCategoryPayload.md
 doc/CreateKeyRequest.md
 doc/CreatePresetPayload.md
 doc/DataApi.md
+doc/DefaultValues.md
 doc/DeleteCategoriesPayload.md
 doc/DeleteDocumentsPayload.md
 doc/DeletePresetsPayload.md
@@ -56,10 +57,12 @@ doc/KnowledgeRetrieval.md
 doc/LanggraphApi.md
 doc/LoadPayload.md
 doc/LogoutRequest.md
+doc/Model.md
 doc/OneDriveReadFilesPayload.md
 doc/OnedriveApi.md
 doc/OpenAIApi.md
 doc/PresetApi.md
+doc/Provider.md
 doc/QueryApi.md
 doc/QueryPayload.md
 doc/QueryRelatedCategoryPayload.md
@@ -134,6 +137,7 @@ lib/model/conversation_result.dart
 lib/model/create_category_payload.dart
 lib/model/create_key_request.dart
 lib/model/create_preset_payload.dart
+lib/model/default_values.dart
 lib/model/delete_categories_payload.dart
 lib/model/delete_documents_payload.dart
 lib/model/delete_presets_payload.dart
@@ -155,7 +159,9 @@ lib/model/knowledge_data.dart
 lib/model/knowledge_retrieval.dart
 lib/model/load_payload.dart
 lib/model/logout_request.dart
+lib/model/model.dart
 lib/model/one_drive_read_files_payload.dart
+lib/model/provider.dart
 lib/model/query_payload.dart
 lib/model/query_related_category_payload.dart
 lib/model/refresh_token_request.dart
@@ -177,4 +183,3 @@ lib/model/validation_error.dart
 lib/model/validation_error_loc_inner.dart
 lib/model/verba_options.dart
 pubspec.yaml
-test/chat_delete_success_test.dart

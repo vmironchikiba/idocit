@@ -17,11 +17,12 @@ class ComponentConfig {
     this.chunker = const [],
     this.embedder = const [],
     this.retriever = const [],
-    this.generator = const [],
+    this.providers = const [],
+    this.models = const [],
     this.enableCache = const [],
     this.preferredLanguages = const [],
-    this.defaultLanguage,
-    this.defaultValues = const {},
+    this.defaultLanguage = const [],
+    this.defaultValues,
   });
 
   List<ComponentItem> readers;
@@ -32,15 +33,23 @@ class ComponentConfig {
 
   List<ComponentItem> retriever;
 
-  List<ComponentItem> generator;
+  List<Provider> providers;
+
+  List<Model> models;
 
   List<bool> enableCache;
 
   List<String> preferredLanguages;
 
-  String? defaultLanguage;
+  List<String> defaultLanguage;
 
-  Map<String, Object> defaultValues;
+  ///
+  /// Please note: This property should have been non-nullable! Since the specification file
+  /// does not include a default value (using the "default:" property), however, the generated
+  /// source code must fall back to having a nullable type.
+  /// Consider adding a "default:" property in the specification file to hide this note.
+  ///
+  DefaultValues? defaultValues;
 
   @override
   bool operator ==(Object other) => identical(this, other) || other is ComponentConfig &&
@@ -48,11 +57,12 @@ class ComponentConfig {
     _deepEquality.equals(other.chunker, chunker) &&
     _deepEquality.equals(other.embedder, embedder) &&
     _deepEquality.equals(other.retriever, retriever) &&
-    _deepEquality.equals(other.generator, generator) &&
+    _deepEquality.equals(other.providers, providers) &&
+    _deepEquality.equals(other.models, models) &&
     _deepEquality.equals(other.enableCache, enableCache) &&
     _deepEquality.equals(other.preferredLanguages, preferredLanguages) &&
-    other.defaultLanguage == defaultLanguage &&
-    _deepEquality.equals(other.defaultValues, defaultValues);
+    _deepEquality.equals(other.defaultLanguage, defaultLanguage) &&
+    other.defaultValues == defaultValues;
 
   @override
   int get hashCode =>
@@ -61,14 +71,15 @@ class ComponentConfig {
     (chunker.hashCode) +
     (embedder.hashCode) +
     (retriever.hashCode) +
-    (generator.hashCode) +
+    (providers.hashCode) +
+    (models.hashCode) +
     (enableCache.hashCode) +
     (preferredLanguages.hashCode) +
-    (defaultLanguage == null ? 0 : defaultLanguage!.hashCode) +
-    (defaultValues.hashCode);
+    (defaultLanguage.hashCode) +
+    (defaultValues == null ? 0 : defaultValues!.hashCode);
 
   @override
-  String toString() => 'ComponentConfig[readers=$readers, chunker=$chunker, embedder=$embedder, retriever=$retriever, generator=$generator, enableCache=$enableCache, preferredLanguages=$preferredLanguages, defaultLanguage=$defaultLanguage, defaultValues=$defaultValues]';
+  String toString() => 'ComponentConfig[readers=$readers, chunker=$chunker, embedder=$embedder, retriever=$retriever, providers=$providers, models=$models, enableCache=$enableCache, preferredLanguages=$preferredLanguages, defaultLanguage=$defaultLanguage, defaultValues=$defaultValues]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -76,15 +87,16 @@ class ComponentConfig {
       json[r'chunker'] = this.chunker;
       json[r'embedder'] = this.embedder;
       json[r'retriever'] = this.retriever;
-      json[r'generator'] = this.generator;
+      json[r'providers'] = this.providers;
+      json[r'models'] = this.models;
       json[r'enable_cache'] = this.enableCache;
       json[r'preferred_languages'] = this.preferredLanguages;
-    if (this.defaultLanguage != null) {
       json[r'default_language'] = this.defaultLanguage;
-    } else {
-      json[r'default_language'] = null;
-    }
+    if (this.defaultValues != null) {
       json[r'default_values'] = this.defaultValues;
+    } else {
+      json[r'default_values'] = null;
+    }
     return json;
   }
 
@@ -111,15 +123,18 @@ class ComponentConfig {
         chunker: ComponentItem.listFromJson(json[r'chunker']),
         embedder: ComponentItem.listFromJson(json[r'embedder']),
         retriever: ComponentItem.listFromJson(json[r'retriever']),
-        generator: ComponentItem.listFromJson(json[r'generator']),
+        providers: Provider.listFromJson(json[r'providers']),
+        models: Model.listFromJson(json[r'models']),
         enableCache: json[r'enable_cache'] is Iterable
             ? (json[r'enable_cache'] as Iterable).cast<bool>().toList(growable: false)
             : const [],
         preferredLanguages: json[r'preferred_languages'] is Iterable
             ? (json[r'preferred_languages'] as Iterable).cast<String>().toList(growable: false)
             : const [],
-        defaultLanguage: mapValueOfType<String>(json, r'default_language'),
-        defaultValues: mapCastOfType<String, Object>(json, r'default_values') ?? const {},
+        defaultLanguage: json[r'default_language'] is Iterable
+            ? (json[r'default_language'] as Iterable).cast<String>().toList(growable: false)
+            : const [],
+        defaultValues: DefaultValues.fromJson(json[r'default_values']),
       );
     }
     return null;

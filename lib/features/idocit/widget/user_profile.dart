@@ -8,7 +8,6 @@ import 'package:idocit/constants/colors.dart';
 import 'package:idocit/constants/image.dart';
 import 'package:idocit/features/authentication/domain/bloc/auth_bloc.dart';
 import 'package:idocit/features/idocit/widget/profile_logout_dialog.dart';
-import 'package:idocit/features/stt/screens/stt_settings_screen_original.dart';
 import 'package:idocit/features/stt/screens/stt_settings_screen.dart';
 import 'package:idocit/features/tts/screens/tts_settings_screen_s.dart';
 import 'package:idocit/injection_container.dart';
@@ -23,6 +22,10 @@ class UserProfile extends StatefulWidget {
 class _UserProfileState extends State<UserProfile> {
   bool _isDialogHidden = false;
   bool _isRequestInProgress = false;
+  @override
+  void initState() {
+    super.initState();
+  }
 
   Future<void> _handleLogOut() async {
     if (_isRequestInProgress) {
