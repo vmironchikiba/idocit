@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:idocit/constants/colors.dart';
 import 'package:idocit/features/stt/domain/blocs/stt_bloc.dart';
+import 'package:idocit/features/stt/domain/models/enums/stt_actions.dart';
+import 'package:idocit/features/stt/domain/usecases/stt_start_stop.dart';
 import 'package:idocit/features/stt/widgets/microphone_widget.dart';
+import 'package:idocit/injection_container.dart';
 
 class RecognitionResultsWidget extends StatelessWidget {
   const RecognitionResultsWidget({super.key});
@@ -30,7 +33,14 @@ class RecognitionResultsWidget extends StatelessWidget {
                 ),
                 Positioned.fill(
                   bottom: 10,
-                  child: Align(alignment: Alignment.bottomCenter, child: MicrophoneWidget()),
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: MicrophoneWidget(
+                      onPressed: () {
+                        locator<SttStartStop>().call(SttActions.cancel);
+                      },
+                    ),
+                  ),
                 ),
               ],
             ),

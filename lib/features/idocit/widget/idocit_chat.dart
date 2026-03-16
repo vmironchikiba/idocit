@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:idocit/common/models/service/usecase.dart';
 import 'package:idocit/common/providers/chats_notifier.dart';
@@ -28,8 +29,8 @@ import 'package:idocit/features/idocit/widget/last_completion_request_card.dart'
 import 'package:idocit/features/idocit/widget/last_user_pending_message.dart';
 import 'package:idocit/features/idocit/widget/system_response_card.dart';
 import 'package:idocit/features/stt/domain/blocs/stt_bloc.dart';
+import 'package:idocit/features/stt/domain/models/enums/stt_actions.dart';
 import 'package:idocit/features/stt/domain/models/speech_to_text_config.dart';
-import 'package:idocit/features/stt/domain/usecases/stt_set_current_options.dart';
 import 'package:idocit/features/stt/domain/usecases/stt_start_stop.dart';
 import 'package:idocit/features/stt/widgets/help_widget.dart';
 import 'package:idocit/features/stt/widgets/microphone_widget.dart';
@@ -38,7 +39,6 @@ import 'package:idocit/features/tts/domain/blocs/tts_bloc.dart';
 import 'package:idocit/features/tts/domain/services/tts_service.dart';
 import 'package:idocit/injection_container.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class IdocItChat extends StatefulWidget {
   const IdocItChat({super.key, /*required this.chatTitle,*/ required this.chatId});
@@ -321,14 +321,18 @@ class _IdocItChatState extends State<IdocItChat> {
                                                     ?.preferredLanguages ??
                                                 [];
                                             final localeNames = state.localeNames;
-                                            final contains = localeNames.map((e) => e.localeId).contains(localName);
-                                            if (contains) {
+                                            final foundLocal = localeNames.firstWhereOrNull(
+                                              (e) => e.localeId.replaceAll('_', '-') == localName,
+                                            );
+                                            if (foundLocal != null) {
                                               locator<SttBloc>().add(
                                                 UpdateSttCurrentOptions(
-                                                  currentOptions: currentOptions.copyWith(localeId: localName),
+                                                  currentOptions: currentOptions.copyWith(
+                                                    localeId: foundLocal.localeId,
+                                                  ),
                                                 ),
                                               );
-                                              final result = await locator<SttStartStop>().call(TssActions.started);
+                                              final result = await locator<SttStartStop>().call(SttActions.start);
                                               result.fold((failure) {
                                                 LoggerService.logDebug(failure.message);
                                               }, (_) => null);

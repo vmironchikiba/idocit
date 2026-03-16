@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:idocit/common/models/service/failure.dart';
 import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/features/stt/domain/blocs/stt_bloc.dart';
+import 'package:idocit/features/stt/domain/models/enums/stt_status.dart';
 import 'package:idocit/features/stt/domain/models/speech_to_text_config.dart';
 import 'package:idocit/injection_container.dart';
 import 'package:speech_to_text/speech_recognition_error.dart';
@@ -66,8 +67,12 @@ class SttService {
   }
 
   void statusListener(String status) {
-    _logEvent('Received listener status: $status, listening: ${speech.isListening}');
-    sttBloc.add(UpdateSttLastStatus(lastStatus: status));
+    _logEvent('===== Received listener status: $status, listening: ${speech.isListening}');
+    final sttStatus = status.sttStatus;
+    if (sttStatus != null) {
+      sttBloc.add(UpdateSttLastStatus(lastStatus: sttStatus));
+      sttBloc.add(UpdateSttIsStarted(isStarted: sttStatus.isStarted ?? false));
+    }
   }
 
   void errorListener(SpeechRecognitionError error) {

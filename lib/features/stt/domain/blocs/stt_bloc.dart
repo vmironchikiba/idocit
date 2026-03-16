@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:idocit/common/models/service/failure.dart';
+import 'package:idocit/features/stt/domain/models/enums/stt_status.dart';
 import 'package:idocit/features/stt/domain/models/speech_to_text_config.dart';
 import 'package:speech_to_text/speech_recognition_error.dart';
 import 'package:speech_to_text/speech_to_text.dart';

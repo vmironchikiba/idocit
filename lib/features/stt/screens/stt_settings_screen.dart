@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:idocit/common/models/service/usecase.dart';
 import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/features/stt/domain/blocs/stt_bloc.dart';
+import 'package:idocit/features/stt/domain/models/enums/stt_actions.dart';
 import 'package:idocit/features/stt/domain/models/speech_to_text_config.dart';
 import 'package:idocit/features/stt/domain/usecases/stt_lazy_init.dart';
 import 'package:idocit/features/stt/domain/usecases/stt_start_stop.dart';
@@ -98,7 +99,7 @@ class _SttSettingsScreenState extends State<SttSettingsScreen> {
   // This is called each time the users wants to start a new speech
   // recognition session
   void startListening() {
-    locator<SttStartStop>().call(TssActions.started).then((result) {
+    locator<SttStartStop>().call(SttActions.start).then((result) {
       setState(() {
         result.fold((failure) {
           LoggerService.logDebug(failure.message);
@@ -108,7 +109,7 @@ class _SttSettingsScreenState extends State<SttSettingsScreen> {
   }
 
   void stopListening() {
-    locator<SttStartStop>().call(TssActions.stopped).then((result) {
+    locator<SttStartStop>().call(SttActions.stop).then((result) {
       setState(() {
         result.fold((failure) {
           LoggerService.logDebug(failure.message);
@@ -118,7 +119,7 @@ class _SttSettingsScreenState extends State<SttSettingsScreen> {
   }
 
   void cancelListening() {
-    locator<SttStartStop>().call(TssActions.canceled).then((result) {
+    locator<SttStartStop>().call(SttActions.cancel).then((result) {
       setState(() {
         result.fold((failure) {
           LoggerService.logDebug(failure.message);

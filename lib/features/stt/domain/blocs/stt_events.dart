@@ -30,7 +30,7 @@ class UpdateSttLevel extends SttBlocEvent {
 }
 
 class UpdateSttLastStatus extends SttBlocEvent {
-  final String lastStatus;
+  final SttStatus lastStatus;
   UpdateSttLastStatus({required this.lastStatus}) : super([lastStatus]);
 }
 

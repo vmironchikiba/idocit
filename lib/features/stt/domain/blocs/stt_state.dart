@@ -6,7 +6,7 @@ class SttState {
   final bool finalResult;
   final String lastWords;
   final double level;
-  final String lastStatus;
+  final SttStatus? lastStatus;
   final List<LocaleName> localeNames;
   final LocaleName? systemLocale;
   final SttSpeechFailure? lastFailure;
@@ -32,7 +32,7 @@ class SttState {
       finalResult: false,
       lastWords: '',
       level: 0.0,
-      lastStatus: '',
+      lastStatus: null,
       localeNames: [],
       systemLocale: null,
       lastFailure: null,
@@ -46,7 +46,7 @@ class SttState {
     bool? finalResult,
     String? lastWords,
     double? level,
-    String? lastStatus,
+    SttStatus? lastStatus,
     List<LocaleName>? localeNames,
     LocaleName? systemLocale,
     SttSpeechFailure? lastFailure,
