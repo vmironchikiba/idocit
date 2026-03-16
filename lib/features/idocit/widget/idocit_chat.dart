@@ -6,8 +6,10 @@ import 'package:idocit/common/models/service/usecase.dart';
 import 'package:idocit/common/providers/chats_notifier.dart';
 import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/common/utils/dialogs.dart';
+import 'package:idocit/common/widgets/buttons/long_press_button.dart';
 import 'package:idocit/common/widgets/dialogs/warning_dialog.dart';
 import 'package:idocit/common/widgets/indicators/loading_indicator.dart';
+import 'package:idocit/common/widgets/input_fields/text_input_field.dart';
 import 'package:idocit/constants/image.dart';
 import 'package:idocit/features/components/domain/blocs/components_bloc.dart';
 import 'package:idocit/features/components/domain/usecases/components_init_components.dart';
@@ -296,87 +298,68 @@ class _IdocItChatState extends State<IdocItChat> {
                               builder: (context, state) {
                                 return ConstrainedBox(
                                   constraints: BoxConstraints(maxHeight: screenHeight - inputHeight - 30),
-                                  child: Material(
-                                    elevation: 6,
-                                    color: ColorConstants.transparent,
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: ListView.builder(
-                                      shrinkWrap: true,
-                                      itemCount:
-                                          componentsState.componentConfig?.defaultValues?.preferredLanguages.length ??
-                                          0,
-                                      itemBuilder: (_, index) {
-                                        final localName =
-                                            componentsState.componentConfig?.defaultValues?.preferredLanguages[index];
-                                        return IconButton(
-                                          onPressed: () async {
-                                            final currentOptions =
-                                                state.currentOptions ?? SpeechToTextConfig.startOptions;
-
-                                            final preferredLanguages =
-                                                locator<ComponentsBloc>()
-                                                    .state
-                                                    .componentConfig
-                                                    ?.defaultValues
-                                                    ?.preferredLanguages ??
-                                                [];
-                                            final localeNames = state.localeNames;
-                                            final foundLocal = localeNames.firstWhereOrNull(
-                                              (e) => e.localeId.replaceAll('_', '-') == localName,
-                                            );
-                                            if (foundLocal != null) {
-                                              locator<SttBloc>().add(
-                                                UpdateSttCurrentOptions(
-                                                  currentOptions: currentOptions.copyWith(
-                                                    localeId: foundLocal.localeId,
-                                                  ),
-                                                ),
+                                  child: ListView.builder(
+                                    shrinkWrap: true,
+                                    itemCount:
+                                        componentsState.componentConfig?.defaultValues?.preferredLanguages.length ?? 0,
+                                    itemBuilder: (_, index) {
+                                      final localName =
+                                          componentsState.componentConfig?.defaultValues?.preferredLanguages[index];
+                                      return Row(
+                                        mainAxisAlignment: MainAxisAlignment.end,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          IconButton(
+                                            onPressed: () async {
+                                              final currentOptions =
+                                                  state.currentOptions ?? SpeechToTextConfig.startOptions;
+                                              final localeNames = state.localeNames;
+                                              final foundLocal = localeNames.firstWhereOrNull(
+                                                (e) => e.localeId.replaceAll('_', '-') == localName,
                                               );
-                                              final result = await locator<SttStartStop>().call(SttActions.start);
-                                              result.fold((failure) {
-                                                LoggerService.logDebug(failure.message);
-                                              }, (_) => null);
-                                            } else {
-                                              await idocitShowDialog(
-                                                IdocItWarningDialog(
-                                                  label: 'STT Alert',
-                                                  description: '${localName ?? ''} is not supported by STT',
-                                                ),
-                                              );
-                                            }
-
-                                            // locator<SttBloc>().add(UpdateSttSystemLocale(systemLocale: localName));
-                                            // final result = await locator<SttStartStop>().call(TssActions.started);
-                                            // result.fold((failure) {
-                                            //   LoggerService.logDebug(failure.message);
-                                            // }, (_) => null);
-                                            setState(() {
-                                              _locals_presented = false;
-                                            });
-                                          },
-                                          icon: Row(
-                                            mainAxisAlignment: MainAxisAlignment.end,
-                                            children: [
-                                              Container(
-                                                decoration: BoxDecoration(
-                                                  color: ColorConstants.greyBlue450,
-                                                  borderRadius: BorderRadius.circular(6), // радиус скругления
-                                                ),
-                                                padding: EdgeInsets.symmetric(vertical: 4.0, horizontal: 6.0),
-                                                child: Text(
-                                                  textAlign: TextAlign.end,
-                                                  localName ?? "No locals",
-                                                  style: TextStyle(
-                                                    color: ColorConstants.black450,
-                                                    fontWeight: FontWeight.w500,
+                                              if (foundLocal != null) {
+                                                locator<SttBloc>().add(
+                                                  UpdateSttCurrentOptions(
+                                                    currentOptions: currentOptions.copyWith(
+                                                      localeId: foundLocal.localeId,
+                                                    ),
                                                   ),
+                                                );
+                                                final result = await locator<SttStartStop>().call(SttActions.start);
+                                                result.fold((failure) {
+                                                  LoggerService.logDebug(failure.message);
+                                                }, (_) => null);
+                                              } else {
+                                                await idocitShowDialog(
+                                                  IdocItWarningDialog(
+                                                    label: 'STT Alert',
+                                                    description: '${localName ?? ''} is not supported by STT',
+                                                  ),
+                                                );
+                                              }
+                                              setState(() {
+                                                _locals_presented = false;
+                                              });
+                                            },
+                                            icon: Container(
+                                              decoration: BoxDecoration(
+                                                color: ColorConstants.greyBlue450,
+                                                borderRadius: BorderRadius.circular(6), // радиус скругления
+                                              ),
+                                              padding: EdgeInsets.symmetric(vertical: 4.0, horizontal: 6.0),
+                                              child: Text(
+                                                textAlign: TextAlign.end,
+                                                localName ?? "No locals",
+                                                style: TextStyle(
+                                                  color: ColorConstants.black450,
+                                                  fontWeight: FontWeight.w500,
                                                 ),
                                               ),
-                                            ],
+                                            ),
                                           ),
-                                        );
-                                      },
-                                    ),
+                                        ],
+                                      );
+                                    },
                                   ),
                                 );
                               },
@@ -401,12 +384,13 @@ class _IdocItChatState extends State<IdocItChat> {
                       padding: const EdgeInsets.all(8),
                       color: ColorConstants.black200,
                       child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           Expanded(
-                            child: TextField(
+                            child: IdocItTextInputField(
                               controller: _controller,
+                              withClearButton: true,
                               onChanged: (v) => locator<ChatSuggestionsWithQuery>().call(v),
-                              decoration: const InputDecoration(hintText: "Type here...", border: OutlineInputBorder()),
                             ),
                           ),
                           SizedBox(width: 3.0),
@@ -443,18 +427,19 @@ class _IdocItChatState extends State<IdocItChat> {
                                         locator<ChatSuggestionsReset>().call(NoParams());
                                         _scrollToBottom();
                                       },
-                                      onDoubleTap: () {
+                                      onDoubleTap: () async {
                                         setState(() {
-                                          _locals_presented = !_locals_presented;
+                                          _locals_presented = false;
                                         });
-                                        LoggerService.logDebug('onDoubleTap');
-                                      },
-                                      onLongPress: () async {
                                         final options = await showSetUp(
                                           context,
                                           sttState.currentOptions ?? SpeechToTextConfig.startOptions,
                                         );
-                                        LoggerService.logDebug('onLongPress');
+                                      },
+                                      onLongPress: () {
+                                        setState(() {
+                                          _locals_presented = !_locals_presented;
+                                        });
                                       },
                                     );
                             },
@@ -478,7 +463,7 @@ class _IdocItChatState extends State<IdocItChat> {
     var pauseController = TextEditingController()..text = updatedOptions.pauseFor.toString();
     var showHelp = false;
     await showModalBottomSheet(
-      elevation: 0,
+      elevation: 6,
       context: context,
       isScrollControlled: true,
       builder: (context) {
@@ -537,23 +522,5 @@ class _IdocItChatState extends State<IdocItChat> {
       pauseFor: int.tryParse(pauseController.text) ?? updatedOptions.pauseFor,
     );
     return updatedOptions;
-  }
-}
-
-class LongPressButton extends StatelessWidget {
-  final VoidCallback? onTap;
-  final VoidCallback? onDoubleTap;
-  final VoidCallback? onLongPress;
-
-  const LongPressButton({super.key, this.onTap, this.onDoubleTap, this.onLongPress});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      onDoubleTap: onDoubleTap,
-      onLongPress: onLongPress,
-      child: const Icon(Icons.send, color: ColorConstants.white500),
-    );
   }
 }
