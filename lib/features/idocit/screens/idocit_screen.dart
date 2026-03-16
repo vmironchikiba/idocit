@@ -44,6 +44,7 @@ class _IdocItScreenState extends State<IdocItScreen> {
             return SafeArea(
               child: SliderDrawer(
                 key: _sliderDrawerKey,
+                isDraggable: false,
                 appBar: SliderAppBar(
                   config: SliderAppBarConfig(
                     title: Text(
