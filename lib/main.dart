@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -26,9 +28,14 @@ import 'package:idocit/features/stt/domain/usecases/stt_lazy_init.dart';
 import 'package:idocit/features/tts/domain/blocs/tts_bloc.dart';
 import 'package:idocit/injection_container.dart';
 import 'package:provider/provider.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (Platform.isIOS) {
+    WebViewPlatform.instance = WebKitWebViewPlatform();
+  }
   initLocator();
   await locator<DeviceService>().init();
   await AbstractSharedPreferencesDatasource.init();

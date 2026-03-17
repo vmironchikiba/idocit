@@ -389,6 +389,7 @@ class _IdocItChatState extends State<IdocItChat> {
                           Expanded(
                             child: IdocItTextInputField(
                               controller: _controller,
+                              keyboardType: TextInputType.text,
                               withClearButton: true,
                               onChanged: (v) => locator<ChatSuggestionsWithQuery>().call(v),
                             ),

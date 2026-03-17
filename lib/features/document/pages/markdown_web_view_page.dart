@@ -26,6 +26,8 @@ class MarkdownWebViewPage extends StatefulWidget {
 class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
   static const hasDebugInfo = false;
   late final WebViewController _webViewController;
+  final String docType =
+      locator<DocumentBloc>().state.documentResponse?.document.properties.docType ?? 'Unknown Document Type';
   final String _originalMarkdownData =
       locator<DocumentBloc>().state.documentResponse?.document.properties.text.replaceAll('\n\n', '\n') ?? '';
   late String _currentSearchQuery = '';
@@ -203,7 +205,7 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
 
     final htmlPage = _buildHtmlFromTemplate(htmlContent, hasHighlights);
 
-    await _webViewController.loadHtmlString(htmlPage, baseUrl: Uri.parse('https://localhost/').toString());
+    await _webViewController.loadHtmlString(htmlPage);
 
     _setupJavaScriptChannel();
   }
@@ -332,67 +334,6 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
     }
   }
 
-  /// Навигация к предыдущему совпадению
-  Future<void> _goToPreviousMatch() async {
-    if (_matches.isEmpty) return;
-
-    try {
-      final result = await _webViewController.runJavaScriptReturningResult('''
-        if (window.goToPreviousMatch) {
-          const result = window.goToPreviousMatch();
-          JSON.stringify(result);
-        }
-      ''');
-
-      if (result.toString().isNotEmpty) {
-        final data = jsonDecode(result as String);
-        if (data['success'] == true) {
-          LoggerService.logDebug('⬅️ Совпадение ${data['currentIndex'] + 1}/${data['total']}');
-        }
-      }
-    } catch (e) {
-      LoggerService.logDebug('⚠️ Ошибка навигации: $e');
-    }
-  }
-
-  /// Получение информации о совпадениях
-  Future<void> _getMatchesInfo() async {
-    try {
-      final result = await _webViewController.runJavaScriptReturningResult('''
-        if (window.getMatchesInfo) {
-          JSON.stringify(window.getMatchesInfo());
-        }
-      ''');
-
-      if (result.toString().isNotEmpty) {
-        final info = jsonDecode(result as String);
-        LoggerService.logDebug('📊 Всего совпадений: ${info['total']}');
-      }
-    } catch (e) {
-      LoggerService.logDebug('⚠️ Ошибка получения информации: $e');
-    }
-  }
-
-  /// Отладочная информация
-  Future<void> _getDebugInfo() async {
-    try {
-      final result = await _webViewController.runJavaScriptReturningResult('''
-        if (window.debugInfo) {
-          JSON.stringify(window.debugInfo());
-        }
-      ''');
-
-      if (result.toString().isNotEmpty) {
-        final info = jsonDecode(result as String);
-        LoggerService.logDebug('🐛 Отладочная информация:');
-        LoggerService.logDebug('   Совпадений: ${info['matchesCount']}');
-      }
-    } catch (e) {
-      LoggerService.logDebug('⚠️ Ошибка получения отладочной информации: $e');
-    }
-  }
-
-  /// Обновление поиска
   void _refreshSearch() {
     LoggerService.logDebug('🔄 Обновление поиска...');
     _processSearchAndLoad();
@@ -453,7 +394,26 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
 
       body: Stack(
         children: [
-          WebViewWidget(controller: _webViewController),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 3.0),
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 8.0),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8.0),
+                    color: Color.fromRGBO(255, 217, 39, 1.0),
+                  ),
+                  child: Text(
+                    docType,
+                    style: TextStyle(color: ColorConstants.black500, fontSize: 16, fontWeight: FontWeight.w900),
+                  ),
+                ),
+              ),
+              Expanded(child: WebViewWidget(controller: _webViewController)),
+            ],
+          ),
           if (_isLoading)
             Container(
               color: Colors.white,
