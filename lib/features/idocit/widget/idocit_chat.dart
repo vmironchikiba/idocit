@@ -81,10 +81,14 @@ class _IdocItChatState extends State<IdocItChat> {
         _speak(text);
       }
       sttStateSubscription = locator<SttBloc>().stream.listen((sttState) {
-        if (sttState.finalResult && sttState.lastWords.isNotEmpty) {
-          _controller.text = sttState.lastWords;
+        _controller.text = sttState.lastWords;
+        if (sttState.finalResult) {
           locator<ChatSuggestionsWithQuery>().call(sttState.lastWords);
         }
+        // if (sttState.finalResult && sttState.lastWords.isNotEmpty) {
+        //   _controller.text = sttState.lastWords;
+        //   locator<ChatSuggestionsWithQuery>().call(sttState.lastWords);
+        // }
       });
       _scrollToBottom();
     }));

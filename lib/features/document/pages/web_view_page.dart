@@ -10,6 +10,7 @@ import 'package:idocit/features/document/domain/bloc/document_bloc.dart';
 import 'package:idocit/injection_container.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:idocit/idocit/lib/api.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class WebViewPage extends StatefulWidget {
   final KnowledgeData knowledge;
@@ -31,6 +32,21 @@ class _WebViewPageState extends State<WebViewPage> {
 
   // final List<SearchMatch> _matches = [];
 
+  Future<void> _openExternal(String? url) async {
+    if (url == null) return;
+    final uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      throw 'Could not launch $url';
+    }
+  }
+
+  bool _isHtmlPage(Uri uri) {
+    final path = uri.path.toLowerCase();
+    final link = uri.toString();
+
+    return path.endsWith('.html') || path.endsWith('.htm') || path.isEmpty || path.endsWith('/') || link == docLink;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -40,6 +56,19 @@ class _WebViewPageState extends State<WebViewPage> {
       ..setBackgroundColor(Colors.white)
       ..setNavigationDelegate(
         NavigationDelegate(
+          onNavigationRequest: (NavigationRequest request) async {
+            final url = request.url;
+
+            final uri = Uri.parse(url);
+
+            // Если это не обычная веб-страница
+            if (!_isHtmlPage(uri)) {
+              await _openExternal(url);
+              return NavigationDecision.prevent;
+            }
+
+            return NavigationDecision.navigate;
+          },
           onProgress: (int progress) {
             if (progress == 100) {
               setState(() => _isLoading = false);
@@ -48,6 +77,7 @@ class _WebViewPageState extends State<WebViewPage> {
               // }
             }
           },
+
           onPageStarted: (String url) {
             setState(() => _isLoading = true);
           },
