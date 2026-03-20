@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:idocit/common/blocs/core_bloc.dart';
 import 'package:idocit/common/providers/theme_provider.dart';
+import 'package:idocit/common/services/firebase.dart';
 import 'package:idocit/common/services/in_app_failures/in_app_failure_provider.dart';
 import 'package:idocit/common/services/in_app_failures/in_app_failure_widget.dart';
 import 'package:idocit/common/services/navigator.dart';
@@ -30,9 +31,15 @@ import 'package:idocit/injection_container.dart';
 import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+
   if (Platform.isIOS) {
     WebViewPlatform.instance = WebKitWebViewPlatform();
   }
@@ -56,6 +63,7 @@ class _IDocItAppState extends State<IDocItApp> {
     super.initState();
     locator<NetworkListenerService>().listenNetworkChanges();
     locator<CoreInit>().call(NoParams());
+    locator<FirebaseService>().init();
     locator<SttLazyInit>().call(SpeechToTextConfig.startOptions);
   }
 

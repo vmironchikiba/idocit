@@ -2,6 +2,7 @@ import 'package:get_it/get_it.dart';
 import 'package:idocit/common/blocs/core_bloc.dart';
 import 'package:idocit/common/datasources/core_preferences_storage.dart';
 import 'package:idocit/common/providers/chats_notifier.dart';
+import 'package:idocit/common/services/firebase.dart';
 import 'package:idocit/common/services/in_app_failures/in_app_failure_provider.dart';
 import 'package:idocit/common/services/navigator.dart';
 import 'package:idocit/common/services/network_listener.dart';
@@ -68,6 +69,8 @@ void initLocator() {
   locator.registerLazySingleton(() => CharlesProvider());
   locator.registerLazySingleton(() => InAppFailureProvider());
   locator.registerLazySingleton(() => LoggerService());
+
+  locator.registerLazySingleton(() => FirebaseService());
   locator.registerLazySingleton(() => CorePreferencesStorage());
   locator.registerLazySingleton(() => NetworkListenerService());
   locator.registerLazySingleton(
