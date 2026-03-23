@@ -70,7 +70,7 @@ void initLocator() {
   locator.registerLazySingleton(() => InAppFailureProvider());
   locator.registerLazySingleton(() => LoggerService());
 
-  locator.registerLazySingleton(() => FirebaseService());
+  locator.registerLazySingleton(() => FirebaseService(deviceService: locator<DeviceService>()));
   locator.registerLazySingleton(() => CorePreferencesStorage());
   locator.registerLazySingleton(() => NetworkListenerService());
   locator.registerLazySingleton(

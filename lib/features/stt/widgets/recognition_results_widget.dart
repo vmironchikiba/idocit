@@ -13,7 +13,7 @@ class RecognitionResultsWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<SttBloc, SttState>(
-      buildWhen: (p, c) => p.lastWords != c.lastWords || p.level != c.level,
+      buildWhen: (p, c) => p.speechRecognitionResult != c.speechRecognitionResult || p.level != c.level,
       builder: (context, state) {
         return Column(
           children: <Widget>[
@@ -25,7 +25,7 @@ class RecognitionResultsWidget extends StatelessWidget {
                   color: Theme.of(context).secondaryHeaderColor,
                   child: Center(
                     child: Text(
-                      state.lastWords,
+                      state.speechRecognitionResult?.recognizedWords ?? '',
                       textAlign: TextAlign.center,
                       style: TextStyle(color: ColorConstants.black500),
                     ),

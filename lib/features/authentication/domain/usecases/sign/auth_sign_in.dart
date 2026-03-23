@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:idocit/common/services/firebase.dart';
 import 'package:idocit/features/authentication/domain/bloc/auth_bloc.dart';
 import 'package:idocit/features/authentication/domain/datasources/auth_remote_datasource.dart';
 import 'package:idocit/features/authentication/domain/datasources/auth_secure_storage.dart';
@@ -9,6 +10,8 @@ import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/common/services/network_listener.dart';
 import 'package:idocit/features/authentication/domain/usecases/auth_update_status.dart';
 import 'package:idocit/features/authentication/domain/usecases/user/auth_get_user_data.dart';
+import 'package:idocit/idocit/lib/api.dart';
+import 'package:idocit/injection_container.dart';
 
 class AuthSignIn implements UseCase<Either<Failure, void>, LoginData> {
   final NetworkListenerService networkListenerService;
@@ -17,8 +20,9 @@ class AuthSignIn implements UseCase<Either<Failure, void>, LoginData> {
   final AuthSecureStorage authSecureStorage;
   final AuthGetUserData authGetUserData;
   final AuthUpdateStatus authUpdateStatus;
+  final firebase = locator<FirebaseService>();
 
-  const AuthSignIn({
+  AuthSignIn({
     required this.networkListenerService,
     required this.authBloc,
     required this.authRemoteDataSource,
@@ -26,6 +30,25 @@ class AuthSignIn implements UseCase<Either<Failure, void>, LoginData> {
     required this.authGetUserData,
     required this.authUpdateStatus,
   });
+
+  void _updateFirebase({required KeycloakUser result}) {
+    firebase.setUserId(result.id);
+    firebase.setUserProperty(name: 'username', value: result.username);
+    firebase.setUserProperty(name: 'email', value: result.email);
+    firebase.setUserProperty(name: 'role', value: result.role);
+    firebase.setUserProperty(name: 'tenant', value: result.tenant);
+  }
+
+  void _logEvent({required String name, required KeycloakUser result}) => firebase.logFirebaseEvent(
+    name: name,
+    parameters: {
+      'id': result.id,
+      'username': result.username,
+      'email': result.email,
+      'role': result.role,
+      'tenant': result.tenant,
+    },
+  );
 
   @override
   Future<Either<Failure, void>> call(LoginData data, {bool withStatusUpdate = true}) async {
@@ -35,6 +58,7 @@ class AuthSignIn implements UseCase<Either<Failure, void>, LoginData> {
     }
 
     final response = await authRemoteDataSource.signIn(data);
+
     return response.fold(
       (failure) async {
         LoggerService.logDebug('FAILURE: AuthSignIn: authRemoteDataSource.signIn()');
@@ -57,6 +81,8 @@ class AuthSignIn implements UseCase<Either<Failure, void>, LoginData> {
                 },
                 (result) {
                   authBloc.add(UpdateUserDataEvent(userData: result));
+                  _updateFirebase(result: result);
+                  _logEvent(name: 'sign-in-refresh', result: result);
                 },
               );
 
@@ -94,6 +120,8 @@ class AuthSignIn implements UseCase<Either<Failure, void>, LoginData> {
           },
           (result) {
             authBloc.add(UpdateUserDataEvent(userData: result));
+            _updateFirebase(result: result);
+            _logEvent(name: 'sign-in', result: result);
             // userData = result;
           },
         );

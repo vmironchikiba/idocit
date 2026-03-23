@@ -6,6 +6,8 @@ class LongPressButton extends StatelessWidget {
   final VoidCallback? onDoubleTap;
   final VoidCallback? onLongPress;
   final Color? color;
+  final bool isStarted;
+  final bool isPresented;
 
   const LongPressButton({
     super.key,
@@ -13,6 +15,8 @@ class LongPressButton extends StatelessWidget {
     this.onDoubleTap,
     this.onLongPress,
     this.color = ColorConstants.white500,
+    this.isStarted = false,
+    this.isPresented = false,
   });
 
   @override
@@ -21,7 +25,17 @@ class LongPressButton extends StatelessWidget {
       onTap: onTap,
       onDoubleTap: onDoubleTap,
       onLongPress: onLongPress,
-      child: Icon(Icons.send, color: color),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 14.0, horizontal: 7),
+        child: Icon(
+          isPresented
+              ? isStarted
+                    ? Icons.mic_off_outlined
+                    : Icons.mic_none
+              : Icons.send,
+          color: color,
+        ),
+      ),
     );
   }
 }

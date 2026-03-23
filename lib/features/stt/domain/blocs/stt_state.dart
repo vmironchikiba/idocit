@@ -3,8 +3,7 @@ part of 'stt_bloc.dart';
 class SttState {
   final bool isEnabled;
   final bool isStarted;
-  final bool finalResult;
-  final String lastWords;
+  final SpeechRecognitionResult? speechRecognitionResult;
   final double level;
   final SttStatus? lastStatus;
   final List<LocaleName> localeNames;
@@ -15,8 +14,7 @@ class SttState {
   const SttState({
     required this.isEnabled,
     required this.isStarted,
-    required this.finalResult,
-    required this.lastWords,
+    required this.speechRecognitionResult,
     required this.level,
     required this.lastStatus,
     required this.localeNames,
@@ -29,8 +27,7 @@ class SttState {
     return const SttState(
       isEnabled: false,
       isStarted: false,
-      finalResult: false,
-      lastWords: '',
+      speechRecognitionResult: null,
       level: 0.0,
       lastStatus: null,
       localeNames: [],
@@ -43,8 +40,7 @@ class SttState {
   SttState update({
     bool? isEnabled,
     bool? isStarted,
-    bool? finalResult,
-    String? lastWords,
+    SpeechRecognitionResult? speechRecognitionResult,
     double? level,
     SttStatus? lastStatus,
     List<LocaleName>? localeNames,
@@ -55,8 +51,7 @@ class SttState {
     return SttState(
       isEnabled: isEnabled ?? this.isEnabled,
       isStarted: isStarted ?? this.isStarted,
-      finalResult: finalResult ?? this.finalResult,
-      lastWords: lastWords ?? this.lastWords,
+      speechRecognitionResult: speechRecognitionResult ?? this.speechRecognitionResult,
       level: level ?? this.level,
       lastStatus: lastStatus ?? this.lastStatus,
       localeNames: localeNames ?? this.localeNames,
@@ -70,8 +65,7 @@ class SttState {
     return SttState(
       isEnabled: isEnabled,
       isStarted: isStarted,
-      finalResult: finalResult,
-      lastWords: lastWords,
+      speechRecognitionResult: speechRecognitionResult,
       level: level,
       lastStatus: lastStatus,
       localeNames: localeNames,
@@ -85,8 +79,7 @@ class SttState {
     return SttState(
       isEnabled: isEnabled,
       isStarted: isStarted,
-      finalResult: finalResult,
-      lastWords: lastWords,
+      speechRecognitionResult: speechRecognitionResult,
       level: level,
       lastStatus: lastStatus,
       localeNames: localeNames,
@@ -100,14 +93,27 @@ class SttState {
     return SttState(
       isEnabled: isEnabled,
       isStarted: isStarted,
-      finalResult: finalResult,
-      lastWords: lastWords,
+      speechRecognitionResult: speechRecognitionResult,
       level: level,
       lastStatus: lastStatus,
       localeNames: localeNames,
       systemLocale: systemLocale,
       lastFailure: lastFailure,
       currentOptions: null,
+    );
+  }
+
+  SttState resetSpeechRecognitionResult() {
+    return SttState(
+      isEnabled: isEnabled,
+      isStarted: isStarted,
+      speechRecognitionResult: null,
+      level: level,
+      lastStatus: lastStatus,
+      localeNames: localeNames,
+      systemLocale: systemLocale,
+      lastFailure: lastFailure,
+      currentOptions: currentOptions,
     );
   }
 }

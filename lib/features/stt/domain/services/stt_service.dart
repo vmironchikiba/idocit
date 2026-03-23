@@ -14,28 +14,11 @@ class SttService {
   final SpeechToText speech = SpeechToText();
   bool _hasSpeech = false;
   bool get hasSpeech => _hasSpeech;
-  // List<LocaleName> _localeNames = [];
 
   double minSoundLevel = 50000;
   double maxSoundLevel = -50000;
 
   SttBloc sttBloc = locator<SttBloc>();
-
-  // SpeechToTextConfig currentOptions = SpeechToTextConfig(
-  //   SpeechListenOptions(
-  //     listenMode: ListenMode.confirmation,
-  //     onDevice: false,
-  //     cancelOnError: true,
-  //     partialResults: true,
-  //     autoPunctuation: true,
-  //     enableHapticFeedback: true,
-  //   ),
-  //   "",
-  //   3,
-  //   30,
-  //   false,
-  //   false,
-  // );
 
   SttService();
 
@@ -93,7 +76,7 @@ class SttService {
 
   void startListening() {
     _logEvent('start listening');
-    sttBloc.add(UpdateSttLastWords(lastWords: ''));
+    sttBloc.add(UpdateSttSpeechRecognitionResult(speechRecognitionResult: null));
     sttBloc.add(UpdateSttLastFailure(lastFailure: null));
 
     // Note that `listenFor` is the maximum, not the minimum, on some
@@ -125,9 +108,7 @@ class SttService {
   void resultListener(SpeechRecognitionResult result) {
     _logEvent('Result listener final: ${result.finalResult}, words: ${result.recognizedWords}');
 
-    // lastWords = '${result.recognizedWords} - ${result.finalResult}';
-    sttBloc.add(UpdateSttFinalResult(finalResult: result.finalResult));
-    sttBloc.add(UpdateSttLastWords(lastWords: result.recognizedWords));
+    sttBloc.add(UpdateSttSpeechRecognitionResult(speechRecognitionResult: result));
   }
 
   void soundLevelListener(double level) {

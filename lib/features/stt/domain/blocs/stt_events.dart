@@ -14,14 +14,9 @@ class UpdateSttIsStarted extends SttBlocEvent {
   UpdateSttIsStarted({required this.isStarted}) : super([isStarted]);
 }
 
-class UpdateSttFinalResult extends SttBlocEvent {
-  final bool finalResult;
-  UpdateSttFinalResult({required this.finalResult}) : super([finalResult]);
-}
-
-class UpdateSttLastWords extends SttBlocEvent {
-  final String lastWords;
-  UpdateSttLastWords({required this.lastWords}) : super([lastWords]);
+class UpdateSttSpeechRecognitionResult extends SttBlocEvent {
+  final SpeechRecognitionResult? speechRecognitionResult;
+  UpdateSttSpeechRecognitionResult({required this.speechRecognitionResult}) : super([speechRecognitionResult]);
 }
 
 class UpdateSttLevel extends SttBlocEvent {

@@ -41,6 +41,7 @@ import 'package:idocit/features/tts/domain/blocs/tts_bloc.dart';
 import 'package:idocit/features/tts/domain/services/tts_service.dart';
 import 'package:idocit/injection_container.dart';
 import 'package:flutter/material.dart';
+import 'package:speech_to_text/speech_recognition_result.dart';
 
 class IdocItChat extends StatefulWidget {
   const IdocItChat({super.key, /*required this.chatTitle,*/ required this.chatId});
@@ -54,14 +55,15 @@ class _IdocItChatState extends State<IdocItChat> {
   final TextEditingController _controller = TextEditingController();
   late final ScrollController _scrollController;
   List<String> suggestions = [];
-  late bool _locals_presented;
+  late bool _localsPresented;
   late StreamSubscription<SttState> sttStateSubscription;
   late StreamSubscription<ChatState> chatStateSubscription;
+  SpeechRecognitionResult? speechRecognitionResult;
 
   @override
   initState() {
     super.initState();
-    _locals_presented = false;
+    _localsPresented = false;
     _scrollController = ScrollController();
 
     List<String> preMessageArray = [];
@@ -80,15 +82,17 @@ class _IdocItChatState extends State<IdocItChat> {
         final text = preMessageArray.join(' ');
         _speak(text);
       }
-      sttStateSubscription = locator<SttBloc>().stream.listen((sttState) {
-        _controller.text = sttState.lastWords;
-        if (sttState.finalResult) {
-          locator<ChatSuggestionsWithQuery>().call(sttState.lastWords);
+
+      sttStateSubscription = locator<SttBloc>().stream.listen((sttState) async {
+        if (sttState.speechRecognitionResult?.finalResult == speechRecognitionResult?.finalResult &&
+            sttState.speechRecognitionResult?.recognizedWords == speechRecognitionResult?.recognizedWords) {
+          return;
         }
-        // if (sttState.finalResult && sttState.lastWords.isNotEmpty) {
-        //   _controller.text = sttState.lastWords;
-        //   locator<ChatSuggestionsWithQuery>().call(sttState.lastWords);
-        // }
+        speechRecognitionResult = sttState.speechRecognitionResult;
+        _controller.text = speechRecognitionResult?.recognizedWords ?? '';
+        if (speechRecognitionResult?.finalResult ?? false) {
+          locator<ChatSuggestionsWithQuery>().call(sttState.speechRecognitionResult?.recognizedWords ?? '');
+        }
       });
       _scrollToBottom();
     }));
@@ -288,7 +292,7 @@ class _IdocItChatState extends State<IdocItChat> {
                       child: FadeTransition(opacity: animation, child: child),
                     );
                   },
-                  child: _locals_presented
+                  child: _localsPresented
                       ? BlocBuilder<ComponentsBloc, ComponentsState>(
                           key: const ValueKey('opened_locals'),
                           buildWhen: (previous, current) =>
@@ -342,7 +346,7 @@ class _IdocItChatState extends State<IdocItChat> {
                                                 );
                                               }
                                               setState(() {
-                                                _locals_presented = false;
+                                                _localsPresented = false;
                                               });
                                             },
                                             icon: Container(
@@ -398,11 +402,13 @@ class _IdocItChatState extends State<IdocItChat> {
                               onChanged: (v) => locator<ChatSuggestionsWithQuery>().call(v),
                             ),
                           ),
-                          SizedBox(width: 3.0),
                           BlocBuilder<SttBloc, SttState>(
                             builder: (context, sttState) {
                               return state.isInProcess
-                                  ? IdocItLoadingIndicator(color: ColorConstants.white500)
+                                  ? Padding(
+                                      padding: const EdgeInsets.symmetric(vertical: 14.0, horizontal: 9),
+                                      child: IdocItLoadingIndicator(color: ColorConstants.white500),
+                                    )
                                   : sttState.isStarted
                                   ? MicrophoneWidget()
                                   : LongPressButton(
@@ -434,18 +440,21 @@ class _IdocItChatState extends State<IdocItChat> {
                                       },
                                       onDoubleTap: () async {
                                         setState(() {
-                                          _locals_presented = false;
+                                          _localsPresented = false;
                                         });
-                                        final options = await showSetUp(
+                                        final currentOptions = await showSetUp(
                                           context,
                                           sttState.currentOptions ?? SpeechToTextConfig.startOptions,
                                         );
+                                        locator<SttBloc>().add(UpdateSttCurrentOptions(currentOptions: currentOptions));
                                       },
                                       onLongPress: () {
                                         setState(() {
-                                          _locals_presented = !_locals_presented;
+                                          _localsPresented = !_localsPresented;
                                         });
                                       },
+                                      isPresented: _localsPresented,
+                                      isStarted: sttState.isStarted,
                                     );
                             },
                           ),
