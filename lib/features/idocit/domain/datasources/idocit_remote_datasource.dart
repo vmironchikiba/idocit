@@ -1,5 +1,4 @@
 import 'package:dartz/dartz.dart';
-import 'package:idocit/common/models/service/usecase.dart';
 import 'package:idocit/constants/errors.dart';
 import 'package:idocit/constants/strings.dart';
 import 'package:idocit/common/models/service/failure.dart';

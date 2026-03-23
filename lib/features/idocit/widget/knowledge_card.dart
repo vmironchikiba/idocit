@@ -1,13 +1,9 @@
-import 'dart:convert';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/common/widgets/indicators/loading_indicator.dart';
 import 'package:idocit/constants/colors.dart';
 import 'package:idocit/features/document/domain/usecases/get_document_by_id.dart';
 import 'package:idocit/features/document/screens/documet_screen.dart';
-import 'package:idocit/features/document/pages/markdown_web_view_page.dart';
 import 'package:idocit/idocit/lib/api.dart';
 import 'package:idocit/injection_container.dart';
 

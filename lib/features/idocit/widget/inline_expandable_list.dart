@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/constants/colors.dart';
 import 'package:idocit/constants/image.dart';
 import 'package:idocit/features/chat/domain/models/extensions/percent_string.dart';
-import 'package:idocit/features/chat/domain/models/query_response.dart';
 import 'package:idocit/features/idocit/widget/knowledge_card.dart';
 import 'package:idocit/idocit/lib/api.dart';
 
@@ -16,6 +14,7 @@ class InlineExpandableList extends StatefulWidget {
   const InlineExpandableList({super.key, required this.items, required this.onItemTap});
 
   @override
+  // ignore: library_private_types_in_public_api
   _InlineExpandableListState createState() => _InlineExpandableListState();
 }
 
@@ -25,8 +24,6 @@ class _InlineExpandableListState extends State<InlineExpandableList> with Single
   @override
   Widget build(BuildContext context) {
     if (widget.items.isEmpty) return const SizedBox.shrink();
-    // final total = widget.items.map((item) => double.tryParse(item.score) ?? 0).reduce((a, b) => a + b).toString();
-
     final header = ListTileTheme(
       contentPadding: EdgeInsets.all(4),
       child: ListTile(
@@ -35,7 +32,6 @@ class _InlineExpandableListState extends State<InlineExpandableList> with Single
             SvgPicture.asset(ImageConstants.igIdocIt, height: 21, width: 21),
             SizedBox(height: 4.0),
             Container(
-              // color: widget.items[0].score.toColor(),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(4.0),
                 color: widget.items[0].score.toColor(),
@@ -50,7 +46,6 @@ class _InlineExpandableListState extends State<InlineExpandableList> with Single
         ),
         subtitle: Card(
           elevation: 0,
-          // color: ColorConstants.white500.withValues(alpha: 1),
           child: KnowledgeCard(
             knowledge: widget.items[0],
             onItemTap: (docUuid) {

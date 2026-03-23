@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-// import 'package:idocit/common/utils/gif_builder.dart';
 import 'package:idocit/constants/image.dart';
 
 class SplashScreen extends StatefulWidget {

@@ -281,7 +281,6 @@ class TtsService {
         .toList()
         .where((voice) => voice.name == 'en-US' || voice.name == 'ru-RU')
         .toList();
-    ;
   }
 
   Future<void> getDefaultEngine() async {

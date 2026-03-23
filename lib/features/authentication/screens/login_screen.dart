@@ -25,7 +25,7 @@ class LoginScreen extends StatefulWidget {
 
   final bool isFromResetDialog;
 
-  const LoginScreen({Key? key, this.isFromResetDialog = false}) : super(key: key);
+  const LoginScreen({super.key, this.isFromResetDialog = false});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();

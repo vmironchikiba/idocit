@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:idocit/constants/image.dart';
-import 'package:idocit/features/components/domain/blocs/components_bloc.dart';
 import 'package:idocit/features/document/domain/bloc/document_bloc.dart';
 import 'package:idocit/features/document/pages/markdown_web_view_page.dart';
 import 'package:idocit/features/document/pages/web_view_page.dart';
@@ -64,9 +63,6 @@ class _DocumentScreenState extends State<DocumentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final readers = locator<ComponentsBloc>().state.componentConfig?.readers ?? [];
-    final rd = readers.map((r) => r.name).toList();
-
     return (docType == 'MD Format')
         ? MarkdownWebViewPage(knowledge: widget.knowledge)
         : docType == 'WEB documents' || docType == 'Confluence'

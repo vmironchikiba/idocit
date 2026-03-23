@@ -20,7 +20,6 @@ class UserProfile extends StatefulWidget {
 }
 
 class _UserProfileState extends State<UserProfile> {
-  bool _isDialogHidden = false;
   bool _isRequestInProgress = false;
   @override
   void initState() {
@@ -42,7 +41,6 @@ class _UserProfileState extends State<UserProfile> {
 
     setState(() {
       _isRequestInProgress = false;
-      _isDialogHidden = false;
     });
 
     setState(() {
@@ -138,12 +136,7 @@ class _UserProfileState extends State<UserProfile> {
     );
   }
 
-  Widget _buildTextField({
-    required BuildContext context,
-    // required String label,
-    required String value,
-    required IconData icon,
-  }) {
+  Widget _buildTextField({required BuildContext context, required String value, required IconData icon}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

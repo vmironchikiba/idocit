@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:idocit/common/models/service/usecase.dart';
 import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/features/stt/domain/blocs/stt_bloc.dart';
 import 'package:idocit/features/stt/domain/models/enums/stt_actions.dart';
@@ -17,7 +16,6 @@ import 'package:idocit/features/stt/widgets/speech_error_widget.dart';
 import 'package:idocit/features/stt/widgets/session_options_widget.dart';
 import 'package:idocit/features/stt/widgets/speech_status_widget.dart';
 import 'package:idocit/injection_container.dart';
-import 'package:speech_to_text/speech_to_text.dart';
 
 class SttSettingsScreen extends StatefulWidget {
   const SttSettingsScreen({super.key});

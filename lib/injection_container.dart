@@ -49,9 +49,6 @@ import 'package:idocit/features/stt/domain/usecases/stt_set_current_options.dart
 import 'package:idocit/features/stt/domain/usecases/stt_start_stop.dart';
 import 'package:idocit/features/tts/domain/blocs/tts_bloc.dart';
 import 'package:idocit/features/tts/domain/services/tts_service.dart';
-import 'package:idocit/features/tts/domain/usecases/tts_get_engines.dart';
-import 'package:idocit/features/tts/domain/usecases/tts_get_languages.dart';
-import 'package:idocit/features/tts/domain/usecases/tts_get_voices.dart';
 import 'package:idocit/idocit/lib/api.dart';
 
 final locator = GetIt.instance;
