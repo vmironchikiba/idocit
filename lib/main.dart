@@ -22,6 +22,7 @@ import 'package:idocit/features/components/domain/blocs/components_bloc.dart';
 import 'package:idocit/features/document/domain/bloc/document_bloc.dart';
 import 'package:idocit/features/idocit/domain/blocs/idocit/idocit_bloc.dart';
 import 'package:idocit/features/idocit/screens/idocit_screen.dart';
+import 'package:idocit/features/presets/domain/blocs/presets_bloc.dart';
 import 'package:idocit/features/screen_builder.dart';
 import 'package:idocit/features/stt/domain/blocs/stt_bloc.dart';
 import 'package:idocit/features/stt/domain/models/speech_to_text_config.dart';
@@ -79,6 +80,7 @@ class _IDocItAppState extends State<IDocItApp> {
         BlocProvider.value(value: locator<ComponentsBloc>()),
         BlocProvider.value(value: locator<ChatBloc>()),
         BlocProvider.value(value: locator<DocumentBloc>()),
+        BlocProvider.value(value: locator<PresetsBloc>()),
       ],
       child: MultiProvider(
         providers: [

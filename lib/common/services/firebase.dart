@@ -1,11 +1,11 @@
-import 'dart:isolate';
+// import 'dart:isolate';
 
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:idocit/common/services/device.dart';
 import 'package:idocit/common/services/logger.dart';
-import 'package:flutter/foundation.dart' show FlutterError;
+import 'package:flutter/foundation.dart' show FlutterError, FlutterErrorDetails, PlatformDispatcher;
 
 class FirebaseService {
   final DeviceService deviceService;
@@ -37,14 +37,22 @@ class FirebaseService {
 
   Future<void> _startCrashlytics() async {
     await _crashlytics.setCrashlyticsCollectionEnabled(true);
-    FlutterError.onError = _crashlytics.recordFlutterError;
+    // FlutterError.onError = _crashlytics.recordFlutterError;
+    FlutterError.onError = (FlutterErrorDetails details) {
+      _crashlytics.recordFlutterError(details);
+    };
 
     /// To catch errors that happen outside of the Flutter context
-    Isolate.current.addErrorListener(
-      RawReceivePort((pair) async {
-        final List<dynamic> errorAndStacktrace = pair;
-        await _crashlytics.recordError(errorAndStacktrace.first, errorAndStacktrace.last);
-      }).sendPort,
-    );
+    // Isolate.current.addErrorListener(
+    //   RawReceivePort((pair) async {
+    //     final List<dynamic> errorAndStacktrace = pair;
+    //     await _crashlytics.recordError(errorAndStacktrace.first, errorAndStacktrace.last);
+    //   }).sendPort,
+    // );
+
+    PlatformDispatcher.instance.onError = (error, stack) {
+      _crashlytics.recordError(error, stack, fatal: true);
+      return true;
+    };
   }
 }

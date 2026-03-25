@@ -42,6 +42,9 @@ import 'package:idocit/features/idocit/domain/datasources/idocit_remote_datasour
 import 'package:idocit/features/idocit/domain/usecases/idocit_delete_chat.dart';
 import 'package:idocit/features/idocit/domain/usecases/idocit_reset.dart';
 import 'package:idocit/features/idocit/domain/usecases/idocit_lazy_init_chats.dart';
+import 'package:idocit/features/presets/domain/blocs/presets_bloc.dart';
+import 'package:idocit/features/presets/domain/datasources/presets_remote_datasource.dart';
+import 'package:idocit/features/presets/domain/usecases/get_all_presets.dart';
 import 'package:idocit/features/stt/domain/blocs/stt_bloc.dart';
 import 'package:idocit/features/stt/domain/services/stt_service.dart';
 import 'package:idocit/features/stt/domain/usecases/stt_lazy_init.dart';
@@ -80,6 +83,7 @@ void initLocator() {
   );
   locator.registerLazySingleton(() => IdocItBloc(IdocItState.initial()));
   locator.registerLazySingleton(() => ComponentsBloc(ComponentsState.initial()));
+  locator.registerLazySingleton(() => PresetsBloc(PresetsState.initial()));
   locator.registerLazySingleton(() => ChatBloc(ChatState.initial()));
   locator.registerLazySingleton(() => DocumentBloc(DocumentState.initial()));
   locator.registerLazySingleton(
@@ -173,6 +177,7 @@ void initLocator() {
   locator.registerLazySingleton(() => CoreUpdateInAppToast(coreBloc: locator<CoreBloc>()));
   locator.registerLazySingleton(() => IdocItRemoteDataSource());
   locator.registerLazySingleton(() => ComponentsRemoteDataSource());
+  locator.registerLazySingleton(() => PresetsRemoteDataSource());
   locator.registerLazySingleton(() => ChatSuggestionsRemoteDataSource());
   locator.registerLazySingleton(() => ChatHistoryRemoteDataSource());
 
@@ -226,6 +231,15 @@ void initLocator() {
       componentsRemoteDataSource: locator<ComponentsRemoteDataSource>(),
     ),
   );
+  locator.registerLazySingleton(
+    () => GetAllPresets(
+      networkListenerService: locator<NetworkListenerService>(),
+      presetsBloc: locator<PresetsBloc>(),
+      authBloc: locator<AuthBloc>(),
+      presetsRemoteDataSource: locator<PresetsRemoteDataSource>(),
+    ),
+  );
+
   locator.registerLazySingleton(
     () => SttLazyInit(
       networkListenerService: locator<NetworkListenerService>(),
