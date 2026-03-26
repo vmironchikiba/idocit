@@ -11,6 +11,7 @@ import 'package:idocit/constants/image.dart';
 import 'package:idocit/constants/strings.dart';
 import 'package:idocit/features/document/domain/bloc/document_bloc.dart';
 import 'package:idocit/injection_container.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:markdown/markdown.dart' as md;
 import 'package:idocit/idocit/lib/api.dart';
@@ -28,6 +29,7 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
   late final WebViewController _webViewController;
   final String docType =
       locator<DocumentBloc>().state.documentResponse?.document.properties.docType ?? 'Unknown Document Type';
+  final String docLink = locator<DocumentBloc>().state.documentResponse?.document.properties.docLink ?? '';
   final String _originalMarkdownData =
       locator<DocumentBloc>().state.documentResponse?.document.properties.text.replaceAll('\n\n', '\n') ?? '';
   late String _currentSearchQuery = '';
@@ -36,12 +38,13 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
   final List<SearchMatch> _matches = [];
   String _htmlTemplate = '';
   String _fallbackTemplate = ''; // Добавьте это поле
-
+  late String _preparedText;
   final Map<String, double> _scrollPositions = {};
 
   @override
   void initState() {
     super.initState();
+    _preparedText = escapeMarkdownLiterals(_originalMarkdownData);
 
     _webViewController = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
@@ -109,43 +112,160 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
     }
   }
 
+  // MVR - добавлено по Реакту
+  String escapeMarkdownLiterals(String input) {
+    return (input)
+        .replaceAll('\u00A0', ' ')
+        .replaceAll(RegExp(r'(?<!\\)_'), r'\_')
+        .replaceAll(RegExp(r'(?<!\\)\*'), r'\*');
+  }
+
+  String decodeHtmlEntities(String text) {
+    String result = text
+        .replaceAll('&nbsp;', ' ')
+        .replaceAll('&amp;', '&')
+        .replaceAll('&lt;', '<')
+        .replaceAll('&gt;', '>')
+        .replaceAll('&quot;', '"')
+        .replaceAll('&#39;', "'");
+
+    // Десятичные сущности
+    result = result.replaceAllMapped(RegExp(r'&#(\d+);'), (match) {
+      final code = int.parse(match.group(1)!);
+      if (code == 36 || code == 38) return ' '; // $ или & заменяем на пробел
+      return String.fromCharCode(code);
+    });
+
+    // Шестнадцатеричные сущности
+    result = result.replaceAllMapped(RegExp(r'&#x([0-9a-fA-F]+);'), (match) {
+      final code = int.parse(match.group(1)!, radix: 16);
+      if (code == 0x24 || code == 0x26) return ' '; // $ или &
+      return String.fromCharCode(code);
+    });
+
+    return result;
+  }
+
+  String stripMarkdownNoise(String input) {
+    // 1. Декодируем HTML-сущности
+    String result = decodeHtmlEntities(input);
+
+    // 2. Заменяем неразрывные пробелы
+    result = result.replaceAll('\u00A0', ' ');
+
+    // 3. Удаляем символы $ и & (они не несут смысла и мешают)
+    result = result.replaceAll(RegExp(r'[$&]'), '');
+
+    // 4. Остальные замены (Markdown шум)
+    result = result
+        .replaceAll(
+          RegExp(r'(^|\n)[ \t]*\|?[ \t]*:?-{3,}:?[ \t]*(\|[ \t]*:?-{3,}:?[ \t]*)+[ \t]*\|?[ \t]*(?=\n|$)'),
+          r'$1',
+        )
+        .replaceAll(RegExp(r'(^|\n)\s*(?:-{3,}|\*{3,}|_{3,})\s*(?=\n|$)'), r'$1')
+        .replaceAll(RegExp(r'!\[([^\]]*)]\([^)]+\)'), r'$1')
+        .replaceAll(RegExp(r'\[([^\]]+)]\([^)]+\)'), r'$1')
+        .replaceAll(RegExp(r'(^|\n)\s*#{1,6}\s+'), r'$1')
+        .replaceAll(RegExp(r'(^|\n)\s*>\s+'), r'$1')
+        .replaceAll(RegExp(r'(^|\n)\s*[-*+]\s+'), r'$1')
+        .replaceAll(RegExp(r'(^|\n)\s*\d+\.\s+'), r'$1')
+        .replaceAll(RegExp(r'[*_~`]+'), ' ')
+        .replaceAll(RegExp(r'[|]+'), ' ')
+        .replaceAll(RegExp(r':\s*-+\s*:'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .replaceAll(RegExp(r'[$&]'), '')
+        .trim();
+
+    return result;
+  }
+
+  RegExp? buildFuzzyRegex(String raw) {
+    final cleaned = stripMarkdownNoise(raw);
+    if (cleaned.isEmpty) return null;
+    final tokens = cleaned
+        .split(' ')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .where((s) => !RegExp(r'^[$\&]+$').hasMatch(s))
+        .map((s) => s.replaceAllMapped(RegExp(r'[.*+?^${}()|[\]\\]'), (match) => '\\${match.group(0)}'))
+        .toList();
+    if (tokens.isEmpty) return null;
+    const sep = r'[\s\W_]*';
+    final pattern = tokens.join(sep);
+    return RegExp(pattern, caseSensitive: false, unicode: true);
+  }
+
   /// Встроенный fallback шаблон (на случай, если файл тоже не загрузится)
   String _getBuiltInFallbackTemplate() => StringsConstants.fallbackHtmlTemplate;
 
   /// Основная функция: обработка поиска и загрузка контента
   Future<void> _processSearchAndLoad() async {
-    final query = removeFirstTwoLines(widget.knowledge.text).trim();
-    _currentSearchQuery = query;
+    if (docType == "MD Format") {
+      final query = removeFirstTwoLines(widget.knowledge.text).trim();
+      _currentSearchQuery = query;
 
-    LoggerService.logDebug('🔍 Поисковый запрос: "$query"');
-    LoggerService.logDebug('🔍 Длина запроса: ${query.length}');
+      LoggerService.logDebug('🔍 Поисковый запрос: "$query"');
+      LoggerService.logDebug('🔍 Длина запроса: ${query.length}');
 
-    if (query.isEmpty) {
-      await _loadMarkdownWithoutHighlights();
-      return;
-    }
-
-    final escapedQuery = escapeRegexLiterals(query);
-    final regex = RegExp(escapedQuery, caseSensitive: false, dotAll: true);
-    final allMatches = regex.allMatches(_originalMarkdownData).toList();
-
-    if (allMatches.isEmpty) {
-      LoggerService.logDebug('🔍 Совпадений не найдено');
-      await _loadMarkdownWithoutHighlights();
-      return;
-    }
-
-    LoggerService.logDebug('🔍 Найдено совпадений: ${allMatches.length}');
-    if (allMatches.isNotEmpty) {
-      final debudInfo = allMatches.first.group(0);
-      if (debudInfo != null) {
-        final debug = debudInfo.length >= 50 ? debudInfo.substring(0, 50) : debudInfo.substring(0, debudInfo.length);
-        LoggerService.logDebug('🔍 Первое совпадение: "$debug..."');
+      if (query.isEmpty) {
+        await _loadMarkdownWithoutHighlights();
+        return;
       }
-    }
 
-    final markedMarkdown = _markMatchesInMarkdown(allMatches);
-    await _loadMarkdownWithHighlights(markedMarkdown);
+      final escapedQuery = escapeRegexLiterals(query);
+      final regex = RegExp(escapedQuery, caseSensitive: false, dotAll: false, multiLine: true);
+
+      final allMatches = regex.allMatches(_preparedText).toList();
+
+      if (allMatches.isEmpty) {
+        LoggerService.logDebug('🔍 Совпадений не найдено');
+        await _loadMarkdownWithoutHighlights();
+        return;
+      }
+
+      LoggerService.logDebug('🔍 Найдено совпадений: ${allMatches.length}');
+      if (allMatches.isNotEmpty) {
+        final debudInfo = allMatches.first.group(0);
+        if (debudInfo != null) {
+          final debug = debudInfo.length >= 50 ? debudInfo.substring(0, 50) : debudInfo.substring(0, debudInfo.length);
+          LoggerService.logDebug('🔍 Первое совпадение: "$debug..."');
+        }
+      }
+
+      final markedMarkdown = _markMatchesInMarkdown(allMatches);
+      await _loadMarkdownWithHighlights(markedMarkdown);
+    } else {
+      final query = widget.knowledge.text;
+      _currentSearchQuery = query;
+
+      LoggerService.logDebug('🔍 Поисковый запрос: "$query"');
+      LoggerService.logDebug('🔍 Длина запроса: ${query.length}');
+
+      if (query.isEmpty) {
+        await _loadMarkdownWithoutHighlights();
+        return;
+      }
+      final regex = buildFuzzyRegex(query);
+      final allMatches = regex?.allMatches(_preparedText).toList() ?? [];
+
+      if (allMatches.isEmpty) {
+        LoggerService.logDebug('🔍 Совпадений не найдено');
+        await _loadMarkdownWithoutHighlights();
+        return;
+      }
+
+      LoggerService.logDebug('🔍 Найдено совпадений: ${allMatches.length}');
+      if (allMatches.isNotEmpty) {
+        final debudInfo = allMatches.first.group(0);
+        if (debudInfo != null) {
+          final debug = debudInfo.length >= 50 ? debudInfo.substring(0, 50) : debudInfo.substring(0, debudInfo.length);
+          LoggerService.logDebug('🔍 Первое совпадение: "$debug..."');
+        }
+      }
+
+      final markedMarkdown = _markMatchesInMarkdown(allMatches);
+      await _loadMarkdownWithHighlights(markedMarkdown);
+    }
   }
 
   /// Помечает совпадения HTML тегами в Markdown тексте
@@ -352,6 +472,14 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
     return replacedNbsp.replaceAllMapped(RegExp(r'([.*+?^${}()|\[\]\\])'), (match) => '\\${match[0]}');
   }
 
+  Future<void> _openExternal() async {
+    if (docLink.isEmpty) return;
+    final uri = Uri.parse(docLink);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      throw 'Could not launch $docLink';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -399,16 +527,26 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
             children: [
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 3.0),
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8.0),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8.0),
-                    color: Color.fromRGBO(255, 217, 39, 1.0),
-                  ),
-                  child: Text(
-                    docType,
-                    style: TextStyle(color: ColorConstants.black500, fontSize: 16, fontWeight: FontWeight.w900),
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8.0),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8.0),
+                        color: Color.fromRGBO(255, 217, 39, 1.0),
+                      ),
+                      child: Text(
+                        docType,
+                        style: TextStyle(color: ColorConstants.black500, fontSize: 16, fontWeight: FontWeight.w900),
+                      ),
+                    ),
+                    if (docLink.isNotEmpty)
+                      IconButton(
+                        onPressed: _openExternal,
+                        icon: Icon(Icons.open_in_browser, color: ColorConstants.white500, size: 30),
+                      ),
+                  ],
                 ),
               ),
               Expanded(child: WebViewWidget(controller: _webViewController)),

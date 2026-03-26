@@ -59,6 +59,7 @@ class DeviceService {
   }
 
   Future<String> getPackageName() async => (await PackageInfo.fromPlatform()).packageName;
+  Future<String> getPackageVersion() async => (await PackageInfo.fromPlatform()).version;
 
   String currentDynamicLinkHost() {
     switch (_packageInfo.packageName) {

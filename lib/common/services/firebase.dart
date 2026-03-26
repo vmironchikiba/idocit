@@ -6,6 +6,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:idocit/common/services/device.dart';
 import 'package:idocit/common/services/logger.dart';
 import 'package:flutter/foundation.dart' show FlutterError, FlutterErrorDetails, PlatformDispatcher;
+import 'package:idocit/firebase_options.dart';
 
 class FirebaseService {
   final DeviceService deviceService;
@@ -17,12 +18,19 @@ class FirebaseService {
   Future<void> init() async {
     LoggerService.logDebug('FirebaseService -> init()');
 
-    await Firebase.initializeApp();
+    final firebaseApp = await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    final name = firebaseApp.name;
+    LoggerService.logDebug('FirebaseService -> name: $name');
     _crashlytics = FirebaseCrashlytics.instance;
     _analytics = FirebaseAnalytics.instance;
 
     await _startCrashlytics();
     await _analytics.setAnalyticsCollectionEnabled(true);
+    final version = await deviceService.getPackageVersion();
+    _analytics.setDefaultEventParameters({
+      "app_version": version,
+      "environment": deviceService.currentBuildMode().toString(),
+    });
   }
 
   Future<void> logFirebaseEvent({required String name, Map<String, Object?>? parameters}) async {
