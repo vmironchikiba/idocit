@@ -475,6 +475,8 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
   Future<void> _openExternal() async {
     if (docLink.isEmpty) return;
     final uri = Uri.parse(docLink);
+    final canLaunch = await canLaunchUrl(uri);
+    if (!canLaunch) return;
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       throw 'Could not launch $docLink';
     }
