@@ -80,6 +80,9 @@ PODS:
     - Flutter
   - flutter_tts (0.0.1):
     - Flutter
+  - flutter_udid (0.0.1):
+    - Flutter
+    - KeychainAccess
   - GoogleAppMeasurement (10.15.0):
     - GoogleAppMeasurement/AdIdSupport (= 10.15.0)
     - GoogleUtilities/AppDelegateSwizzler (~> 7.11)
@@ -132,6 +135,7 @@ PODS:
   - GoogleUtilities/UserDefaults (7.13.3):
     - GoogleUtilities/Logger
     - GoogleUtilities/Privacy
+  - KeychainAccess (4.2.2)
   - nanopb (2.30909.1):
     - nanopb/decode (= 2.30909.1)
     - nanopb/encode (= 2.30909.1)
@@ -167,6 +171,7 @@ DEPENDENCIES:
   - Flutter (from `Flutter`)
   - flutter_secure_storage (from `.symlinks/plugins/flutter_secure_storage/ios`)
   - flutter_tts (from `.symlinks/plugins/flutter_tts/ios`)
+  - flutter_udid (from `.symlinks/plugins/flutter_udid/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
@@ -189,6 +194,7 @@ SPEC REPOS:
     - GoogleAppMeasurement
     - GoogleDataTransport
     - GoogleUtilities
+    - KeychainAccess
     - nanopb
     - PromisesObjC
     - PromisesSwift
@@ -210,6 +216,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_secure_storage/ios"
   flutter_tts:
     :path: ".symlinks/plugins/flutter_tts/ios"
+  flutter_udid:
+    :path: ".symlinks/plugins/flutter_udid/ios"
   package_info_plus:
     :path: ".symlinks/plugins/package_info_plus/ios"
   path_provider_foundation:
@@ -242,9 +250,11 @@ SPEC CHECKSUMS:
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_secure_storage: d33dac7ae2ea08509be337e775f6b59f1ff45f12
   flutter_tts: 91ad1884033cd95ef6e9338754adad54f01f090f
+  flutter_udid: 8bd93f87dee925989788ae646418a63c73a15407
   GoogleAppMeasurement: 722db6550d1e6d552b08398b69a975ac61039338
   GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a
   GoogleUtilities: ea963c370a38a8069cc5f7ba4ca849a60b6d7d15
+  KeychainAccess: c0c4f7f38f6fc7bbe58f5702e25f7bd2f65abf51
   nanopb: d4d75c12cd1316f4a64e3c6963f879ecd4b5e0d5
   package_info_plus: c0502532a26c7662a62a356cebe2692ec5fe4ec4
   path_provider_foundation: 0b743cbb62d8e47eab856f09262bb8c1ddcfe6ba
@@ -255,6 +265,6 @@ SPEC CHECKSUMS:
   url_launcher_ios: bb13df5870e8c4234ca12609d04010a21be43dfa
   webview_flutter_wkwebview: 29eb20d43355b48fe7d07113835b9128f84e3af4
 
-PODFILE CHECKSUM: 34992a457a50d69c43c6083e613053b192dc37d8
+PODFILE CHECKSUM: 20171c5d0ffc78aa3c93de26f8e4993a6bd6eedb
 
 COCOAPODS: 1.16.2

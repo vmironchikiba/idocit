@@ -51,6 +51,17 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
       ..setBackgroundColor(Colors.white)
       ..setNavigationDelegate(
         NavigationDelegate(
+          onNavigationRequest: (NavigationRequest request) async {
+            final url = request.url;
+            final uri = Uri.parse(url);
+            // Если это не обычная веб-страница
+            if (!_isHtmlPage(uri)) {
+              await _openExternalWithUrl(url);
+              return NavigationDecision.prevent;
+            }
+
+            return NavigationDecision.navigate;
+          },
           onProgress: (int progress) {
             if (progress == 100) {
               setState(() => _isLoading = false);
@@ -59,6 +70,7 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
               }
             }
           },
+
           onPageStarted: (String url) {
             setState(() => _isLoading = true);
           },
@@ -81,6 +93,13 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
       );
 
     _loadTemplatesAndProcessSearch(); // Измените название метода
+  }
+
+  bool _isHtmlPage(Uri uri) {
+    final path = uri.path.toLowerCase();
+    final link = uri.toString();
+
+    return path.endsWith('.html') || path.endsWith('.htm') || path.isEmpty || path.endsWith('/') || link == docLink;
   }
 
   /// Загружает оба шаблона (основной и fallback) и обрабатывает поиск
@@ -474,11 +493,16 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
 
   Future<void> _openExternal() async {
     if (docLink.isEmpty) return;
-    final uri = Uri.parse(docLink);
+    _openExternalWithUrl(docLink);
+  }
+
+  Future<void> _openExternalWithUrl(String? url) async {
+    if (url == null) return;
+    final uri = Uri.parse(url);
     final canLaunch = await canLaunchUrl(uri);
     if (!canLaunch) return;
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      throw 'Could not launch $docLink';
+      throw 'Could not launch $url';
     }
   }
 

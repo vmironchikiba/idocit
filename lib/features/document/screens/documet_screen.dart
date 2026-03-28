@@ -63,25 +63,26 @@ class _DocumentScreenState extends State<DocumentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return (docType == 'MD Format')
-        ? MarkdownWebViewPage(knowledge: widget.knowledge)
-        : docType == 'WEB documents' || docType == 'Confluence'
-        ? WebViewPage(knowledge: widget.knowledge)
-        : Builder(
-            builder: (context) {
-              try {
-                if (docLink != null) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    _openExternal(docLink!);
-                    Navigator.pop(context); // чтобы не оставаться на пустом экране
-                  });
-                }
-                return const Scaffold(body: Center(child: CircularProgressIndicator()));
-              } catch (e) {
-                return errorScreen(e.toString());
-              }
-            },
-          );
+    return MarkdownWebViewPage(knowledge: widget.knowledge);
+    // (docType == 'MD Format' || docType == 'HTML Documents' || docType == 'WEB documents' || docType == 'Confluence')
+    //     ? MarkdownWebViewPage(knowledge: widget.knowledge)
+    //     : docType == 'WEB documents' || docType == 'Confluence'
+    //     ? WebViewPage(knowledge: widget.knowledge)
+    //     : Builder(
+    //         builder: (context) {
+    //           try {
+    //             if (docLink != null) {
+    //               WidgetsBinding.instance.addPostFrameCallback((_) {
+    //                 _openExternal(docLink!);
+    //                 Navigator.pop(context); // чтобы не оставаться на пустом экране
+    //               });
+    //             }
+    //             return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    //           } catch (e) {
+    //             return errorScreen(e.toString());
+    //           }
+    //         },
+    //       );
     // : Scaffold(
     //     appBar: AppBar(
     //       leading: SvgPicture.asset(ImageConstants.igIdocIt, height: 8, width: 8),
