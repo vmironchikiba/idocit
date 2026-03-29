@@ -101,36 +101,36 @@ class _UserProfileState extends State<UserProfile> {
           const SizedBox(height: 20.0),
 
           // Role Field
-          Row(
-            children: [
-              IdocItImageButton(
-                image: SvgPicture.asset(
-                  ImageConstants.microphoneSvg,
-                  width: 22.0,
-                  height: 22.0,
-                  color: ColorConstants.white500,
-                ),
-                callback: _handleTtsSettings,
-              ),
-              Text('TTS Settings'),
-            ],
-          ),
-          Row(
-            children: [
-              IdocItImageButton(
-                image: SvgPicture.asset(
-                  ImageConstants.microphoneSvg,
-                  width: 22.0,
-                  height: 22.0,
-                  color: ColorConstants.white500,
-                ),
-                callback: _handleSttSettings,
-              ),
-              Text('STT Settings'),
-            ],
-          ),
-          SizedBox(height: 10.0),
-          Text(locator<DeviceService>().currentBuildBanner()),
+          // Row(
+          //   children: [
+          //     IdocItImageButton(
+          //       image: SvgPicture.asset(
+          //         ImageConstants.microphoneSvg,
+          //         width: 22.0,
+          //         height: 22.0,
+          //         color: ColorConstants.white500,
+          //       ),
+          //       callback: _handleTtsSettings,
+          //     ),
+          //     Text('TTS Settings'),
+          //   ],
+          // ),
+          // Row(
+          //   children: [
+          //     IdocItImageButton(
+          //       image: SvgPicture.asset(
+          //         ImageConstants.microphoneSvg,
+          //         width: 22.0,
+          //         height: 22.0,
+          //         color: ColorConstants.white500,
+          //       ),
+          //       callback: _handleSttSettings,
+          //     ),
+          //     Text('STT Settings'),
+          //   ],
+          // ),
+          // SizedBox(height: 10.0),
+          Center(child: Text(locator<DeviceService>().currentBuildBanner())),
         ],
       ),
     );

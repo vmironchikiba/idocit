@@ -391,26 +391,31 @@ class _IdocItChatState extends State<IdocItChat> {
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       color: ColorConstants.black200,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Expanded(
-                            child: IdocItTextInputField(
-                              controller: _controller,
-                              keyboardType: TextInputType.text,
-                              withClearButton: true,
-                              onChanged: (v) => locator<ChatSuggestionsWithQuery>().call(v),
-                            ),
-                          ),
-                          BlocBuilder<SttBloc, SttState>(
-                            builder: (context, sttState) {
-                              return state.isInProcess
+                      child: BlocBuilder<SttBloc, SttState>(
+                        buildWhen: (p, c) => p.isStarted != c.isStarted || p.currentOptions != c.currentOptions,
+                        builder: (context, sttState) {
+                          return Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Expanded(
+                                child: IdocItTextInputField(
+                                  controller: _controller,
+                                  keyboardType: TextInputType.text,
+                                  withClearButton: true,
+                                  isEnabled: !state.isInProcess && !sttState.isStarted,
+                                  onChanged: (v) => locator<ChatSuggestionsWithQuery>().call(v),
+                                  onClear: () => locator<ChatSuggestionsReset>().call(NoParams()),
+                                ),
+                              ),
+                              state.isInProcess
                                   ? Padding(
                                       padding: const EdgeInsets.symmetric(vertical: 14.0, horizontal: 9),
                                       child: IdocItLoadingIndicator(color: ColorConstants.white500),
                                     )
                                   : sttState.isStarted
-                                  ? MicrophoneWidget()
+                                  ? MicrophoneWidget(
+                                      onPressed: () async => await locator<SttStartStop>().call(SttActions.stop),
+                                    )
                                   : LongPressButton(
                                       onTap: () {
                                         FocusScope.of(context).unfocus();
@@ -455,10 +460,10 @@ class _IdocItChatState extends State<IdocItChat> {
                                       },
                                       isPresented: _localsPresented,
                                       isStarted: sttState.isStarted,
-                                    );
-                            },
-                          ),
-                        ],
+                                    ),
+                            ],
+                          );
+                        },
                       ),
                     ),
                   );

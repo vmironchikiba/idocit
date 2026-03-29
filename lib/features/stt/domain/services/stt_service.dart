@@ -85,11 +85,15 @@ class SttService {
     // on some devices.
     speech.listen(
       onResult: resultListener,
-      listenFor: Duration(seconds: sttBloc.state.currentOptions?.listenFor ?? 0),
-      pauseFor: Duration(seconds: sttBloc.state.currentOptions?.pauseFor ?? 0),
-      localeId: sttBloc.state.currentOptions?.localeId,
+      // listenFor: Duration(seconds: sttBloc.state.currentOptions?.listenFor ?? 0),
+      // pauseFor: Duration(seconds: sttBloc.state.currentOptions?.pauseFor ?? 0),
+      // localeId: sttBloc.state.currentOptions?.localeId,
       onSoundLevelChange: soundLevelListener,
-      listenOptions: sttBloc.state.currentOptions?.options,
+      listenOptions: sttBloc.state.currentOptions?.options.copyWith(
+        listenFor: Duration(seconds: sttBloc.state.currentOptions?.listenFor ?? 0),
+        pauseFor: Duration(seconds: sttBloc.state.currentOptions?.pauseFor ?? 0),
+        localeId: sttBloc.state.currentOptions?.localeId,
+      ),
     );
   }
 
@@ -114,6 +118,7 @@ class SttService {
   void soundLevelListener(double level) {
     minSoundLevel = min(minSoundLevel, level);
     maxSoundLevel = max(maxSoundLevel, level);
+    // LoggerService.logDebug("soundLevelListener: $minSoundLevel $level $maxSoundLevel");
     sttBloc.add(UpdateSttLevel(level: level));
   }
 }

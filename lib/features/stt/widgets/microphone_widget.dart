@@ -22,7 +22,7 @@ class MicrophoneWidget extends StatelessWidget {
             color: Colors.white,
             borderRadius: const BorderRadius.all(Radius.circular(50)),
           ),
-          child: IconButton(icon: const Icon(Icons.mic), onPressed: () {}),
+          child: IconButton(icon: const Icon(Icons.mic), onPressed: onPressed),
         );
       },
     );
