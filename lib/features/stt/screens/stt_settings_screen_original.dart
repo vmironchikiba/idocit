@@ -2,21 +2,22 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:idocit/constants/colors.dart';
 import 'package:speech_to_text/speech_recognition_error.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
-class SttSettingsScreen extends StatefulWidget {
-  const SttSettingsScreen({Key? key}) : super(key: key);
+class SttSettingsScreenOriginal extends StatefulWidget {
+  const SttSettingsScreenOriginal({Key? key}) : super(key: key);
 
   @override
-  State<SttSettingsScreen> createState() => _SttSettingsScreenState();
+  State<SttSettingsScreenOriginal> createState() => _SttSettingsScreenOriginalState();
 }
 
 /// An example that demonstrates the basic functionality of the
 /// SpeechToText plugin for using the speech recognition capability
 /// of the underlying platform.
-class _SttSettingsScreenState extends State<SttSettingsScreen> {
+class _SttSettingsScreenOriginalState extends State<SttSettingsScreenOriginal> {
   bool _hasSpeech = false;
   double level = 0.0;
   double minSoundLevel = 50000;
@@ -214,7 +215,13 @@ class RecognitionResultsWidget extends StatelessWidget {
             Container(
               constraints: const BoxConstraints(minHeight: 200),
               color: Theme.of(context).secondaryHeaderColor,
-              child: Center(child: Text(lastWords, textAlign: TextAlign.center)),
+              child: Center(
+                child: Text(
+                  lastWords,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: ColorConstants.black500),
+                ),
+              ),
             ),
             Positioned.fill(
               bottom: 10,

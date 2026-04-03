@@ -1,0 +1,30 @@
+{
+    "flutter": {
+        "platforms": {
+            "android": {
+                "default": {
+                    "projectId": "idocit-mobile",
+                    "appId": "1:744219301766:android:0624ef78ea854d1f6bfe07",
+                    "fileOutput": "android/app/google-services.json"
+                }
+            },
+            "ios": {
+                "default": {
+                    "projectId": "idocit-mobile",
+                    "appId": "1:744219301766:ios:3dd0c8831d61a3446bfe07",
+                    "uploadDebugSymbols": false,
+                    "fileOutput": "ios/Runner/GoogleService-Info.plist"
+                }
+            },
+            "dart": {
+                "lib/firebase_options.dart": {
+                    "projectId": "idocit-mobile",
+                    "configurations": {
+                        "android": "1:744219301766:android:0624ef78ea854d1f6bfe07",
+                        "ios": "1:744219301766:ios:3dd0c8831d61a3446bfe07"
+                    }
+                }
+            }
+        }
+    }
+}

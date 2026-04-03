@@ -1,4 +1,6 @@
 import 'package:dartz/dartz.dart';
+import 'dart:convert';
+import 'package:idocit/common/models/api_message.dart';
 import 'package:idocit/constants/errors.dart';
 import 'package:idocit/constants/strings.dart';
 import 'package:idocit/common/models/service/failure.dart';
@@ -18,8 +20,15 @@ class DocumentRemoteDataSource {
         ApiClient(basePath: StringsConstants.basePath, authentication: authentication),
       ).getDocumentApiGetDocumentPost(getDocumentPayload));
       return document == null ? Left(NetworkFailure()) : Right(document);
-    } catch (ex) {
-      return Left(NetworkFailure());
+    } on ApiException catch (apiException) {
+      ApiMessage? apiMessage;
+      try {
+        Map<String, dynamic> decodedData = jsonDecode(apiException.message ?? '');
+        apiMessage = ApiMessage.fromJson(decodedData);
+      } catch (e) {
+        apiMessage = null;
+      }
+      return Left(ApiFailure(code: apiException.code, apiMessage: apiMessage));
     }
   }
 }

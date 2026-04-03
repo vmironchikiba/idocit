@@ -14,25 +14,31 @@ class DocumentResponse {
   /// Returns a new [DocumentResponse] instance.
   DocumentResponse({
     required this.document,
+    this.chunks = const [],
   });
 
   Document document;
 
+  List<DocumentChunk> chunks;
+
   @override
   bool operator ==(Object other) => identical(this, other) || other is DocumentResponse &&
-    other.document == document;
+    other.document == document &&
+    _deepEquality.equals(other.chunks, chunks);
 
   @override
   int get hashCode =>
     // ignore: unnecessary_parenthesis
-    (document.hashCode);
+    (document.hashCode) +
+    (chunks.hashCode);
 
   @override
-  String toString() => 'DocumentResponse[document=$document]';
+  String toString() => 'DocumentResponse[document=$document, chunks=$chunks]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
       json[r'document'] = this.document;
+      json[r'chunks'] = this.chunks;
     return json;
   }
 
@@ -56,6 +62,7 @@ class DocumentResponse {
 
       return DocumentResponse(
         document: Document.fromJson(json[r'document'])!,
+        chunks: DocumentChunk.listFromJson(json[r'chunks']),
       );
     }
     return null;
@@ -104,6 +111,7 @@ class DocumentResponse {
   /// The list of required keys that must be present in a JSON.
   static const requiredKeys = <String>{
     'document',
+    'chunks',
   };
 }
 

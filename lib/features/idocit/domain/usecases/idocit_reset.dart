@@ -4,9 +4,6 @@ import 'package:idocit/common/models/service/usecase.dart';
 import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/common/services/network_listener.dart';
 import 'package:idocit/features/idocit/domain/blocs/idocit/idocit_bloc.dart';
-import 'package:idocit/features/idocit/domain/usecases/idocit_lazy_init_chats.dart';
-
-import 'package:idocit/injection_container.dart';
 
 class IdocItReset implements UseCase<Either<Failure, void>, NoParams> {
   final NetworkListenerService networkListenerService;

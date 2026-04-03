@@ -1,17 +1,22 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:idocit/common/services/logger.dart';
+import 'package:idocit/common/utils/dialogs.dart';
+import 'package:idocit/common/widgets/dialogs/warning_dialog.dart';
 import 'package:idocit/common/widgets/indicators/loading_indicator.dart';
 import 'package:idocit/constants/colors.dart';
 import 'package:idocit/constants/image.dart';
 import 'package:idocit/constants/strings.dart';
 import 'package:idocit/features/document/domain/bloc/document_bloc.dart';
 import 'package:idocit/injection_container.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:markdown/markdown.dart' as md;
 import 'package:idocit/idocit/lib/api.dart';
+import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 
 class MarkdownWebViewPage extends StatefulWidget {
   final KnowledgeData knowledge;
@@ -24,51 +29,162 @@ class MarkdownWebViewPage extends StatefulWidget {
 class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
   static const hasDebugInfo = false;
   late final WebViewController _webViewController;
-  final String _originalMarkdownData =
-      locator<DocumentBloc>().state.documentResponse?.document.properties.text.replaceAll('\n\n', '\n') ?? '';
+  final String docType =
+      locator<DocumentBloc>().state.documentResponse?.document.properties.docType ?? 'Unknown Document Type';
+  final String _docLink = locator<DocumentBloc>().state.documentResponse?.document.properties.docLink ?? '';
+  final Uri? _docLinkUri = Uri.tryParse(
+    locator<DocumentBloc>().state.documentResponse?.document.properties.docLink ?? '::Not valid URI::',
+  );
+  final List<DocumentChunk> _chunks = locator<DocumentBloc>().state.documentResponse?.chunks ?? [];
+  // final String _originalMarkdownData =
+  //     locator<DocumentBloc>().state.documentResponse?.document.properties.text.replaceAll('\n\n', '\n') ?? '';
   late String _currentSearchQuery = '';
   bool _isLoading = true;
   double _scrollPosition = 0;
   final List<SearchMatch> _matches = [];
   String _htmlTemplate = '';
   String _fallbackTemplate = ''; // Добавьте это поле
-
+  // late String _preparedText;
   final Map<String, double> _scrollPositions = {};
+  late String _textFromChunks;
+  bool channelsInitialized = false;
+  int progress = 0;
 
-  @override
-  void initState() {
-    super.initState();
+  WebViewController _initController() {
+    // 1. Создаём параметры (без inspectable)
+    PlatformWebViewControllerCreationParams params;
+    if (WebViewPlatform.instance is WebKitWebViewPlatform) {
+      params = WebKitWebViewControllerCreationParams();
+    } else {
+      params = const PlatformWebViewControllerCreationParams();
+    }
 
-    _webViewController = WebViewController()
+    // 2. Создаём контроллер
+    final controller = WebViewController.fromPlatformCreationParams(params);
+
+    // 3. Включаем инспектирование для iOS 16.4+
+    if (controller.platform is WebKitWebViewController) {
+      (controller.platform as WebKitWebViewController).setInspectable(true);
+    }
+
+    // Остальные настройки
+    return controller
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(Colors.white)
+      ..setOnConsoleMessage((JavaScriptConsoleMessage message) {
+        // if (message.level == JavaScriptLogLevel.error) {
+        // LoggerService.logDebug('WebView Console Error: ${message.message}');
+        // }
+        LoggerService.logDebug('WebView Console: ${message.message}');
+      })
       ..setNavigationDelegate(
         NavigationDelegate(
-          onProgress: (int progress) {
-            if (progress == 100) {
-              setState(() => _isLoading = false);
-              if (_currentSearchQuery.isNotEmpty) {
-                _scrollToFirstMatch();
-              }
+          onNavigationRequest: (NavigationRequest request) async {
+            final url = request.url;
+            // Игнорируем пустые или промежуточные навигации
+            if (url == 'about:blank') {
+              return NavigationDecision.navigate; // или .prevent, в зависимости от задачи
             }
+            final uri = Uri.tryParse(url);
+            if (uri == null) return NavigationDecision.navigate;
+            // Если это не обычная веб-страница
+            if (!_isHtmlPage(uri)) {
+              await _openExternalWithUrl(url);
+              return NavigationDecision.prevent;
+            }
+
+            return NavigationDecision.navigate;
           },
+          onProgress: (int progress) {
+            setState(() {
+              this.progress = progress;
+            });
+          },
+
           onPageStarted: (String url) {
             setState(() => _isLoading = true);
           },
           onPageFinished: (String url) {
+            // if (!channelsInitialized) {
+            //   _setupJavaScriptChannel();
+            //   channelsInitialized = true;
+            // }
             setState(() => _isLoading = false);
           },
-          onWebResourceError: (WebResourceError error) {
-            LoggerService.logDebug('WebView error: ${error.description}');
+          onHttpError: (error) {
+            LoggerService.logDebug(
+              "onHttpError: ${error.request?.uri.toString() ?? 'No request'}  ${error.response?.statusCode ?? 'No response'}",
+            );
+          },
+          onSslAuthError: (error) {
+            LoggerService.logDebug("onSslAuthError: ${error.toString()}");
+          },
+          onWebResourceError: (WebResourceError error) async {
+            // await idocitShowDialog<bool?>(
+            //   IdocItWarningDialog(
+            //     label: error.errorType.toString(),
+            //     description: error.description,
+            //     iconSrc: ImageConstants.igIdocIt,
+            //     buttonText: 'OK',
+            //     // buttonCallback: _onTryAgainHandler,
+            //   ),
+            // );
+            LoggerService.logDebug(
+              'onWebResourceError: ${error.errorType} - ${error.errorCode} - ${error.description}',
+            );
+
+            // КЛЮЧЕВОЕ: обрабатываем именно ошибку завершения процесса
+            if (Platform.isIOS && error.errorType == WebResourceErrorType.webContentProcessTerminated) {
+              LoggerService.logDebug('WebContent process terminated. Reloading...');
+              // Небольшая задержка перед перезагрузкой, чтобы система успела "успокоиться"
+              Future.delayed(const Duration(milliseconds: 500), () {
+                _webViewController.reload();
+              });
+            }
           },
         ),
       );
-
-    _loadTemplatesAndProcessSearch(); // Измените название метода
   }
 
-  /// Загружает оба шаблона (основной и fallback) и обрабатывает поиск
-  Future<void> _loadTemplatesAndProcessSearch() async {
+  @override
+  void initState() {
+    super.initState();
+    // _preparedText = escapeMarkdownLiterals(_originalMarkdownData);
+    _currentSearchQuery = widget.knowledge.text;
+    final chunksList = _chunks.indexed.map((item) {
+      final (index, chunk) = item;
+      final id = 'match-${DateTime.now().millisecondsSinceEpoch}-$index';
+      if (chunk.textNoOverlap.contains(widget.knowledge.text)) {
+        LoggerService.logDebug('STOP');
+      }
+
+      return chunk.chunkId == widget.knowledge.chunkId - 1
+          ? '<mark class="search-match" id="$id" data-match-index="$index">${chunk.textNoOverlap}</mark>'
+          : chunk.textNoOverlap;
+    }).toList();
+
+    _textFromChunks = chunksList.join('');
+    // escapeMarkdownLiterals(chunksList.join(''));
+    _webViewController = _initController();
+    if (!channelsInitialized) {
+      _setupJavaScriptChannel();
+      channelsInitialized = true;
+    }
+    _loadTemplatesAndProcessSearchNew(); // Измените название метода
+  }
+
+  bool _isHtmlPage(Uri uri) {
+    final path = uri.path.toLowerCase();
+    final link = uri.toString();
+
+    return path.endsWith('.html') ||
+        path.endsWith('.htm') ||
+        path.isEmpty ||
+        path.endsWith('/') ||
+        link == _docLinkUri.toString();
+  }
+
+  Future<void> _loadTemplatesAndProcessSearchNew() async {
     try {
       // Загружаем основной шаблон
       _htmlTemplate = await rootBundle.loadString('assets/templates/document_template.html');
@@ -80,7 +196,7 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
     }
 
     // Обрабатываем поисковый запрос
-    await _processSearchAndLoad();
+    await _processSearchAndLoadNew(_textFromChunks);
   }
 
   /// Загружает fallback шаблон из файла
@@ -99,71 +215,8 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
   /// Встроенный fallback шаблон (на случай, если файл тоже не загрузится)
   String _getBuiltInFallbackTemplate() => StringsConstants.fallbackHtmlTemplate;
 
-  /// Основная функция: обработка поиска и загрузка контента
-  Future<void> _processSearchAndLoad() async {
-    final query = removeFirstTwoLines(widget.knowledge.text).trim();
-    _currentSearchQuery = query;
-
-    LoggerService.logDebug('🔍 Поисковый запрос: "$query"');
-    LoggerService.logDebug('🔍 Длина запроса: ${query.length}');
-
-    if (query.isEmpty) {
-      await _loadMarkdownWithoutHighlights();
-      return;
-    }
-
-    final escapedQuery = escapeRegexLiterals(query);
-    final regex = RegExp(escapedQuery, caseSensitive: false, dotAll: true);
-    final allMatches = regex.allMatches(_originalMarkdownData).toList();
-
-    if (allMatches.isEmpty) {
-      LoggerService.logDebug('🔍 Совпадений не найдено');
-      await _loadMarkdownWithoutHighlights();
-      return;
-    }
-
-    LoggerService.logDebug('🔍 Найдено совпадений: ${allMatches.length}');
-    if (allMatches.isNotEmpty) {
-      LoggerService.logDebug('🔍 Первое совпадение: "${allMatches.first.group(0)?.substring(0, 50)}..."');
-    }
-
-    final markedMarkdown = _markMatchesInMarkdown(allMatches);
-    await _loadMarkdownWithHighlights(markedMarkdown);
-  }
-
-  /// Помечает совпадения HTML тегами в Markdown тексте
-  String _markMatchesInMarkdown(List<RegExpMatch> matches) {
-    _matches.clear();
-
-    final result = StringBuffer();
-    int lastEnd = 0;
-    int matchCounter = 0;
-
-    for (final match in matches) {
-      result.write(_originalMarkdownData.substring(lastEnd, match.start));
-      final matchedText = match.group(0)!;
-      final id = 'match-${DateTime.now().millisecondsSinceEpoch}-$matchCounter';
-
-      _matches.add(SearchMatch(id: id, text: matchedText, position: match.start, index: matchCounter));
-
-      result.write('<mark class="search-match" id="$id" data-match-index="$matchCounter">');
-      result.write(matchedText);
-      result.write('</mark>');
-
-      lastEnd = match.end;
-      matchCounter++;
-    }
-
-    result.write(_originalMarkdownData.substring(lastEnd));
-    LoggerService.logDebug('📝 Создано тегов <mark>: ${_matches.length}');
-
-    return result.toString();
-  }
-
-  /// Загружает Markdown без выделений
-  Future<void> _loadMarkdownWithoutHighlights() async {
-    final htmlContent = md.markdownToHtml(_originalMarkdownData, extensionSet: md.ExtensionSet.gitHubFlavored);
-    await _loadHtmlToWebView(htmlContent, hasHighlights: false);
+  Future<void> _processSearchAndLoadNew(String text) async {
+    await _loadMarkdownWithHighlights(text);
   }
 
   /// Загружает Markdown с выделениями
@@ -188,9 +241,12 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
 
     final htmlPage = _buildHtmlFromTemplate(htmlContent, hasHighlights);
 
-    await _webViewController.loadHtmlString(htmlPage, baseUrl: Uri.parse('https://localhost/').toString());
+    await _webViewController.loadHtmlString(
+      htmlPage,
+      // baseUrl: _docLinkUri != null && _docLink.isNotEmpty && _docLink != 'about:blank' ? _docLink : null,
+    );
 
-    _setupJavaScriptChannel();
+    // _setupJavaScriptChannel();
   }
 
   /// Строит HTML страницу из шаблона
@@ -317,70 +373,9 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
     }
   }
 
-  /// Навигация к предыдущему совпадению
-  Future<void> _goToPreviousMatch() async {
-    if (_matches.isEmpty) return;
-
-    try {
-      final result = await _webViewController.runJavaScriptReturningResult('''
-        if (window.goToPreviousMatch) {
-          const result = window.goToPreviousMatch();
-          JSON.stringify(result);
-        }
-      ''');
-
-      if (result.toString().isNotEmpty) {
-        final data = jsonDecode(result as String);
-        if (data['success'] == true) {
-          LoggerService.logDebug('⬅️ Совпадение ${data['currentIndex'] + 1}/${data['total']}');
-        }
-      }
-    } catch (e) {
-      LoggerService.logDebug('⚠️ Ошибка навигации: $e');
-    }
-  }
-
-  /// Получение информации о совпадениях
-  Future<void> _getMatchesInfo() async {
-    try {
-      final result = await _webViewController.runJavaScriptReturningResult('''
-        if (window.getMatchesInfo) {
-          JSON.stringify(window.getMatchesInfo());
-        }
-      ''');
-
-      if (result.toString().isNotEmpty) {
-        final info = jsonDecode(result as String);
-        LoggerService.logDebug('📊 Всего совпадений: ${info['total']}');
-      }
-    } catch (e) {
-      LoggerService.logDebug('⚠️ Ошибка получения информации: $e');
-    }
-  }
-
-  /// Отладочная информация
-  Future<void> _getDebugInfo() async {
-    try {
-      final result = await _webViewController.runJavaScriptReturningResult('''
-        if (window.debugInfo) {
-          JSON.stringify(window.debugInfo());
-        }
-      ''');
-
-      if (result.toString().isNotEmpty) {
-        final info = jsonDecode(result as String);
-        LoggerService.logDebug('🐛 Отладочная информация:');
-        LoggerService.logDebug('   Совпадений: ${info['matchesCount']}');
-      }
-    } catch (e) {
-      LoggerService.logDebug('⚠️ Ошибка получения отладочной информации: $e');
-    }
-  }
-
-  /// Обновление поиска
   void _refreshSearch() {
     LoggerService.logDebug('🔄 Обновление поиска...');
-    _processSearchAndLoad();
+    _processSearchAndLoadNew(_textFromChunks);
   }
 
   /// Убирает первые две строки
@@ -396,6 +391,21 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
     return replacedNbsp.replaceAllMapped(RegExp(r'([.*+?^${}()|\[\]\\])'), (match) => '\\${match[0]}');
   }
 
+  Future<void> _openExternal() async {
+    if (_docLink.isEmpty) return;
+    _openExternalWithUrl(_docLink);
+  }
+
+  Future<void> _openExternalWithUrl(String? url) async {
+    if (url == null) return;
+    final uri = Uri.parse(url);
+    final canLaunch = await canLaunchUrl(uri);
+    if (!canLaunch) return;
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      throw 'Could not launch $url';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -404,34 +414,61 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              widget.knowledge.docName.split('\n').firstOrNull ?? 'Документ',
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 9.0),
+            Expanded(
+              child: Text(
+                widget.knowledge.docName.split('\n').firstOrNull ?? 'Документ',
+                maxLines: 2,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14.0,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ),
           ],
         ),
         actions: [
-          if (_matches.isNotEmpty)
+          if (progress > 0 && progress < 100)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Center(child: Text('${_matches.length} совпад.', style: const TextStyle(fontSize: 14))),
+              child: Center(child: Text('$progress%', style: const TextStyle(fontSize: 14))),
             ),
-          IconButton(
-            icon: const Icon(Icons.refresh, color: ColorConstants.moccasin),
-            onPressed: _refreshSearch,
-            tooltip: 'Обновить поиск',
-          ),
-          // IconButton(
-          //   icon: const Icon(Icons.bug_report, color: ColorConstants.moccasin),
-          //   onPressed: _getDebugInfo,
-          //   tooltip: 'Отладочная информация',
-          // ),
         ],
       ),
 
       body: Stack(
         children: [
-          WebViewWidget(controller: _webViewController),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 3.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8.0),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8.0),
+                        color: Color.fromRGBO(255, 217, 39, 1.0),
+                      ),
+                      child: Text(
+                        docType,
+                        style: TextStyle(color: ColorConstants.black500, fontSize: 16, fontWeight: FontWeight.w900),
+                      ),
+                    ),
+                    if (_docLink.isNotEmpty)
+                      IconButton(
+                        onPressed: _openExternal,
+                        icon: Icon(Icons.open_in_browser, color: ColorConstants.white500, size: 30),
+                      ),
+                  ],
+                ),
+              ),
+              Expanded(child: WebViewWidget(controller: _webViewController)),
+            ],
+          ),
           if (_isLoading)
             Container(
               color: Colors.white,
@@ -440,61 +477,16 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
         ],
       ),
 
-      floatingActionButton: _matches.isNotEmpty
-          ? Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // FloatingActionButton(
-                //   onPressed: _goToPreviousMatch,
-                //   tooltip: 'Предыдущее совпадение',
-                //   backgroundColor: Colors.blue,
-                //   child: const Icon(Icons.arrow_upward, color: Colors.white),
-                // ),
-                // const SizedBox(height: 16),
-                // FloatingActionButton(
-                //   onPressed: _goToNextMatch,
-                //   tooltip: 'Следующее совпадение',
-                //   backgroundColor: Colors.blue,
-                //   child: const Icon(Icons.arrow_downward, color: Colors.white),
-                // ),
-                // const SizedBox(height: 16),
-                // FloatingActionButton(
-                //   onPressed: _getMatchesInfo,
-                //   tooltip: 'Информация о совпадениях',
-                //   backgroundColor: Colors.green,
-                //   mini: true,
-                //   child: const Icon(Icons.info, color: Colors.white, size: 20),
-                // ),
-                // const SizedBox(height: 16),
-                // FloatingActionButton(
-                //   onPressed: _scrollToFirstMatch,
-                //   tooltip: 'К первому совпадению',
-                //   backgroundColor: Colors.orange,
-                //   mini: true,
-                //   child: const Icon(Icons.first_page, color: Colors.white, size: 20),
-                // ),
-                // const SizedBox(height: 16),
-                // FloatingActionButton(
-                //   onPressed: () async {
-                //     await _webViewController.runJavaScript('window.scrollTo({top: 0, behavior: "smooth"});');
-                //     LoggerService.logDebug('⬆️ Прокрутка в начало');
-                //   },
-                //   tooltip: 'В начало',
-                //   backgroundColor: Colors.purple,
-                //   mini: true,
-                //   child: const Icon(Icons.vertical_align_top, color: Colors.white, size: 20),
-                // ),
-              ],
-            )
-          : FloatingActionButton(
-              onPressed: _refreshSearch,
-              tooltip: 'Обновить поиск',
-              backgroundColor: Colors.blue,
-              child: const Icon(Icons.search, color: Colors.white),
-            ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _refreshSearch,
+        tooltip: 'Обновить поиск',
+        backgroundColor: ColorConstants.loading,
+        child: const Icon(Icons.refresh, color: ColorConstants.black350),
+      ),
     );
   }
 }
+//onst Icon(Icons.refresh, color: ColorConstants.moccasin)
 
 /// Класс для хранения информации о совпадении
 class SearchMatch {

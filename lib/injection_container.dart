@@ -2,6 +2,7 @@ import 'package:get_it/get_it.dart';
 import 'package:idocit/common/blocs/core_bloc.dart';
 import 'package:idocit/common/datasources/core_preferences_storage.dart';
 import 'package:idocit/common/providers/chats_notifier.dart';
+import 'package:idocit/common/services/firebase.dart';
 import 'package:idocit/common/services/in_app_failures/in_app_failure_provider.dart';
 import 'package:idocit/common/services/navigator.dart';
 import 'package:idocit/common/services/network_listener.dart';
@@ -23,7 +24,6 @@ import 'package:idocit/features/authentication/domain/usecases/user/auth_get_use
 import 'package:idocit/features/chat/domain/bloc/chat_bloc.dart';
 import 'package:idocit/features/chat/domain/datasources/chat_history_remote_datasource.dart';
 import 'package:idocit/features/chat/domain/datasources/chat_suggestions_remote_data_source.dart';
-import 'package:idocit/features/chat/domain/models/stream_on_data_handler.dart';
 import 'package:idocit/features/chat/domain/usecases/chat_completions_stream.dart';
 import 'package:idocit/features/chat/domain/usecases/chat_history.dart';
 import 'package:idocit/features/chat/domain/usecases/chat_reset.dart';
@@ -42,11 +42,16 @@ import 'package:idocit/features/idocit/domain/datasources/idocit_remote_datasour
 import 'package:idocit/features/idocit/domain/usecases/idocit_delete_chat.dart';
 import 'package:idocit/features/idocit/domain/usecases/idocit_reset.dart';
 import 'package:idocit/features/idocit/domain/usecases/idocit_lazy_init_chats.dart';
+import 'package:idocit/features/presets/domain/blocs/presets_bloc.dart';
+import 'package:idocit/features/presets/domain/datasources/presets_remote_datasource.dart';
+import 'package:idocit/features/presets/domain/usecases/get_all_presets.dart';
+import 'package:idocit/features/stt/domain/blocs/stt_bloc.dart';
+import 'package:idocit/features/stt/domain/services/stt_service.dart';
+import 'package:idocit/features/stt/domain/usecases/stt_lazy_init.dart';
+import 'package:idocit/features/stt/domain/usecases/stt_set_current_options.dart';
+import 'package:idocit/features/stt/domain/usecases/stt_start_stop.dart';
 import 'package:idocit/features/tts/domain/blocs/tts_bloc.dart';
 import 'package:idocit/features/tts/domain/services/tts_service.dart';
-import 'package:idocit/features/tts/domain/usecases/tts_get_engines.dart';
-import 'package:idocit/features/tts/domain/usecases/tts_get_languages.dart';
-import 'package:idocit/features/tts/domain/usecases/tts_get_voices.dart';
 import 'package:idocit/idocit/lib/api.dart';
 
 final locator = GetIt.instance;
@@ -56,11 +61,16 @@ void initLocator() {
   locator.registerLazySingleton(() => TtsBloc(TtsState.initial()));
   locator.registerLazySingleton(() => DeviceService());
   locator.registerLazySingleton(() => TtsService());
+  locator.registerLazySingleton(() => SttBloc(SttState.initial()));
+
+  locator.registerLazySingleton(() => SttService());
   locator.registerLazySingleton(() => ThemeProvider());
   locator.registerLazySingleton(() => ChatsNotifier());
   locator.registerLazySingleton(() => CharlesProvider());
   locator.registerLazySingleton(() => InAppFailureProvider());
   locator.registerLazySingleton(() => LoggerService());
+
+  locator.registerLazySingleton(() => FirebaseService(deviceService: locator<DeviceService>()));
   locator.registerLazySingleton(() => CorePreferencesStorage());
   locator.registerLazySingleton(() => NetworkListenerService());
   locator.registerLazySingleton(
@@ -73,6 +83,7 @@ void initLocator() {
   );
   locator.registerLazySingleton(() => IdocItBloc(IdocItState.initial()));
   locator.registerLazySingleton(() => ComponentsBloc(ComponentsState.initial()));
+  locator.registerLazySingleton(() => PresetsBloc(PresetsState.initial()));
   locator.registerLazySingleton(() => ChatBloc(ChatState.initial()));
   locator.registerLazySingleton(() => DocumentBloc(DocumentState.initial()));
   locator.registerLazySingleton(
@@ -166,8 +177,10 @@ void initLocator() {
   locator.registerLazySingleton(() => CoreUpdateInAppToast(coreBloc: locator<CoreBloc>()));
   locator.registerLazySingleton(() => IdocItRemoteDataSource());
   locator.registerLazySingleton(() => ComponentsRemoteDataSource());
+  locator.registerLazySingleton(() => PresetsRemoteDataSource());
   locator.registerLazySingleton(() => ChatSuggestionsRemoteDataSource());
   locator.registerLazySingleton(() => ChatHistoryRemoteDataSource());
+
   locator.registerLazySingleton(() => DocumentRemoteDataSource());
   locator.registerLazySingleton(
     () => IdocItLazyInitChats(
@@ -177,6 +190,7 @@ void initLocator() {
       idocItRemoteDataSource: locator<IdocItRemoteDataSource>(),
     ),
   );
+
   locator.registerLazySingleton(
     () => IdocItDeleteChat(
       networkListenerService: locator<NetworkListenerService>(),
@@ -217,13 +231,37 @@ void initLocator() {
       componentsRemoteDataSource: locator<ComponentsRemoteDataSource>(),
     ),
   );
-  // locator.registerLazySingleton(
-  //   () => TtsGetEngines(
-  //     networkListenerService: locator<NetworkListenerService>(),
-  //     ttsBloc: locator<TtsBloc>(),
-  //     ttsService: locator<TtsService>(),
-  //   ),
-  // );
+  locator.registerLazySingleton(
+    () => GetAllPresets(
+      networkListenerService: locator<NetworkListenerService>(),
+      presetsBloc: locator<PresetsBloc>(),
+      authBloc: locator<AuthBloc>(),
+      presetsRemoteDataSource: locator<PresetsRemoteDataSource>(),
+    ),
+  );
+
+  locator.registerLazySingleton(
+    () => SttLazyInit(
+      networkListenerService: locator<NetworkListenerService>(),
+      sttBloc: locator<SttBloc>(),
+      sttService: locator<SttService>(),
+    ),
+  );
+  locator.registerLazySingleton(
+    () => SttSetCurrentOptions(
+      networkListenerService: locator<NetworkListenerService>(),
+      sttBloc: locator<SttBloc>(),
+      sttService: locator<SttService>(),
+    ),
+  );
+
+  locator.registerLazySingleton(
+    () => SttStartStop(
+      networkListenerService: locator<NetworkListenerService>(),
+      sttBloc: locator<SttBloc>(),
+      sttService: locator<SttService>(),
+    ),
+  );
   // locator.registerLazySingleton(
   //   () => TtsGetVoices(
   //     networkListenerService: locator<NetworkListenerService>(),

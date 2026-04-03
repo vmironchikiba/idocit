@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:idocit/common/blocs/core_bloc.dart';
 import 'package:idocit/common/providers/theme_provider.dart';
+import 'package:idocit/common/services/firebase.dart';
 import 'package:idocit/common/services/in_app_failures/in_app_failure_provider.dart';
 import 'package:idocit/common/services/in_app_failures/in_app_failure_widget.dart';
 import 'package:idocit/common/services/navigator.dart';
@@ -19,13 +22,28 @@ import 'package:idocit/features/components/domain/blocs/components_bloc.dart';
 import 'package:idocit/features/document/domain/bloc/document_bloc.dart';
 import 'package:idocit/features/idocit/domain/blocs/idocit/idocit_bloc.dart';
 import 'package:idocit/features/idocit/screens/idocit_screen.dart';
+import 'package:idocit/features/presets/domain/blocs/presets_bloc.dart';
 import 'package:idocit/features/screen_builder.dart';
+import 'package:idocit/features/stt/domain/blocs/stt_bloc.dart';
+import 'package:idocit/features/stt/domain/models/speech_to_text_config.dart';
+import 'package:idocit/features/stt/domain/usecases/stt_lazy_init.dart';
 import 'package:idocit/features/tts/domain/blocs/tts_bloc.dart';
 import 'package:idocit/injection_container.dart';
 import 'package:provider/provider.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+
+  if (Platform.isIOS) {
+    WebViewPlatform.instance = WebKitWebViewPlatform();
+  }
   initLocator();
   await locator<DeviceService>().init();
   await AbstractSharedPreferencesDatasource.init();
@@ -46,6 +64,8 @@ class _IDocItAppState extends State<IDocItApp> {
     super.initState();
     locator<NetworkListenerService>().listenNetworkChanges();
     locator<CoreInit>().call(NoParams());
+    locator<FirebaseService>().init();
+    locator<SttLazyInit>().call(SpeechToTextConfig.startOptions);
   }
 
   @override
@@ -54,11 +74,13 @@ class _IDocItAppState extends State<IDocItApp> {
       providers: [
         BlocProvider.value(value: locator<CoreBloc>()),
         BlocProvider.value(value: locator<TtsBloc>()),
+        BlocProvider.value(value: locator<SttBloc>()),
         BlocProvider.value(value: locator<AuthBloc>()),
         BlocProvider.value(value: locator<IdocItBloc>()),
         BlocProvider.value(value: locator<ComponentsBloc>()),
         BlocProvider.value(value: locator<ChatBloc>()),
         BlocProvider.value(value: locator<DocumentBloc>()),
+        BlocProvider.value(value: locator<PresetsBloc>()),
       ],
       child: MultiProvider(
         providers: [

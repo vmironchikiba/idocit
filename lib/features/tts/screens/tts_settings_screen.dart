@@ -4,8 +4,6 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_tts/flutter_tts.dart';
-import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/common/widgets/texts.dart';
 import 'package:idocit/constants/colors.dart';
 import 'package:idocit/features/tts/domain/blocs/tts_bloc.dart';

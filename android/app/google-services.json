@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "744219301766",
+    "project_id": "idocit-mobile",
+    "storage_bucket": "idocit-mobile.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:744219301766:android:0624ef78ea854d1f6bfe07",
+        "android_client_info": {
+          "package_name": "eu.ibagroup.idocit"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAX5AWZmNihK9-jkw8kcL4mS4RuUS7l0l4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,124 @@
+import 'dart:async';
+import 'dart:math';
+import 'package:idocit/common/models/service/failure.dart';
+import 'package:idocit/common/services/logger.dart';
+import 'package:idocit/features/stt/domain/blocs/stt_bloc.dart';
+import 'package:idocit/features/stt/domain/models/enums/stt_status.dart';
+import 'package:idocit/features/stt/domain/models/speech_to_text_config.dart';
+import 'package:idocit/injection_container.dart';
+import 'package:speech_to_text/speech_recognition_error.dart';
+import 'package:speech_to_text/speech_recognition_result.dart';
+import 'package:speech_to_text/speech_to_text.dart';
+
+class SttService {
+  final SpeechToText speech = SpeechToText();
+  bool _hasSpeech = false;
+  bool get hasSpeech => _hasSpeech;
+
+  double minSoundLevel = 50000;
+  double maxSoundLevel = -50000;
+
+  SttBloc sttBloc = locator<SttBloc>();
+
+  SttService();
+
+  Future<void> initSpeechState({required final SpeechToTextConfig currentOptions}) async {
+    LoggerService.logDebug('Initialize');
+    sttBloc.add(UpdateSttCurrentOptions(currentOptions: currentOptions));
+    try {
+      var hasSpeech = await speech.initialize(
+        onError: errorListener,
+        onStatus: statusListener,
+        debugLogging: currentOptions.debugLogging,
+      );
+      if (hasSpeech) {
+        speech.unexpectedPhraseAggregator = _punctAggregator;
+        // Get the list of languages installed on the supporting platform so they
+        // can be displayed in the UI for selection by the user.
+        sttBloc.add(UpdateSttLocalNames(localeNames: await speech.locales()));
+        var systemLocale = await speech.systemLocale();
+        sttBloc.add(UpdateSttSystemLocale(systemLocale: await speech.systemLocale()));
+        sttBloc.add(
+          UpdateSttCurrentOptions(currentOptions: currentOptions.copyWith(localeId: systemLocale?.localeId ?? '')),
+        );
+      }
+
+      _hasSpeech = hasSpeech;
+    } catch (e) {
+      _hasSpeech = false;
+    }
+  }
+
+  void statusListener(String status) {
+    _logEvent('===== Received listener status: $status, listening: ${speech.isListening}');
+    final sttStatus = status.sttStatus;
+    if (sttStatus != null) {
+      sttBloc.add(UpdateSttLastStatus(lastStatus: sttStatus));
+      sttBloc.add(UpdateSttIsStarted(isStarted: sttStatus.isStarted ?? false));
+    }
+  }
+
+  void errorListener(SpeechRecognitionError error) {
+    _logEvent('Received error status: $error, listening: ${speech.isListening}');
+    sttBloc.add(UpdateSttLastFailure(lastFailure: SttSpeechFailure(error: error)));
+  }
+
+  void _logEvent(String eventDescription) {
+    if (sttBloc.state.currentOptions?.logEvents != null) {
+      var eventTime = DateTime.now().toIso8601String();
+      LoggerService.logDebug('$eventTime $eventDescription');
+    }
+  }
+
+  String _punctAggregator(List<String> phrases) {
+    return phrases.join('. ');
+  }
+
+  void startListening() {
+    _logEvent('start listening');
+    sttBloc.add(UpdateSttSpeechRecognitionResult(speechRecognitionResult: null));
+    sttBloc.add(UpdateSttLastFailure(lastFailure: null));
+
+    // Note that `listenFor` is the maximum, not the minimum, on some
+    // systems recognition will be stopped before this value is reached.
+    // Similarly `pauseFor` is a maximum not a minimum and may be ignored
+    // on some devices.
+    speech.listen(
+      onResult: resultListener,
+      // listenFor: Duration(seconds: sttBloc.state.currentOptions?.listenFor ?? 0),
+      // pauseFor: Duration(seconds: sttBloc.state.currentOptions?.pauseFor ?? 0),
+      // localeId: sttBloc.state.currentOptions?.localeId,
+      onSoundLevelChange: soundLevelListener,
+      listenOptions: sttBloc.state.currentOptions?.options.copyWith(
+        listenFor: Duration(seconds: sttBloc.state.currentOptions?.listenFor ?? 0),
+        pauseFor: Duration(seconds: sttBloc.state.currentOptions?.pauseFor ?? 0),
+        localeId: sttBloc.state.currentOptions?.localeId,
+      ),
+    );
+  }
+
+  void stopListening() {
+    _logEvent('stop');
+    speech.stop();
+    sttBloc.add(UpdateSttLevel(level: 0.0));
+  }
+
+  void cancelListening() {
+    _logEvent('cancel');
+    speech.cancel();
+    sttBloc.add(UpdateSttLevel(level: 0.0));
+  }
+
+  void resultListener(SpeechRecognitionResult result) {
+    _logEvent('Result listener final: ${result.finalResult}, words: ${result.recognizedWords}');
+
+    sttBloc.add(UpdateSttSpeechRecognitionResult(speechRecognitionResult: result));
+  }
+
+  void soundLevelListener(double level) {
+    minSoundLevel = min(minSoundLevel, level);
+    maxSoundLevel = max(maxSoundLevel, level);
+    // LoggerService.logDebug("soundLevelListener: $minSoundLevel $level $maxSoundLevel");
+    sttBloc.add(UpdateSttLevel(level: level));
+  }
+}

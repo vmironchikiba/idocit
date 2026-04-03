@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:idocit/common/services/firebase.dart';
 import 'package:idocit/features/authentication/domain/bloc/auth_bloc.dart';
 import 'package:idocit/features/authentication/domain/datasources/auth_remote_datasource.dart';
 import 'package:idocit/features/authentication/domain/datasources/auth_secure_storage.dart';
@@ -8,6 +9,7 @@ import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/common/services/network_listener.dart';
 import 'package:idocit/features/authentication/domain/usecases/auth_update_status.dart';
 import 'package:idocit/idocit/lib/api.dart';
+import 'package:idocit/injection_container.dart';
 
 class AuthSignOut implements UseCase<Either<Failure, void>, NoParams> {
   final NetworkListenerService networkListenerService;
@@ -15,14 +17,26 @@ class AuthSignOut implements UseCase<Either<Failure, void>, NoParams> {
   final AuthRemoteDataSource authRemoteDataSource;
   final AuthSecureStorage authSecureStorage;
   final AuthUpdateStatus authUpdateStatus;
+  final firebase = locator<FirebaseService>();
 
-  const AuthSignOut({
+  AuthSignOut({
     required this.networkListenerService,
     required this.authBloc,
     required this.authRemoteDataSource,
     required this.authSecureStorage,
     required this.authUpdateStatus,
   });
+
+  void _logEvent({required String name, required KeycloakUser result}) => firebase.logFirebaseEvent(
+    name: name,
+    parameters: {
+      'id': result.id,
+      'username': result.username,
+      'email': result.email,
+      'role': result.role,
+      'tenant': result.tenant,
+    },
+  );
 
   @override
   Future<Either<Failure, void>> call(NoParams data, {bool withStatusUpdate = true}) async {
@@ -50,7 +64,10 @@ class AuthSignOut implements UseCase<Either<Failure, void>, NoParams> {
         if (withStatusUpdate) {
           authUpdateStatus.call(AuthType.unauthenticated);
         }
-
+        final userData = locator<AuthBloc>().state.userData;
+        if (userData != null) {
+          _logEvent(name: 'sign-out', result: userData);
+        }
         return const Right(null);
       },
     );

@@ -36,6 +36,7 @@ class _IdocItScreenState extends State<IdocItScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (_, authState) {
         return BlocBuilder<ChatBloc, ChatState>(
@@ -44,6 +45,7 @@ class _IdocItScreenState extends State<IdocItScreen> {
             return SafeArea(
               child: SliderDrawer(
                 key: _sliderDrawerKey,
+                isDraggable: false,
                 appBar: SliderAppBar(
                   config: SliderAppBarConfig(
                     title: Text(
@@ -64,7 +66,7 @@ class _IdocItScreenState extends State<IdocItScreen> {
                     ),
                   ),
                 ),
-                sliderOpenSize: 300,
+                sliderOpenSize: width - 50,
                 slider: SliderMenu(
                   onItemClick: (chatId, chatTitle) async {
                     final reset = await locator<ChaReset>().call(NoParams());

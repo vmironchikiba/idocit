@@ -2,11 +2,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
-import 'package:idocit/features/document/builders/custom_builders.dart';
 import 'package:idocit/features/document/builders/highlight_line_syntax.dart';
 import 'package:idocit/features/document/builders/highlight_syntax.dart';
 import 'package:markdown/markdown.dart' as md;
-import 'package:idocit/features/document/screens/markdown_test_moc.dart';
+import 'package:idocit/features/document/unused/markdown_test_moc.dart';
 
 class CalibrationStats {
   final List<double> measurements = [];

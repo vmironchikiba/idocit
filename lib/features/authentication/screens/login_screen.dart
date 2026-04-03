@@ -1,9 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:idocit/common/models/in_app_toast_data.dart';
 import 'package:idocit/common/models/service/failure.dart';
+import 'package:idocit/common/services/firebase.dart';
 import 'package:idocit/common/services/in_app_failures/in_app_failure_widget.dart';
 import 'package:idocit/common/usecases/core_update_in_app_toast.dart';
 import 'package:idocit/common/widgets/buttons/text_button.dart';
@@ -12,6 +14,7 @@ import 'package:idocit/common/widgets/input_fields/input_validators.dart';
 import 'package:idocit/common/widgets/input_fields/text_input_field.dart';
 import 'package:idocit/common/widgets/texts.dart';
 import 'package:idocit/common/widgets/wrappers/content_wrapper.dart';
+import 'package:idocit/constants/colors.dart';
 import 'package:idocit/constants/errors.dart';
 import 'package:idocit/constants/image.dart';
 import 'package:idocit/constants/sizes.dart';
@@ -25,18 +28,25 @@ class LoginScreen extends StatefulWidget {
 
   final bool isFromResetDialog;
 
-  const LoginScreen({Key? key, this.isFromResetDialog = false}) : super(key: key);
+  const LoginScreen({super.key, this.isFromResetDialog = false});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final _userController = TextEditingController();
+  final _passwordController = TextEditingController();
   // final _userController = TextEditingController(text: 'kaz_audit');
   // final _passwordController = TextEditingController(text: 'kaz_aud1t');
 
-  final _userController = TextEditingController(text: 'user');
-  final _passwordController = TextEditingController(text: 'uiDocIt7');
+  // final _userController = TextEditingController(text: 'user');
+  // final _passwordController = TextEditingController(text: 'uiDocIt7');
+  // final _userController = TextEditingController(text: 'korem_admin');
+  // final _passwordController = TextEditingController(text: 'korem1234!');
+
+  // final _userController = TextEditingController(text: 'kaz_audit_admin');
+  // final _passwordController = TextEditingController(text: 'kaz_audit_admin');
 
   final _userFocusNode = FocusNode();
   final _passwordFocusNode = FocusNode();
@@ -182,33 +192,38 @@ class _LoginScreenState extends State<LoginScreen> {
       LoginData(email: _userController.value.text, password: _passwordController.value.text),
     );
 
-    response.fold((failure) async {
-      if (failure is AuthFailure && failure.type == AuthErrorType.needConfirmUser) {
-        await _onOpenConfirmCodeDialogHandler();
-        return;
-      }
+    response.fold(
+      (failure) async {
+        if (failure is AuthFailure && failure.type == AuthErrorType.needConfirmUser) {
+          await _onOpenConfirmCodeDialogHandler();
+          return;
+        }
 
-      // if (failure is AuthFailure && failure.type == AuthErrorType.needConfirmPersonalData) {
-      //   Navigator.of(context).pushNamed(RegisterPersonalDataScreen.routeName, arguments: true);
-      //   return;
-      // }
+        // if (failure is AuthFailure && failure.type == AuthErrorType.needConfirmPersonalData) {
+        //   Navigator.of(context).pushNamed(RegisterPersonalDataScreen.routeName, arguments: true);
+        //   return;
+        // }
 
-      // if (failure is AuthFailure && failure.type == AuthErrorType.needConfirmHome) {
-      //   Navigator.of(context).pushNamed(RegisterAccountTypeScreen.routeName, arguments: true);
-      //   return;
-      // }
+        // if (failure is AuthFailure && failure.type == AuthErrorType.needConfirmHome) {
+        //   Navigator.of(context).pushNamed(RegisterAccountTypeScreen.routeName, arguments: true);
+        //   return;
+        // }
 
-      if (_showPasswordSuccessMessage) {
-        setState(() {
-          _showPasswordSuccessMessage = false;
-        });
-        await Future.delayed(StyleConstants.defaultAnimationDuration);
-      }
+        if (_showPasswordSuccessMessage) {
+          setState(() {
+            _showPasswordSuccessMessage = false;
+          });
+          await Future.delayed(StyleConstants.defaultAnimationDuration);
+        }
 
-      locator<CoreUpdateInAppToast>().call(
-        InAppToastData.createFromFailure(key: const ValueKey(LoginScreen.routeName), failure: failure),
-      );
-    }, (result) => null);
+        locator<CoreUpdateInAppToast>().call(
+          InAppToastData.createFromFailure(key: const ValueKey(LoginScreen.routeName), failure: failure),
+        );
+      },
+      (result) {
+        TextInput.finishAutofillContext();
+      },
+    );
 
     setState(() {
       _isRequestInProgress = false;
@@ -226,91 +241,106 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: ContentWrapper(
+      body: SingleChildScrollView(
         child: ContentWrapper(
-          padding: EdgeInsets.only(
-            left: ContentWrapper.defaultPadding.left,
-            right: ContentWrapper.defaultPadding.right,
-          ),
-          child: Column(
-            children: [
-              Column(
+          child: ContentWrapper(
+            padding: EdgeInsets.only(
+              left: ContentWrapper.defaultPadding.left,
+              right: ContentWrapper.defaultPadding.right,
+            ),
+            child: AutofillGroup(
+              child: Column(
                 children: [
-                  SvgPicture.asset(ImageConstants.igIdocIt, height: 112, width: 112),
-                  const SizedBox(height: 12.0),
-                  IdocItRichText(
-                    span: TextSpan(
-                      children: const [
-                        TextSpan(text: 'Welcome to '),
-                        TextSpan(
-                          text: 'IdocIt.',
-                          style: TextStyle(fontWeight: FontWeight.w700),
+                  Column(
+                    children: [
+                      SvgPicture.asset(ImageConstants.igIdocIt, height: 112, width: 112),
+                      const SizedBox(height: 12.0),
+                      IdocItRichText(
+                        span: TextSpan(
+                          children: const [
+                            TextSpan(text: 'Welcome to '),
+                            TextSpan(
+                              text: 'IdocIt.',
+                              style: TextStyle(fontWeight: FontWeight.w700),
+                            ),
+                          ],
+                          style: Theme.of(context).textTheme.bodyMedium,
                         ),
-                      ],
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: SizeConstants.isSmallDevice() ? 24.0 : 40.0),
-                  IdocItTextInputField(
-                    controller: _userController,
-                    focusNode: _userFocusNode,
-                    hintText: 'Username',
-                    errorText: _errorUserMessage,
-                    keyboardType: TextInputType.emailAddress,
-                    inputAction: TextInputAction.next,
-                    onChanged: (_) {
-                      _clearUserErrorMessage();
-                    },
-                    onEditingComplete: () {
-                      FocusScope.of(context).requestFocus(_passwordFocusNode);
-                    },
-                    onFocusChange: (value) {
-                      if (!value) {
-                        _isValidUser();
-                      }
-                    },
-                    onClear: () {
-                      _clearUserErrorMessage(isHardClear: true);
-                    },
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: SizeConstants.isSmallDevice() ? 24.0 : 40.0),
+                      IdocItTextInputField(
+                        controller: _userController,
+                        focusNode: _userFocusNode,
+                        hintText: 'Username',
+                        errorText: _errorUserMessage,
+                        autofillHints: [AutofillHints.username],
+                        keyboardType: TextInputType.emailAddress,
+                        inputAction: TextInputAction.next,
+                        onChanged: (_) {
+                          _clearUserErrorMessage();
+                        },
+                        onEditingComplete: () {
+                          FocusScope.of(context).requestFocus(_passwordFocusNode);
+                        },
+                        onFocusChange: (value) {
+                          if (!value) {
+                            _isValidUser();
+                          }
+                        },
+                        onClear: () {
+                          _clearUserErrorMessage(isHardClear: true);
+                        },
+                      ),
+                      const SizedBox(height: 12.0),
+                      IdocItTextInputField(
+                        controller: _passwordController,
+                        focusNode: _passwordFocusNode,
+                        hintText: 'Password',
+                        autofillHints: [AutofillHints.password],
+                        errorText: _errorPasswordMessage,
+                        isProtectedField: true,
+                        onChanged: (_) {
+                          _clearPasswordErrorMessage();
+                        },
+                        onEditingComplete: () {
+                          FocusScope.of(context).unfocus();
+                        },
+                        onFocusChange: (value) {
+                          if (!value) {
+                            _isValidPassword();
+                          }
+                        },
+                        onClear: () {
+                          _clearPasswordErrorMessage(isHardClear: true);
+                        },
+                      ),
+                      const SizedBox(height: 12.0),
+                    ],
                   ),
                   const SizedBox(height: 12.0),
-                  IdocItTextInputField(
-                    controller: _passwordController,
-                    focusNode: _passwordFocusNode,
-                    hintText: 'Password',
-                    errorText: _errorPasswordMessage,
-                    isProtectedField: true,
-                    onChanged: (_) {
-                      _clearPasswordErrorMessage();
-                    },
-                    onEditingComplete: () {
-                      FocusScope.of(context).unfocus();
-                    },
-                    onFocusChange: (value) {
-                      if (!value) {
-                        _isValidPassword();
-                      }
-                    },
-                    onClear: () {
-                      _clearPasswordErrorMessage(isHardClear: true);
-                    },
-                  ),
+                  const InAppToastBackground(key: ValueKey(LoginScreen.routeName), margin: 4.0),
                   const SizedBox(height: 12.0),
+                  IdocItTextButton(
+                    contentText: 'Log In',
+                    callback: () => _onLogInHandler(context),
+                    isBlocked: !_isButtonEnabled,
+                    withProgress: _isRequestInProgress,
+                    color: Color.fromARGB(255, 210, 159, 0),
+                    contentWidget: Text('Log In', style: TextStyle(color: Colors.black, fontSize: 18)),
+                  ),
+                  // const SizedBox(height: 12.0),
+                  // IdocItTextButton(
+                  //   contentText: 'Crash app',
+                  //   callback: () => locator<FirebaseService>().crash(),
+                  //   isBlocked: false,
+                  //   withProgress: false,
+                  //   color: ColorConstants.red500,
+                  //   contentWidget: Text('Crash app', style: TextStyle(color: Colors.black, fontSize: 18)),
+                  // ),
                 ],
               ),
-              const SizedBox(height: 12.0),
-              const InAppToastBackground(key: ValueKey(LoginScreen.routeName), margin: 4.0),
-              const SizedBox(height: 12.0),
-              IdocItTextButton(
-                contentText: 'Log In',
-                callback: () => _onLogInHandler(context),
-                isBlocked: !_isButtonEnabled,
-                withProgress: _isRequestInProgress,
-                color: Color.fromARGB(255, 210, 159, 0),
-                contentWidget: Text('Log In', style: TextStyle(color: Colors.black, fontSize: 18)),
-              ),
-            ],
+            ),
           ),
         ),
       ),

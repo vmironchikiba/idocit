@@ -136,13 +136,18 @@
             }
 
             // Отправляем отладочную информацию
-            if (window.DebugChannel) {
-                DebugChannel.postMessage('DOM загружен. Найдено совпадений: ' + allMatches.length);
-            }
+            debugInChannel('DOM загружен. Найдено совпадений: ' + allMatches.length);
         });
+
+        function debugInChannel(message) {
+            if (window.DebugChannel) {
+                window.DebugChannel.postMessage(message);
+            }
+        }
 
         // Обновление счетчика совпадений
         function updateMatchCounter() {
+            debugInChannel('updateMatchCounter');
             const counter = document.getElementById('match-count');
             if (counter) {
                 counter.textContent = allMatches.length;
@@ -151,6 +156,7 @@
 
         // Прокрутка к указанному совпадению
         function scrollToMatch(index) {
+            debugInChannel('scrollToMatch');
             if (index < 0 || index >= allMatches.length) {
                 console.warn('Индекс вне диапазона:', index);
                 return false;
@@ -177,13 +183,14 @@
                     matchIndex: index
                 }));
             }
-
+            debugInChannel('Прокрутка к совпадению', index + 1, 'из', allMatches.length);
             console.log('Прокрутка к совпадению', index + 1, 'из', allMatches.length);
             return true;
         }
 
         // Выделение указанного совпадения
         function goToMatch(index) {
+            debugInChannel('goToMatch');
             if (index < 0 || index >= allMatches.length) {
                 return false;
             }
@@ -218,6 +225,7 @@
 
         // Прокрутка к первому совпадению
         window.scrollToFirstMatch = function () {
+            debugInChannel('scrollToFirstMatch');
             if (allMatches.length === 0) {
                 return { success: false, message: 'Нет совпадений' };
             }
@@ -234,6 +242,7 @@
 
         // Переход к следующему совпадению
         window.goToNextMatch = function () {
+            debugInChannel('goToNextMatch');
             if (allMatches.length === 0) {
                 return { success: false, message: 'Нет совпадений' };
             }
@@ -251,6 +260,7 @@
 
         // Переход к предыдущему совпадению
         window.goToPreviousMatch = function () {
+            debugInChannel('goToPreviousMatch');
             if (allMatches.length === 0) {
                 return { success: false, message: 'Нет совпадений' };
             }
@@ -268,6 +278,7 @@
 
         // Получение информации о совпадениях
         window.getMatchesInfo = function () {
+            debugInChannel('getMatchesInfo');
             return {
                 total: allMatches.length,
                 currentIndex: currentMatchIndex,
@@ -283,6 +294,7 @@
 
         // Переход к конкретному совпадению по индексу
         window.goToMatchIndex = function (index) {
+            debugInChannel('goToMatchIndex');
             if (goToMatch(index)) {
                 scrollToMatch(index);
                 return true;
@@ -292,6 +304,7 @@
 
         // Отладочные функции
         window.debugInfo = function () {
+            debugInChannel('debugInfo');
             return {
                 url: window.location.href,
                 matchesCount: allMatches.length,

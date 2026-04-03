@@ -32,7 +32,7 @@ class GetDocumentById implements UseCase<Either<Failure, void>, GetDocumentPaylo
     return chatsResult.fold(
       (failure) async {
         documentBloc.add(SetIsInProcess(isInProcess: false));
-        return Left(NetworkFailure());
+        return Left(failure);
       },
       (result) async {
         documentBloc.add(SetDocumentResponseEvent(documentResponse: result));

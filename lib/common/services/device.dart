@@ -32,13 +32,13 @@ class DeviceService {
   late final bool _isPhysicalDevice;
 
   // ignore: unused_field
-  static const _devPackageName = 'com.idocit.mobile.lbs.dev';
-  static const _prodPackageName = 'com.idocit.mobile.lbs';
+  static const _devPackageName = 'TODO';
+  static const _prodPackageName = 'TODO';
 
-  static const _devLinkHost = 'fpmobiled.page.link';
-  static const _prodLinkHost = 'fpmobile.page.link';
-  static const _devIsi = '1666903381';
-  static const _prodIsi = '6446826217';
+  static const _devLinkHost = 'TODO';
+  static const _prodLinkHost = 'TODO';
+  static const _devIsi = 'TODO';
+  static const _prodIsi = 'TODO';
 
   PackageInfo get packageInfo => _packageInfo;
   bool get isRunOnPhysicalDevice => _isPhysicalDevice;
@@ -57,6 +57,9 @@ class DeviceService {
       _isPhysicalDevice = true;
     }
   }
+
+  Future<String> getPackageName() async => (await PackageInfo.fromPlatform()).packageName;
+  Future<String> getPackageVersion() async => (await PackageInfo.fromPlatform()).version;
 
   String currentDynamicLinkHost() {
     switch (_packageInfo.packageName) {

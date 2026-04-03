@@ -7,7 +7,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:idocit/constants/colors.dart';
 import 'package:idocit/features/tts/domain/blocs/tts_bloc.dart';
-import 'package:idocit/features/tts/domain/entities/tts_engine.dart';
 import 'package:idocit/features/tts/domain/enums/tts_state_enum.dart';
 import 'package:idocit/features/tts/domain/services/tts_service.dart';
 import 'package:idocit/injection_container.dart';

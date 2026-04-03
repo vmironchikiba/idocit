@@ -9,6 +9,7 @@ import 'package:idocit_client/api.dart';
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **document** | [**Document**](Document.md) |  | 
+**chunks** | [**List<DocumentChunk>**](DocumentChunk.md) |  | [default to const []]
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 
