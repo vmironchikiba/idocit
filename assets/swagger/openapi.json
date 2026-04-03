@@ -2827,10 +2827,36 @@
         "properties": {
           "document": {
             "$ref": "#/components/schemas/Document"
+          },
+          "chunks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DocumentChunk"
+            }
           }
         },
         "required": [
-          "document"
+          "document",
+          "chunks"
+        ]
+      },
+      "DocumentChunk": {
+        "type": "object",
+        "properties": {
+          "chunk_id": {
+            "type": "integer"
+          },
+          "parent_chunk_id": {
+            "type": "integer"
+          },
+          "text_no_overlap": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "chunk_id",
+          "parent_chunk_id",
+          "text_no_overlap"
         ]
       },
       "Document": {

@@ -42,6 +42,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
   // final _userController = TextEditingController(text: 'user');
   // final _passwordController = TextEditingController(text: 'uiDocIt7');
+  // final _userController = TextEditingController(text: 'korem_admin');
+  // final _passwordController = TextEditingController(text: 'korem1234!');
+
+  // final _userController = TextEditingController(text: 'kaz_audit_admin');
+  // final _passwordController = TextEditingController(text: 'kaz_audit_admin');
 
   final _userFocusNode = FocusNode();
   final _passwordFocusNode = FocusNode();

@@ -65,6 +65,7 @@ dependencies:
   firebase_analytics: ^10.4.3
   firebase_crashlytics: ^3.3.3
   flutter_udid: ^4.1.2
+  flutter_inappwebview: ^6.1.5
 
 dev_dependencies:
   flutter_test:

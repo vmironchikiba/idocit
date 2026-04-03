@@ -63,6 +63,7 @@ enum HttpErrorType {
   attemptLimitExceeded,
   badProviderResponse,
   none,
+  documentError,
 }
 
 enum ChatErrorType { chunkError, none }

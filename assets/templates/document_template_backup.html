@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+
+        pre,
+        code {
+            background-color: #f5f5f5;
+            border-radius: 3px;
+        }
+
+        pre {
+            padding: 16px;
+            overflow: auto;
+        }
+
+        code {
+            padding: 2px 4px;
+        }
+
+        blockquote {
+            border-left: 4px solid #ddd;
+            padding-left: 16px;
+            margin-left: 0;
+            color: #666;
+        }
+
+        mark.search-match {
+            background-color: #FFECB3 !important;
+            border: 2px solid #FFA726 !important;
+            padding: 2px 4px !important;
+            border-radius: 3px !important;
+            display: inline-block;
+            color: #333 !important;
+            /* темно-серый цвет текста */
+        }
+
+        mark.search-match.current-match {
+            background-color: #FFECB3 !important;
+            /* оранжевый для текущего совпадения */
+            color: #212121 !important;
+            /* темно-серый почти черный */
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(255, 167, 38, 0.7);
+                /* обновлен цвет для пульсации */
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(255, 167, 38, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 167, 38, 0);
+            }
+        }
+
+        .matches-nav {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 1000;
+        }
+
+        .debug-info {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #00ff00;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 1000;
+            max-width: 300px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- CONTENT_PLACEHOLDER -->
+
+    <!-- NAVIGATION_PLACEHOLDER -->
+
+    <script>
+        // Глобальные переменные для навигации по совпадениям
+        let currentMatchIndex = 0;
+        let allMatches = [];
+        conslole.log('MVR ------------------- START');
+        // ========== ГЛОБАЛЬНЫЙ ПЕРЕХВАТ ОШИБОК ==========
+        window.onerror = function (message, source, lineno, colno, error) {
+            const errorReport = {
+                event: 'js_error',
+                payload: {
+                    message: message || 'Unknown error',
+                    source: source || '',
+                    line: lineno || 0,
+                    column: colno || 0,
+                    stack: error && error.stack ? error.stack : '',
+                    timestamp: new Date().toISOString()
+                }
+            };
+            if (window.FlutterChannel && typeof window.FlutterChannel.postMessage === 'function') {
+                window.FlutterChannel.postMessage(JSON.stringify(errorReport));
+            }
+            // Не выводим в консоль, только отправляем во Flutter
+            return true;
+        };
+
+        window.addEventListener('unhandledrejection', function (event) {
+            const reason = event.reason;
+            let message = '';
+            let stack = '';
+            if (reason instanceof Error) {
+                message = reason.message;
+                stack = reason.stack || '';
+            } else if (typeof reason === 'string') {
+                message = reason;
+            } else {
+                message = JSON.stringify(reason);
+            }
+            const rejectionReport = {
+                event: 'js_promise_rejection',
+                payload: {
+                    message: message,
+                    stack: stack,
+                    timestamp: new Date().toISOString()
+                }
+            };
+            if (window.FlutterChannel && typeof window.FlutterChannel.postMessage === 'function') {
+                window.FlutterChannel.postMessage(JSON.stringify(rejectionReport));
+            }
+        });
+
+        // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
+        function updateMatchCounter() {
+            try {
+                const counter = document.getElementById('match-count');
+                if (counter) {
+                    counter.textContent = allMatches.length;
+                }
+            } catch (error) {
+                if (window.FlutterChannel) {
+                    window.FlutterChannel.postMessage(JSON.stringify({
+                        event: 'js_function_error',
+                        payload: { function: 'updateMatchCounter', message: error.message, stack: error.stack }
+                    }));
+                }
+            }
+        }
+
+        function scrollToMatch(index) {
+            try {
+                if (index < 0 || index >= allMatches.length) {
+                    if (window.DebugChannel) {
+                        DebugChannel.postMessage(`scrollToMatch: индекс ${index} вне диапазона (0-${allMatches.length - 1})`);
+                    }
+                    return false;
+                }
+                const match = allMatches[index];
+                match.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+                if (window.FlutterChannel) {
+                    const rect = match.getBoundingClientRect();
+                    const position = window.pageYOffset + rect.top;
+                    FlutterChannel.postMessage(JSON.stringify({
+                        event: 'highlight_position',
+                        payload: position,
+                        matchId: match.id,
+                        matchIndex: index
+                    }));
+                }
+                if (window.DebugChannel) {
+                    DebugChannel.postMessage(`Прокрутка к совпадению ${index + 1} из ${allMatches.length}`);
+                }
+                return true;
+            } catch (error) {
+                if (window.FlutterChannel) {
+                    window.FlutterChannel.postMessage(JSON.stringify({
+                        event: 'js_function_error',
+                        payload: { function: 'scrollToMatch', message: error.message, stack: error.stack }
+                    }));
+                }
+                return false;
+            }
+        }
+
+        function goToMatch(index) {
+            try {
+                if (index < 0 || index >= allMatches.length) {
+                    return false;
+                }
+                allMatches.forEach(match => match.classList.remove('current-match'));
+                const match = allMatches[index];
+                match.classList.add('current-match');
+                currentMatchIndex = index;
+                if (window.FlutterChannel) {
+                    FlutterChannel.postMessage(JSON.stringify({
+                        event: 'match_navigated',
+                        payload: {
+                            currentIndex: currentMatchIndex,
+                            totalMatches: allMatches.length,
+                            matchId: match.id,
+                            text: match.textContent.substring(0, 50)
+                        }
+                    }));
+                }
+                return true;
+            } catch (error) {
+                if (window.FlutterChannel) {
+                    window.FlutterChannel.postMessage(JSON.stringify({
+                        event: 'js_function_error',
+                        payload: { function: 'goToMatch', message: error.message, stack: error.stack }
+                    }));
+                }
+                return false;
+            }
+        }
+
+        // ========== ИНИЦИАЛИЗАЦИЯ ==========
+        document.addEventListener('DOMContentLoaded', function () {
+            try {
+                if (window.DebugChannel) {
+                    DebugChannel.postMessage('DOM загружен, начинаем поиск совпадений...');
+                }
+                allMatches = Array.from(document.querySelectorAll('mark.search-match'));
+                updateMatchCounter();
+                if (allMatches.length > 0) {
+                    setTimeout(() => {
+                        goToMatch(0);
+                        scrollToMatch(0);
+                    }, 300);
+                }
+                if (window.DebugChannel) {
+                    DebugChannel.postMessage(`DOM загружен. Найдено совпадений: ${allMatches.length}`);
+                }
+            } catch (error) {
+                if (window.FlutterChannel) {
+                    window.FlutterChannel.postMessage(JSON.stringify({
+                        event: 'js_init_error',
+                        payload: { message: error.message, stack: error.stack }
+                    }));
+                }
+            }
+        });
+
+        // ========== API ДЛЯ FLUTTER (С ЗАЩИТОЙ try/catch) ==========
+        window.scrollToFirstMatch = function () {
+            try {
+                if (allMatches.length === 0) {
+                    return { success: false, message: 'Нет совпадений' };
+                }
+                goToMatch(0);
+                scrollToMatch(0);
+                return { success: true, index: 0, total: allMatches.length };
+            } catch (error) {
+                if (window.FlutterChannel) {
+                    window.FlutterChannel.postMessage(JSON.stringify({
+                        event: 'js_function_error',
+                        payload: { function: 'scrollToFirstMatch', message: error.message, stack: error.stack }
+                    }));
+                }
+                return { success: false, error: error.message };
+            }
+        };
+
+        window.goToNextMatch = function () {
+            try {
+                if (allMatches.length === 0) {
+                    return { success: false, message: 'Нет совпадений' };
+                }
+                const newIndex = (currentMatchIndex + 1) % allMatches.length;
+                goToMatch(newIndex);
+                scrollToMatch(newIndex);
+                return { success: true, currentIndex: newIndex, total: allMatches.length };
+            } catch (error) {
+                if (window.FlutterChannel) {
+                    window.FlutterChannel.postMessage(JSON.stringify({
+                        event: 'js_function_error',
+                        payload: { function: 'goToNextMatch', message: error.message, stack: error.stack }
+                    }));
+                }
+                return { success: false, error: error.message };
+            }
+        };
+
+        window.goToPreviousMatch = function () {
+            try {
+                if (allMatches.length === 0) {
+                    return { success: false, message: 'Нет совпадений' };
+                }
+                const newIndex = (currentMatchIndex - 1 + allMatches.length) % allMatches.length;
+                goToMatch(newIndex);
+                scrollToMatch(newIndex);
+                return { success: true, currentIndex: newIndex, total: allMatches.length };
+            } catch (error) {
+                if (window.FlutterChannel) {
+                    window.FlutterChannel.postMessage(JSON.stringify({
+                        event: 'js_function_error',
+                        payload: { function: 'goToPreviousMatch', message: error.message, stack: error.stack }
+                    }));
+                }
+                return { success: false, error: error.message };
+            }
+        };
+
+        window.getMatchesInfo = function () {
+            try {
+                return {
+                    total: allMatches.length,
+                    currentIndex: currentMatchIndex,
+                    hasMatches: allMatches.length > 0,
+                    matches: allMatches.map((match, idx) => ({
+                        index: idx,
+                        id: match.id,
+                        text: match.textContent.substring(0, 100),
+                        isCurrent: idx === currentMatchIndex
+                    }))
+                };
+            } catch (error) {
+                if (window.FlutterChannel) {
+                    window.FlutterChannel.postMessage(JSON.stringify({
+                        event: 'js_function_error',
+                        payload: { function: 'getMatchesInfo', message: error.message, stack: error.stack }
+                    }));
+                }
+                return { success: false, error: error.message };
+            }
+        };
+
+        window.goToMatchIndex = function (index) {
+            try {
+                if (goToMatch(index)) {
+                    scrollToMatch(index);
+                    return true;
+                }
+                return false;
+            } catch (error) {
+                if (window.FlutterChannel) {
+                    window.FlutterChannel.postMessage(JSON.stringify({
+                        event: 'js_function_error',
+                        payload: { function: 'goToMatchIndex', message: error.message, stack: error.stack }
+                    }));
+                }
+                return false;
+            }
+        };
+
+        window.debugInfo = function () {
+            try {
+                return {
+                    url: window.location.href,
+                    matchesCount: allMatches.length,
+                    scrollY: window.pageYOffset,
+                    windowHeight: window.innerHeight,
+                    documentHeight: document.body.scrollHeight
+                };
+            } catch (error) {
+                if (window.FlutterChannel) {
+                    window.FlutterChannel.postMessage(JSON.stringify({
+                        event: 'js_function_error',
+                        payload: { function: 'debugInfo', message: error.message, stack: error.stack }
+                    }));
+                }
+                return { success: false, error: error.message };
+            }
+        };
+    </script>
+</body>
+
+</html>

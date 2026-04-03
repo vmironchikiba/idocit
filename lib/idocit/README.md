@@ -150,6 +150,7 @@ Class | Method | HTTP request | Description
  - [DeleteDocumentsPayload](doc//DeleteDocumentsPayload.md)
  - [DeletePresetsPayload](doc//DeletePresetsPayload.md)
  - [Document](doc//Document.md)
+ - [DocumentChunk](doc//DocumentChunk.md)
  - [DocumentProperties](doc//DocumentProperties.md)
  - [DocumentResponse](doc//DocumentResponse.md)
  - [ExecutePythonPayload](doc//ExecutePythonPayload.md)

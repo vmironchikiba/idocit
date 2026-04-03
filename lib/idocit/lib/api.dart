@@ -74,6 +74,7 @@ part 'model/delete_categories_payload.dart';
 part 'model/delete_documents_payload.dart';
 part 'model/delete_presets_payload.dart';
 part 'model/document.dart';
+part 'model/document_chunk.dart';
 part 'model/document_properties.dart';
 part 'model/document_response.dart';
 part 'model/execute_python_payload.dart';

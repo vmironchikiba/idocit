@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
@@ -15,6 +16,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:markdown/markdown.dart' as md;
 import 'package:idocit/idocit/lib/api.dart';
+import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 
 class MarkdownWebViewPage extends StatefulWidget {
   final KnowledgeData knowledge;
@@ -29,31 +31,62 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
   late final WebViewController _webViewController;
   final String docType =
       locator<DocumentBloc>().state.documentResponse?.document.properties.docType ?? 'Unknown Document Type';
-  final String docLink = locator<DocumentBloc>().state.documentResponse?.document.properties.docLink ?? '';
-  final String _originalMarkdownData =
-      locator<DocumentBloc>().state.documentResponse?.document.properties.text.replaceAll('\n\n', '\n') ?? '';
+  final String _docLink = locator<DocumentBloc>().state.documentResponse?.document.properties.docLink ?? '';
+  final Uri? _docLinkUri = Uri.tryParse(
+    locator<DocumentBloc>().state.documentResponse?.document.properties.docLink ?? '::Not valid URI::',
+  );
+  final List<DocumentChunk> _chunks = locator<DocumentBloc>().state.documentResponse?.chunks ?? [];
+  // final String _originalMarkdownData =
+  //     locator<DocumentBloc>().state.documentResponse?.document.properties.text.replaceAll('\n\n', '\n') ?? '';
   late String _currentSearchQuery = '';
   bool _isLoading = true;
   double _scrollPosition = 0;
   final List<SearchMatch> _matches = [];
   String _htmlTemplate = '';
   String _fallbackTemplate = ''; // Добавьте это поле
-  late String _preparedText;
+  // late String _preparedText;
   final Map<String, double> _scrollPositions = {};
+  late String _textFromChunks;
+  bool channelsInitialized = false;
+  int progress = 0;
 
-  @override
-  void initState() {
-    super.initState();
-    _preparedText = escapeMarkdownLiterals(_originalMarkdownData);
+  WebViewController _initController() {
+    // 1. Создаём параметры (без inspectable)
+    PlatformWebViewControllerCreationParams params;
+    if (WebViewPlatform.instance is WebKitWebViewPlatform) {
+      params = WebKitWebViewControllerCreationParams();
+    } else {
+      params = const PlatformWebViewControllerCreationParams();
+    }
 
-    _webViewController = WebViewController()
+    // 2. Создаём контроллер
+    final controller = WebViewController.fromPlatformCreationParams(params);
+
+    // 3. Включаем инспектирование для iOS 16.4+
+    if (controller.platform is WebKitWebViewController) {
+      (controller.platform as WebKitWebViewController).setInspectable(true);
+    }
+
+    // Остальные настройки
+    return controller
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(Colors.white)
+      ..setOnConsoleMessage((JavaScriptConsoleMessage message) {
+        // if (message.level == JavaScriptLogLevel.error) {
+        // LoggerService.logDebug('WebView Console Error: ${message.message}');
+        // }
+        LoggerService.logDebug('WebView Console: ${message.message}');
+      })
       ..setNavigationDelegate(
         NavigationDelegate(
           onNavigationRequest: (NavigationRequest request) async {
             final url = request.url;
-            final uri = Uri.parse(url);
+            // Игнорируем пустые или промежуточные навигации
+            if (url == 'about:blank') {
+              return NavigationDecision.navigate; // или .prevent, в зависимости от задачи
+            }
+            final uri = Uri.tryParse(url);
+            if (uri == null) return NavigationDecision.navigate;
             // Если это не обычная веб-страница
             if (!_isHtmlPage(uri)) {
               await _openExternalWithUrl(url);
@@ -63,47 +96,95 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
             return NavigationDecision.navigate;
           },
           onProgress: (int progress) {
-            if (progress == 100) {
-              setState(() => _isLoading = false);
-              if (_currentSearchQuery.isNotEmpty) {
-                _scrollToFirstMatch();
-              }
-            }
+            setState(() {
+              this.progress = progress;
+            });
           },
 
           onPageStarted: (String url) {
             setState(() => _isLoading = true);
           },
           onPageFinished: (String url) {
+            // if (!channelsInitialized) {
+            //   _setupJavaScriptChannel();
+            //   channelsInitialized = true;
+            // }
             setState(() => _isLoading = false);
           },
-          onWebResourceError: (WebResourceError error) async {
-            await idocitShowDialog<bool?>(
-              IdocItWarningDialog(
-                label: 'WebView error',
-                description: error.description,
-                // iconSrc: _inAppFailureProvider.iconSrc,
-                buttonText: 'OK',
-                // buttonCallback: _onTryAgainHandler,
-              ),
+          onHttpError: (error) {
+            LoggerService.logDebug(
+              "onHttpError: ${error.request?.uri.toString() ?? 'No request'}  ${error.response?.statusCode ?? 'No response'}",
             );
-            LoggerService.logDebug('WebView error: ${error.description}');
+          },
+          onSslAuthError: (error) {
+            LoggerService.logDebug("onSslAuthError: ${error.toString()}");
+          },
+          onWebResourceError: (WebResourceError error) async {
+            // await idocitShowDialog<bool?>(
+            //   IdocItWarningDialog(
+            //     label: error.errorType.toString(),
+            //     description: error.description,
+            //     iconSrc: ImageConstants.igIdocIt,
+            //     buttonText: 'OK',
+            //     // buttonCallback: _onTryAgainHandler,
+            //   ),
+            // );
+            LoggerService.logDebug(
+              'onWebResourceError: ${error.errorType} - ${error.errorCode} - ${error.description}',
+            );
+
+            // КЛЮЧЕВОЕ: обрабатываем именно ошибку завершения процесса
+            if (Platform.isIOS && error.errorType == WebResourceErrorType.webContentProcessTerminated) {
+              LoggerService.logDebug('WebContent process terminated. Reloading...');
+              // Небольшая задержка перед перезагрузкой, чтобы система успела "успокоиться"
+              Future.delayed(const Duration(milliseconds: 500), () {
+                _webViewController.reload();
+              });
+            }
           },
         ),
       );
+  }
 
-    _loadTemplatesAndProcessSearch(); // Измените название метода
+  @override
+  void initState() {
+    super.initState();
+    // _preparedText = escapeMarkdownLiterals(_originalMarkdownData);
+    _currentSearchQuery = widget.knowledge.text;
+    final chunksList = _chunks.indexed.map((item) {
+      final (index, chunk) = item;
+      final id = 'match-${DateTime.now().millisecondsSinceEpoch}-$index';
+      if (chunk.textNoOverlap.contains(widget.knowledge.text)) {
+        LoggerService.logDebug('STOP');
+      }
+
+      return chunk.chunkId == widget.knowledge.chunkId - 1
+          ? '<mark class="search-match" id="$id" data-match-index="$index">${chunk.textNoOverlap}</mark>'
+          : chunk.textNoOverlap;
+    }).toList();
+
+    _textFromChunks = chunksList.join('');
+    // escapeMarkdownLiterals(chunksList.join(''));
+    _webViewController = _initController();
+    if (!channelsInitialized) {
+      _setupJavaScriptChannel();
+      channelsInitialized = true;
+    }
+    _loadTemplatesAndProcessSearchNew(); // Измените название метода
   }
 
   bool _isHtmlPage(Uri uri) {
     final path = uri.path.toLowerCase();
     final link = uri.toString();
 
-    return path.endsWith('.html') || path.endsWith('.htm') || path.isEmpty || path.endsWith('/') || link == docLink;
+    return path.endsWith('.html') ||
+        path.endsWith('.htm') ||
+        path.isEmpty ||
+        path.endsWith('/') ||
+        link == _docLinkUri.toString();
   }
 
-  /// Загружает оба шаблона (основной и fallback) и обрабатывает поиск
-  Future<void> _loadTemplatesAndProcessSearch() async {
+  Future<void> _loadTemplatesAndProcessSearchNew() async {
     try {
       // Загружаем основной шаблон
       _htmlTemplate = await rootBundle.loadString('assets/templates/document_template.html');
@@ -115,7 +196,7 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
     }
 
     // Обрабатываем поисковый запрос
-    await _processSearchAndLoad();
+    await _processSearchAndLoadNew(_textFromChunks);
   }
 
   /// Загружает fallback шаблон из файла
@@ -131,195 +212,11 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
     }
   }
 
-  // MVR - добавлено по Реакту
-  String escapeMarkdownLiterals(String input) {
-    return (input)
-        .replaceAll('\u00A0', ' ')
-        .replaceAll(RegExp(r'(?<!\\)_'), r'\_')
-        .replaceAll(RegExp(r'(?<!\\)\*'), r'\*');
-  }
-
-  String decodeHtmlEntities(String text) {
-    String result = text
-        .replaceAll('&nbsp;', ' ')
-        .replaceAll('&amp;', '&')
-        .replaceAll('&lt;', '<')
-        .replaceAll('&gt;', '>')
-        .replaceAll('&quot;', '"')
-        .replaceAll('&#39;', "'");
-
-    // Десятичные сущности
-    result = result.replaceAllMapped(RegExp(r'&#(\d+);'), (match) {
-      final code = int.parse(match.group(1)!);
-      if (code == 36 || code == 38) return ' '; // $ или & заменяем на пробел
-      return String.fromCharCode(code);
-    });
-
-    // Шестнадцатеричные сущности
-    result = result.replaceAllMapped(RegExp(r'&#x([0-9a-fA-F]+);'), (match) {
-      final code = int.parse(match.group(1)!, radix: 16);
-      if (code == 0x24 || code == 0x26) return ' '; // $ или &
-      return String.fromCharCode(code);
-    });
-
-    return result;
-  }
-
-  String stripMarkdownNoise(String input) {
-    // 1. Декодируем HTML-сущности
-    String result = decodeHtmlEntities(input);
-
-    // 2. Заменяем неразрывные пробелы
-    result = result.replaceAll('\u00A0', ' ');
-
-    // 3. Удаляем символы $ и & (они не несут смысла и мешают)
-    result = result.replaceAll(RegExp(r'[$&]'), '');
-
-    // 4. Остальные замены (Markdown шум)
-    result = result
-        .replaceAll(
-          RegExp(r'(^|\n)[ \t]*\|?[ \t]*:?-{3,}:?[ \t]*(\|[ \t]*:?-{3,}:?[ \t]*)+[ \t]*\|?[ \t]*(?=\n|$)'),
-          r'$1',
-        )
-        .replaceAll(RegExp(r'(^|\n)\s*(?:-{3,}|\*{3,}|_{3,})\s*(?=\n|$)'), r'$1')
-        .replaceAll(RegExp(r'!\[([^\]]*)]\([^)]+\)'), r'$1')
-        .replaceAll(RegExp(r'\[([^\]]+)]\([^)]+\)'), r'$1')
-        .replaceAll(RegExp(r'(^|\n)\s*#{1,6}\s+'), r'$1')
-        .replaceAll(RegExp(r'(^|\n)\s*>\s+'), r'$1')
-        .replaceAll(RegExp(r'(^|\n)\s*[-*+]\s+'), r'$1')
-        .replaceAll(RegExp(r'(^|\n)\s*\d+\.\s+'), r'$1')
-        .replaceAll(RegExp(r'[*_~`]+'), ' ')
-        .replaceAll(RegExp(r'[|]+'), ' ')
-        .replaceAll(RegExp(r':\s*-+\s*:'), ' ')
-        .replaceAll(RegExp(r'\s+'), ' ')
-        .replaceAll(RegExp(r'[$&]'), '')
-        .trim();
-
-    return result;
-  }
-
-  RegExp? buildFuzzyRegex(String raw) {
-    final cleaned = stripMarkdownNoise(raw);
-    if (cleaned.isEmpty) return null;
-    final tokens = cleaned
-        .split(' ')
-        .map((s) => s.trim())
-        .where((s) => s.isNotEmpty)
-        .where((s) => !RegExp(r'^[$\&]+$').hasMatch(s))
-        .map((s) => s.replaceAllMapped(RegExp(r'[.*+?^${}()|[\]\\]'), (match) => '\\${match.group(0)}'))
-        .toList();
-    if (tokens.isEmpty) return null;
-    const sep = r'[\s\W_]*';
-    final pattern = tokens.join(sep);
-    return RegExp(pattern, caseSensitive: false, unicode: true);
-  }
-
   /// Встроенный fallback шаблон (на случай, если файл тоже не загрузится)
   String _getBuiltInFallbackTemplate() => StringsConstants.fallbackHtmlTemplate;
 
-  /// Основная функция: обработка поиска и загрузка контента
-  Future<void> _processSearchAndLoad() async {
-    if (docType == "MD Format") {
-      final query = removeFirstTwoLines(widget.knowledge.text).trim();
-      _currentSearchQuery = query;
-
-      LoggerService.logDebug('🔍 Поисковый запрос: "$query"');
-      LoggerService.logDebug('🔍 Длина запроса: ${query.length}');
-
-      if (query.isEmpty) {
-        await _loadMarkdownWithoutHighlights();
-        return;
-      }
-
-      final escapedQuery = escapeRegexLiterals(query);
-      final regex = RegExp(escapedQuery, caseSensitive: false, dotAll: false, multiLine: true);
-
-      final allMatches = regex.allMatches(_preparedText).toList();
-
-      if (allMatches.isEmpty) {
-        LoggerService.logDebug('🔍 Совпадений не найдено');
-        await _loadMarkdownWithoutHighlights();
-        return;
-      }
-
-      LoggerService.logDebug('🔍 Найдено совпадений: ${allMatches.length}');
-      if (allMatches.isNotEmpty) {
-        final debudInfo = allMatches.first.group(0);
-        if (debudInfo != null) {
-          final debug = debudInfo.length >= 50 ? debudInfo.substring(0, 50) : debudInfo.substring(0, debudInfo.length);
-          LoggerService.logDebug('🔍 Первое совпадение: "$debug..."');
-        }
-      }
-
-      final markedMarkdown = _markMatchesInMarkdown(allMatches);
-      await _loadMarkdownWithHighlights(markedMarkdown);
-    } else {
-      final query = widget.knowledge.text;
-      _currentSearchQuery = query;
-
-      LoggerService.logDebug('🔍 Поисковый запрос: "$query"');
-      LoggerService.logDebug('🔍 Длина запроса: ${query.length}');
-
-      if (query.isEmpty) {
-        await _loadMarkdownWithoutHighlights();
-        return;
-      }
-      final regex = buildFuzzyRegex(query);
-      final allMatches = regex?.allMatches(_preparedText).toList() ?? [];
-
-      if (allMatches.isEmpty) {
-        LoggerService.logDebug('🔍 Совпадений не найдено');
-        await _loadMarkdownWithoutHighlights();
-        return;
-      }
-
-      LoggerService.logDebug('🔍 Найдено совпадений: ${allMatches.length}');
-      if (allMatches.isNotEmpty) {
-        final debudInfo = allMatches.first.group(0);
-        if (debudInfo != null) {
-          final debug = debudInfo.length >= 50 ? debudInfo.substring(0, 50) : debudInfo.substring(0, debudInfo.length);
-          LoggerService.logDebug('🔍 Первое совпадение: "$debug..."');
-        }
-      }
-
-      final markedMarkdown = _markMatchesInMarkdown(allMatches);
-      await _loadMarkdownWithHighlights(markedMarkdown);
-    }
-  }
-
-  /// Помечает совпадения HTML тегами в Markdown тексте
-  String _markMatchesInMarkdown(List<RegExpMatch> matches) {
-    _matches.clear();
-
-    final result = StringBuffer();
-    int lastEnd = 0;
-    int matchCounter = 0;
-
-    for (final match in matches) {
-      result.write(_originalMarkdownData.substring(lastEnd, match.start));
-      final matchedText = match.group(0)!;
-      final id = 'match-${DateTime.now().millisecondsSinceEpoch}-$matchCounter';
-
-      _matches.add(SearchMatch(id: id, text: matchedText, position: match.start, index: matchCounter));
-
-      result.write('<mark class="search-match" id="$id" data-match-index="$matchCounter">');
-      result.write(matchedText);
-      result.write('</mark>');
-
-      lastEnd = match.end;
-      matchCounter++;
-    }
-
-    result.write(_originalMarkdownData.substring(lastEnd));
-    LoggerService.logDebug('📝 Создано тегов <mark>: ${_matches.length}');
-
-    return result.toString();
-  }
-
-  /// Загружает Markdown без выделений
-  Future<void> _loadMarkdownWithoutHighlights() async {
-    final htmlContent = md.markdownToHtml(_originalMarkdownData, extensionSet: md.ExtensionSet.gitHubFlavored);
-    await _loadHtmlToWebView(htmlContent, hasHighlights: false);
+  Future<void> _processSearchAndLoadNew(String text) async {
+    await _loadMarkdownWithHighlights(text);
   }
 
   /// Загружает Markdown с выделениями
@@ -344,9 +241,12 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
 
     final htmlPage = _buildHtmlFromTemplate(htmlContent, hasHighlights);
 
-    await _webViewController.loadHtmlString(htmlPage);
+    await _webViewController.loadHtmlString(
+      htmlPage,
+      // baseUrl: _docLinkUri != null && _docLink.isNotEmpty && _docLink != 'about:blank' ? _docLink : null,
+    );
 
-    _setupJavaScriptChannel();
+    // _setupJavaScriptChannel();
   }
 
   /// Строит HTML страницу из шаблона
@@ -475,7 +375,7 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
 
   void _refreshSearch() {
     LoggerService.logDebug('🔄 Обновление поиска...');
-    _processSearchAndLoad();
+    _processSearchAndLoadNew(_textFromChunks);
   }
 
   /// Убирает первые две строки
@@ -492,8 +392,8 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
   }
 
   Future<void> _openExternal() async {
-    if (docLink.isEmpty) return;
-    _openExternalWithUrl(docLink);
+    if (_docLink.isEmpty) return;
+    _openExternalWithUrl(_docLink);
   }
 
   Future<void> _openExternalWithUrl(String? url) async {
@@ -517,6 +417,7 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
             Expanded(
               child: Text(
                 widget.knowledge.docName.split('\n').firstOrNull ?? 'Документ',
+                maxLines: 2,
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -528,21 +429,11 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
           ],
         ),
         actions: [
-          if (_matches.isNotEmpty)
+          if (progress > 0 && progress < 100)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Center(child: Text('${_matches.length} совпад.', style: const TextStyle(fontSize: 14))),
+              child: Center(child: Text('$progress%', style: const TextStyle(fontSize: 14))),
             ),
-          IconButton(
-            icon: const Icon(Icons.refresh, color: ColorConstants.moccasin),
-            onPressed: _refreshSearch,
-            tooltip: 'Обновить поиск',
-          ),
-          // IconButton(
-          //   icon: const Icon(Icons.bug_report, color: ColorConstants.moccasin),
-          //   onPressed: _getDebugInfo,
-          //   tooltip: 'Отладочная информация',
-          // ),
         ],
       ),
 
@@ -567,7 +458,7 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
                         style: TextStyle(color: ColorConstants.black500, fontSize: 16, fontWeight: FontWeight.w900),
                       ),
                     ),
-                    if (docLink.isNotEmpty)
+                    if (_docLink.isNotEmpty)
                       IconButton(
                         onPressed: _openExternal,
                         icon: Icon(Icons.open_in_browser, color: ColorConstants.white500, size: 30),
@@ -586,61 +477,16 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
         ],
       ),
 
-      floatingActionButton: _matches.isNotEmpty
-          ? Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // FloatingActionButton(
-                //   onPressed: _goToPreviousMatch,
-                //   tooltip: 'Предыдущее совпадение',
-                //   backgroundColor: Colors.blue,
-                //   child: const Icon(Icons.arrow_upward, color: Colors.white),
-                // ),
-                // const SizedBox(height: 16),
-                // FloatingActionButton(
-                //   onPressed: _goToNextMatch,
-                //   tooltip: 'Следующее совпадение',
-                //   backgroundColor: Colors.blue,
-                //   child: const Icon(Icons.arrow_downward, color: Colors.white),
-                // ),
-                // const SizedBox(height: 16),
-                // FloatingActionButton(
-                //   onPressed: _getMatchesInfo,
-                //   tooltip: 'Информация о совпадениях',
-                //   backgroundColor: Colors.green,
-                //   mini: true,
-                //   child: const Icon(Icons.info, color: Colors.white, size: 20),
-                // ),
-                // const SizedBox(height: 16),
-                // FloatingActionButton(
-                //   onPressed: _scrollToFirstMatch,
-                //   tooltip: 'К первому совпадению',
-                //   backgroundColor: Colors.orange,
-                //   mini: true,
-                //   child: const Icon(Icons.first_page, color: Colors.white, size: 20),
-                // ),
-                // const SizedBox(height: 16),
-                // FloatingActionButton(
-                //   onPressed: () async {
-                //     await _webViewController.runJavaScript('window.scrollTo({top: 0, behavior: "smooth"});');
-                //     LoggerService.logDebug('⬆️ Прокрутка в начало');
-                //   },
-                //   tooltip: 'В начало',
-                //   backgroundColor: Colors.purple,
-                //   mini: true,
-                //   child: const Icon(Icons.vertical_align_top, color: Colors.white, size: 20),
-                // ),
-              ],
-            )
-          : FloatingActionButton(
-              onPressed: _refreshSearch,
-              tooltip: 'Обновить поиск',
-              backgroundColor: Colors.blue,
-              child: const Icon(Icons.search, color: Colors.white),
-            ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _refreshSearch,
+        tooltip: 'Обновить поиск',
+        backgroundColor: ColorConstants.loading,
+        child: const Icon(Icons.refresh, color: ColorConstants.black350),
+      ),
     );
   }
 }
+//onst Icon(Icons.refresh, color: ColorConstants.moccasin)
 
 /// Класс для хранения информации о совпадении
 class SearchMatch {

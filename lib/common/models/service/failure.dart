@@ -1,3 +1,4 @@
+import 'package:idocit/common/models/api_message.dart';
 import 'package:idocit/constants/errors.dart';
 import 'package:speech_to_text/speech_recognition_error.dart';
 
@@ -10,6 +11,13 @@ class CommonFailure extends Failure {
   final CommonErrorType type;
 
   const CommonFailure({required String message, this.type = CommonErrorType.none}) : super(message);
+}
+
+class ApiFailure extends Failure {
+  final ApiMessage? apiMessage;
+  final int code;
+
+  const ApiFailure({this.apiMessage, required this.code}) : super('api');
 }
 
 class HTTPFailure extends Failure {

@@ -228,6 +228,8 @@ class ApiClient {
           return DeletePresetsPayload.fromJson(value);
         case 'Document':
           return Document.fromJson(value);
+        case 'DocumentChunk':
+          return DocumentChunk.fromJson(value);
         case 'DocumentProperties':
           return DocumentProperties.fromJson(value);
         case 'DocumentResponse':

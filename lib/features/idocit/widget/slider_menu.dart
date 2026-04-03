@@ -3,13 +3,16 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:idocit/common/models/service/usecase.dart';
 import 'package:idocit/common/providers/chats_notifier.dart';
+import 'package:idocit/common/utils/dialogs.dart';
 import 'package:idocit/common/widgets/buttons/text_button.dart';
 import 'package:idocit/common/widgets/indicators/loading_indicator.dart';
 import 'package:idocit/constants/colors.dart';
+import 'package:idocit/features/authentication/domain/bloc/auth_bloc.dart';
 import 'package:idocit/features/chat/domain/bloc/chat_bloc.dart';
 import 'package:idocit/features/idocit/domain/blocs/idocit/idocit_bloc.dart';
 import 'package:idocit/features/idocit/domain/usecases/idocit_delete_chat.dart';
 import 'package:idocit/features/idocit/domain/usecases/idocit_lazy_init_chats.dart';
+import 'package:idocit/features/idocit/widget/profile_logout_dialog.dart';
 import 'package:idocit/features/idocit/widget/user_profile.dart';
 import 'package:idocit/injection_container.dart';
 import 'package:flutter/material.dart';
@@ -61,58 +64,39 @@ class _SliderMenuState extends State<SliderMenu> {
     });
   }
 
+  Future<void> _handleLogOut() async {
+    if (_isRequestInProgress) {
+      return;
+    }
+
+    setState(() {
+      _isRequestInProgress = true;
+    });
+    final isCompleted = await idocitShowDialog(const ProfileLogOutDialog(), context: context);
+    if (isCompleted == true) {
+      return;
+    }
+
+    setState(() {
+      _isRequestInProgress = false;
+    });
+
+    setState(() {
+      _isRequestInProgress = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
       color: ColorConstants.black300,
-      padding: const EdgeInsets.only(top: 30, left: 4.0),
+      padding: const EdgeInsets.only(top: 5, left: 4.0),
       child: BlocBuilder<ChatBloc, ChatState>(
         buildWhen: (p, c) => p.chatId != c.chatId,
         builder: (chatContext, chatState) {
           return BlocBuilder<IdocItBloc, IdocItState>(
             buildWhen: (previous, current) => previous.chats.hashCode != current.chats.hashCode,
             builder: (context, state) {
-              // final chatsButtons = state.chats
-              //     .map(
-              //       (chat) => Padding(
-              //         padding: const EdgeInsets.symmetric(vertical: 4.0),
-              //         child: Row(
-              //           children: [
-              //             Expanded(
-              //               child: IdocItTextButton(
-              //                 contentText: chat.title,
-              //                 callback: () async {
-              //                   _isNewChatAdded = false;
-              //                   if (widget.onItemClick == null) return;
-              //                   await widget.onItemClick!(chat.id, chat.title);
-              //                 },
-              //                 color: ColorConstants.black400,
-              //                 isSelected: chat.id == chatState.chatId,
-              //               ),
-              //             ),
-              //             InkWell(
-              //               onTap: () async {
-              //                 setState(() {
-              //                   _isChatInProgress = true;
-              //                 });
-              //                 await locator<IdocItDeleteChat>().call(chat.id);
-              //                 await locator<IdocItLazyInitChats>().call(NoParams());
-              //                 // await _onRefresh();
-              //                 setState(() {
-              //                   _isChatInProgress = false;
-              //                 });
-              //               },
-              //               borderRadius: BorderRadius.circular(4),
-              //               child: const Padding(
-              //                 padding: EdgeInsets.all(2),
-              //                 child: Icon(Icons.delete, size: 24, color: ColorConstants.white500),
-              //               ),
-              //             ),
-              //           ],
-              //         ),
-              //       ),
-              //     )
-              //     .toList();
               final chatsButtons = state.chats.map((chat) {
                 return AnimatedSwitcher(
                   duration: const Duration(milliseconds: 300),
@@ -133,8 +117,16 @@ class _SliderMenuState extends State<SliderMenu> {
                             contentText: chat.title,
                             callback: () async {
                               _isNewChatAdded = false;
+                              setState(() {
+                                _isChatInProgress = true;
+                                _isChatInProgressId = chat.id;
+                              });
                               if (widget.onItemClick == null) return;
                               await widget.onItemClick!(chat.id, chat.title);
+                              setState(() {
+                                _isChatInProgress = false;
+                                _isChatInProgressId = null;
+                              });
                             },
                             color: ColorConstants.black400,
                             isSelected: chat.id == chatState.chatId,
@@ -180,11 +172,30 @@ class _SliderMenuState extends State<SliderMenu> {
                       ? Center(child: IdocItLoadingIndicator())
                       : ListView(
                           children: <Widget>[
+                            ExpansionTile(
+                              title: Text(
+                                locator<AuthBloc>().state.userData?.username ?? 'No name',
+                                style: const TextStyle(
+                                  color: ColorConstants.white500,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              tilePadding: EdgeInsets.only(left: 5),
+                              trailing: IconButton(
+                                onPressed: _handleLogOut,
+                                icon: const Icon(Icons.logout, color: ColorConstants.white500),
+                                tooltip: 'Log out',
+                                color: ColorConstants.white500,
+                              ),
+                              children: [UserProfile()],
+                            ),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Row(
                                   children: [
+                                    SizedBox(width: 5),
                                     Text('Chats', style: TextStyle(color: ColorConstants.white500, fontSize: 20.0)),
                                     SizedBox(width: 10.0),
                                     Container(
@@ -263,7 +274,7 @@ class _SliderMenuState extends State<SliderMenu> {
                                   : const SizedBox(key: ValueKey('empty')),
                             ),
                             ...chatsButtons,
-                            UserProfile(),
+                            // UserProfile(),
                           ],
                         ),
                 ),
