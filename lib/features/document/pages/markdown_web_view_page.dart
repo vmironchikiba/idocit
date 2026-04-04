@@ -4,13 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:idocit/common/services/logger.dart';
-import 'package:idocit/common/utils/dialogs.dart';
-import 'package:idocit/common/widgets/dialogs/warning_dialog.dart';
 import 'package:idocit/common/widgets/indicators/loading_indicator.dart';
 import 'package:idocit/constants/colors.dart';
 import 'package:idocit/constants/image.dart';
 import 'package:idocit/constants/strings.dart';
 import 'package:idocit/features/document/domain/bloc/document_bloc.dart';
+import 'package:idocit/features/document/models/extensions/string_path.dart';
 import 'package:idocit/injection_container.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -402,6 +401,8 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
     final box = context.findRenderObject() as RenderBox?;
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final docName = widget.knowledge.docName.split('\n').firstOrNull ?? 'Документ';
+    final mdDocName = docName.withExtension('md');
+    final htmlDocName = docName.withExtension('html');
     try {
       final shareResult = await SharePlus.instance.share(
         ShareParams(
@@ -412,10 +413,15 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
               // name: fileName, // Notice, how setting the name here does not work.
               mimeType: 'text/html',
             ),
+            XFile.fromData(
+              utf8.encode(_textFromChunks),
+              // name: fileName, // Notice, how setting the name here does not work.
+              mimeType: 'text/markdown',
+            ),
           ],
           subject: docName,
           sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size,
-          fileNameOverrides: ["$docName.html"],
+          fileNameOverrides: [htmlDocName, mdDocName],
           downloadFallbackEnabled: true,
           // excludedCupertinoActivities: excludedCupertinoActivityType,
         ),
@@ -427,18 +433,16 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
     }
   }
 
-  SnackBar getResultSnackBar(ShareResult result) {
-    return SnackBar(
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text("Share result: ${result.status}"),
-          if (result.status == ShareResultStatus.success) Text("Shared to: ${result.raw}"),
-        ],
-      ),
-    );
-  }
+  SnackBar getResultSnackBar(ShareResult result) => SnackBar(
+    content: Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text("Share result: ${result.status}"),
+        if (result.status == ShareResultStatus.success) Text("Shared to: ${result.raw}"),
+      ],
+    ),
+  );
 
   Future<void> _openExternalWithUrl(String? url) async {
     if (url == null) return;
