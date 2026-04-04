@@ -1,17 +1,23 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
+import 'package:idocit/features/document/builders/highlight_line_syntax.dart';
+import 'package:idocit/features/document/builders/highlight_syntax.dart';
+import 'package:markdown/markdown.dart' as md;
 import 'package:idocit/constants/colors.dart';
 import 'package:idocit/constants/image.dart';
 import 'package:idocit/features/chat/domain/models/enums/role.dart';
 import 'package:idocit/features/chat/domain/models/extensions/percent_string.dart';
+import 'package:idocit/features/document/builders/custom_builders.dart';
 import 'package:idocit/features/idocit/widget/doc_names_expandable_list.dart';
 import 'package:idocit/idocit/lib/api.dart';
 
 class ChatHistoryList extends StatelessWidget {
   final List<ChatHistoryMessage> messages;
+  final ScrollController controller = ScrollController(keepScrollOffset: true);
 
-  const ChatHistoryList({super.key, required this.messages});
+  ChatHistoryList({super.key, required this.messages});
 
   @override
   Widget build(BuildContext context) {
@@ -52,10 +58,19 @@ class ChatHistoryList extends StatelessWidget {
                     ],
                   )
                 : null,
-            title: Text(
-              historyItem.content,
-              style: TextStyle(color: role == Role.user ? ColorConstants.white500 : ColorConstants.black500),
-            ),
+            title: role != Role.user
+                ? Markdown(
+                    data: historyItem.content,
+                    controller: controller,
+                    styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
+                      p: const TextStyle(fontSize: 16, height: 1.5, color: ColorConstants.black500),
+                      h1: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: ColorConstants.black500),
+                      h2: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: ColorConstants.black500),
+                      h3: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: ColorConstants.black500),
+                    ),
+                    shrinkWrap: true,
+                  )
+                : Text(historyItem.content, style: TextStyle(color: ColorConstants.white500)),
             subtitle: Column(
               children: categories
                   .map(

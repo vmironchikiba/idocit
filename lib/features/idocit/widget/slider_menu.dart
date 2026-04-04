@@ -31,6 +31,19 @@ class _SliderMenuState extends State<SliderMenu> {
   bool _isChatInProgress = false;
   String? _isChatInProgressId;
   bool _isNewChatAdded = false;
+  bool _profileOpened = false;
+  final ExpansibleController _controller = ExpansibleController();
+  final ScrollController _scrollController = ScrollController();
+  bool _isFullVisible = true;
+
+  void _checkScrollNeeded() {
+    if (_scrollController.hasClients) {
+      final maxExtent = _scrollController.position.maxScrollExtent;
+      setState(() {
+        _isFullVisible = maxExtent == 0;
+      });
+    }
+  }
 
   @override
   void initState() {
@@ -38,6 +51,9 @@ class _SliderMenuState extends State<SliderMenu> {
     _isRequestInProgress = true;
     _isChatInProgress = false;
     _isNewChatAdded = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkScrollNeeded();
+    });
     locator<IdocItLazyInitChats>().call(NoParams()).then((onValue) {
       setState(() {
         _isRequestInProgress = false;
@@ -50,6 +66,9 @@ class _SliderMenuState extends State<SliderMenu> {
           _isNewChatAdded = false;
         });
       }
+    });
+    _controller.addListener(() {
+      _checkScrollNeeded();
     });
   }
 
@@ -88,201 +107,241 @@ class _SliderMenuState extends State<SliderMenu> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: ColorConstants.black300,
-      padding: const EdgeInsets.only(top: 5, left: 4.0),
-      child: BlocBuilder<ChatBloc, ChatState>(
-        buildWhen: (p, c) => p.chatId != c.chatId,
-        builder: (chatContext, chatState) {
-          return BlocBuilder<IdocItBloc, IdocItState>(
-            buildWhen: (previous, current) => previous.chats.hashCode != current.chats.hashCode,
-            builder: (context, state) {
-              final chatsButtons = state.chats.map((chat) {
-                return AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  transitionBuilder: (child, animation) {
-                    return SizeTransition(
-                      sizeFactor: animation,
-                      axisAlignment: -1,
-                      child: FadeTransition(opacity: animation, child: child),
-                    );
-                  },
-                  child: Padding(
-                    key: ValueKey(chat.id), // ВАЖНО
-                    padding: const EdgeInsets.symmetric(vertical: 4.0),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: IdocItTextButton(
-                            contentText: chat.title,
-                            callback: () async {
-                              _isNewChatAdded = false;
-                              setState(() {
-                                _isChatInProgress = true;
-                                _isChatInProgressId = chat.id;
-                              });
-                              if (widget.onItemClick == null) return;
-                              await widget.onItemClick!(chat.id, chat.title);
-                              setState(() {
-                                _isChatInProgress = false;
-                                _isChatInProgressId = null;
-                              });
-                            },
-                            color: ColorConstants.black400,
-                            isSelected: chat.id == chatState.chatId,
-                          ),
-                        ),
-                        _isChatInProgressId != chat.id
-                            ? InkWell(
-                                onTap: () async {
-                                  setState(() {
-                                    _isChatInProgress = true;
-                                    _isChatInProgressId = chat.id;
-                                  });
-
-                                  await locator<IdocItDeleteChat>().call(chat.id);
-                                  await locator<IdocItLazyInitChats>().call(NoParams());
-
-                                  setState(() {
-                                    _isChatInProgress = false;
-                                    _isChatInProgressId = null;
-                                  });
-                                },
-                                borderRadius: BorderRadius.circular(4),
-                                child: const Padding(
-                                  padding: EdgeInsets.all(1),
-                                  child: Icon(Icons.delete, size: 24, color: ColorConstants.white500),
-                                ),
-                              )
-                            : Padding(
-                                padding: const EdgeInsets.all(2.0),
-                                child: IdocItLoadingIndicator(color: ColorConstants.white500),
-                              ),
-                      ],
-                    ),
-                  ),
-                );
-              }).toList();
-              return Material(
-                // Добавлен Material виджет как предок для ListTile
-                color: ColorConstants.black300,
-                child: RefreshIndicator(
-                  onRefresh: _onRefresh,
-                  child: _isRequestInProgress
-                      ? Center(child: IdocItLoadingIndicator())
-                      : ListView(
-                          children: <Widget>[
-                            ExpansionTile(
-                              title: Text(
-                                locator<AuthBloc>().state.userData?.username ?? 'No name',
-                                style: const TextStyle(
-                                  color: ColorConstants.white500,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              tilePadding: EdgeInsets.only(left: 5),
-                              trailing: IconButton(
-                                onPressed: _handleLogOut,
-                                icon: const Icon(Icons.logout, color: ColorConstants.white500),
-                                tooltip: 'Log out',
-                                color: ColorConstants.white500,
-                              ),
-                              children: [UserProfile()],
+    return Scaffold(
+      body: Container(
+        color: ColorConstants.black300,
+        padding: const EdgeInsets.only(top: 5, left: 4.0),
+        child: BlocBuilder<ChatBloc, ChatState>(
+          buildWhen: (p, c) => p.chatId != c.chatId,
+          builder: (chatContext, chatState) {
+            return BlocBuilder<IdocItBloc, IdocItState>(
+              buildWhen: (previous, current) => previous.chats.hashCode != current.chats.hashCode,
+              builder: (context, state) {
+                final chatsButtons = state.chats.map((chat) {
+                  return AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    transitionBuilder: (child, animation) {
+                      return SizeTransition(
+                        sizeFactor: animation,
+                        axisAlignment: -1,
+                        child: FadeTransition(opacity: animation, child: child),
+                      );
+                    },
+                    child: Padding(
+                      key: ValueKey(chat.id), // ВАЖНО
+                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: IdocItTextButton(
+                              contentText: chat.title,
+                              callback: () async {
+                                _isNewChatAdded = false;
+                                setState(() {
+                                  _isChatInProgress = true;
+                                  _isChatInProgressId = chat.id;
+                                });
+                                if (widget.onItemClick == null) return;
+                                await widget.onItemClick!(chat.id, chat.title);
+                                setState(() {
+                                  _isChatInProgress = false;
+                                  _isChatInProgressId = null;
+                                });
+                              },
+                              color: ColorConstants.black400,
+                              isSelected: chat.id == chatState.chatId,
                             ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Row(
-                                  children: [
-                                    SizedBox(width: 5),
-                                    Text('Chats', style: TextStyle(color: ColorConstants.white500, fontSize: 20.0)),
-                                    SizedBox(width: 10.0),
-                                    Container(
-                                      padding: const EdgeInsets.all(6),
-                                      decoration: BoxDecoration(color: ColorConstants.white500, shape: BoxShape.circle),
-                                      constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-                                      child: Center(
-                                        child: _isChatInProgress
-                                            ? IdocItLoadingIndicator(size: 19)
-                                            : Text(
-                                                (chatsButtons.length + (_isNewChatAdded ? 1 : 0)).toString(),
-                                                style: const TextStyle(
-                                                  color: Colors.black,
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                IconButton(
-                                  onPressed: () {
+                          ),
+                          _isChatInProgressId != chat.id
+                              ? InkWell(
+                                  onTap: () async {
                                     setState(() {
-                                      _isNewChatAdded = true;
+                                      _isChatInProgress = true;
+                                      _isChatInProgressId = chat.id;
+                                    });
+
+                                    await locator<IdocItDeleteChat>().call(chat.id);
+                                    await locator<IdocItLazyInitChats>().call(NoParams());
+
+                                    setState(() {
+                                      _isChatInProgress = false;
+                                      _isChatInProgressId = null;
                                     });
                                   },
-                                  icon: Icon(Icons.add, color: ColorConstants.white500),
+                                  borderRadius: BorderRadius.circular(4),
+                                  child: const Padding(
+                                    padding: EdgeInsets.all(1),
+                                    child: Icon(Icons.delete, size: 24, color: ColorConstants.white500),
+                                  ),
+                                )
+                              : Padding(
+                                  padding: const EdgeInsets.all(2.0),
+                                  child: IdocItLoadingIndicator(color: ColorConstants.white500),
+                                ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList();
+                return Material(
+                  // Добавлен Material виджет как предок для ListTile
+                  color: ColorConstants.black300,
+                  child: RefreshIndicator(
+                    onRefresh: _onRefresh,
+                    child: _isRequestInProgress
+                        ? Center(child: IdocItLoadingIndicator())
+                        : ListView(
+                            controller: _scrollController,
+                            children: <Widget>[
+                              ExpansionTile(
+                                controller: _controller,
+                                leading: Icon(
+                                  _profileOpened ? Icons.arrow_drop_up : Icons.arrow_drop_down,
                                   color: ColorConstants.white500,
                                 ),
-                              ],
-                            ),
-                            AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 300),
-                              transitionBuilder: (child, animation) {
-                                return SizeTransition(
-                                  sizeFactor: animation,
-                                  axisAlignment: -1.0, // animate from top
-                                  child: FadeTransition(opacity: animation, child: child),
-                                );
-                              },
-                              child: _isNewChatAdded
-                                  ? Padding(
-                                      key: const ValueKey('new_chat'),
-                                      padding: const EdgeInsets.symmetric(vertical: 4.0),
-                                      child: Row(
-                                        children: [
-                                          Expanded(
-                                            child: IdocItTextButton(
-                                              contentText: 'New chat',
-                                              callback: () async {
-                                                if (widget.onItemClick == null) return;
-                                                await widget.onItemClick!('', 'New chat');
-                                              },
-                                              color: ColorConstants.black400,
-                                              isSelected: (chatState.chatId ?? '').isEmpty,
-                                            ),
-                                          ),
-                                          InkWell(
-                                            onTap: () {
-                                              setState(() {
-                                                _isNewChatAdded = false;
-                                              });
-                                              if (state.chats.isEmpty || widget.onItemClick == null) return;
-                                              widget.onItemClick!(state.chats.first.id, state.chats.first.title);
-                                            },
-                                            borderRadius: BorderRadius.circular(4),
-                                            child: const Padding(
-                                              padding: EdgeInsets.all(2),
-                                              child: Icon(Icons.delete, size: 24, color: ColorConstants.white500),
-                                            ),
-                                          ),
-                                        ],
+                                onExpansionChanged: (value) => setState(() => _profileOpened = value),
+                                title: Text(
+                                  locator<AuthBloc>().state.userData?.username ?? 'No name',
+                                  style: const TextStyle(
+                                    color: ColorConstants.white500,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                tilePadding: EdgeInsets.only(left: 5),
+                                trailing: IconButton(
+                                  onPressed: _handleLogOut,
+                                  icon: const Icon(Icons.logout, color: ColorConstants.white500),
+                                  tooltip: 'Log out',
+                                  color: ColorConstants.white500,
+                                ),
+                                children: [UserProfile(onTap: () => _controller.collapse())],
+                              ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      SizedBox(width: 5),
+                                      Text('Chats', style: TextStyle(color: ColorConstants.white500, fontSize: 20.0)),
+                                      SizedBox(width: 10.0),
+                                      Container(
+                                        padding: const EdgeInsets.all(6),
+                                        decoration: BoxDecoration(
+                                          color: ColorConstants.white500,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                                        child: Center(
+                                          child: _isChatInProgress
+                                              ? IdocItLoadingIndicator(size: 19)
+                                              : Text(
+                                                  (chatsButtons.length + (_isNewChatAdded ? 1 : 0)).toString(),
+                                                  style: const TextStyle(
+                                                    color: Colors.black,
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                        ),
                                       ),
-                                    )
-                                  : const SizedBox(key: ValueKey('empty')),
-                            ),
-                            ...chatsButtons,
-                            // UserProfile(),
-                          ],
-                        ),
-                ),
-              );
-            },
-          );
-        },
+                                    ],
+                                  ),
+                                  IconButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        _isNewChatAdded = true;
+                                      });
+                                    },
+                                    icon: Icon(Icons.add, color: ColorConstants.white500),
+                                    color: ColorConstants.white500,
+                                  ),
+                                ],
+                              ),
+                              AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 300),
+                                transitionBuilder: (child, animation) {
+                                  return SizeTransition(
+                                    sizeFactor: animation,
+                                    axisAlignment: -1.0, // animate from top
+                                    child: FadeTransition(opacity: animation, child: child),
+                                  );
+                                },
+                                child: _isNewChatAdded
+                                    ? Padding(
+                                        key: const ValueKey('new_chat'),
+                                        padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                        child: Row(
+                                          children: [
+                                            Expanded(
+                                              child: IdocItTextButton(
+                                                contentText: 'New chat',
+                                                callback: () async {
+                                                  if (widget.onItemClick == null) return;
+                                                  await widget.onItemClick!('', 'New chat');
+                                                },
+                                                color: ColorConstants.black400,
+                                                isSelected: (chatState.chatId ?? '').isEmpty,
+                                              ),
+                                            ),
+                                            InkWell(
+                                              onTap: () {
+                                                setState(() {
+                                                  _isNewChatAdded = false;
+                                                });
+                                                if (state.chats.isEmpty || widget.onItemClick == null) return;
+                                                widget.onItemClick!(state.chats.first.id, state.chats.first.title);
+                                              },
+                                              borderRadius: BorderRadius.circular(4),
+                                              child: const Padding(
+                                                padding: EdgeInsets.all(2),
+                                                child: Icon(Icons.delete, size: 24, color: ColorConstants.white500),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                    : const SizedBox(key: ValueKey('empty')),
+                              ),
+                              ...chatsButtons,
+                              // UserProfile(),
+                            ],
+                          ),
+                  ),
+                );
+              },
+            );
+          },
+        ),
       ),
+      floatingActionButton: _isFullVisible
+          ? Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                FloatingActionButton.small(
+                  onPressed: () => _scrollController.animateTo(
+                    _scrollController.position.minScrollExtent,
+                    duration: Duration(milliseconds: 500),
+                    curve: Curves.easeInOut,
+                  ),
+                  tooltip: 'Прокрутка вверх',
+                  backgroundColor: ColorConstants.loading.withValues(alpha: 0.5),
+                  child: const Icon(Icons.arrow_upward, color: ColorConstants.black350),
+                ),
+                SizedBox(height: 10),
+                FloatingActionButton.small(
+                  onPressed: () => _scrollController.animateTo(
+                    _scrollController.position.maxScrollExtent,
+                    duration: Duration(milliseconds: 500),
+                    curve: Curves.easeInOut,
+                  ),
+                  tooltip: 'Прокрутка вниз',
+                  backgroundColor: ColorConstants.loading.withValues(alpha: 0.5),
+                  child: const Icon(Icons.arrow_downward, color: ColorConstants.black350),
+                ),
+              ],
+            )
+          : null,
     );
   }
 }

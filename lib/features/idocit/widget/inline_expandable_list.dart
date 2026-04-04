@@ -54,7 +54,7 @@ class _InlineExpandableListState extends State<InlineExpandableList> with Single
             },
           ),
         ),
-        trailing: Icon(_expanded ? Icons.expand_less : Icons.expand_more),
+        trailing: widget.items.length > 1 ? Icon(_expanded ? Icons.expand_less : Icons.expand_more) : null,
         onTap: () => setState(() => _expanded = !_expanded),
       ),
     );

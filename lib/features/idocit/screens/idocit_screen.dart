@@ -52,8 +52,10 @@ class _IdocItScreenState extends State<IdocItScreen> {
                       chatState.chatTitle ?? "New Chat",
                       textAlign: TextAlign.center,
                       style: const TextStyle(
+                        inherit: false,
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
+                        fontStyle: FontStyle.normal,
                         color: ColorConstants.white500,
                         overflow: TextOverflow.ellipsis,
                       ),
