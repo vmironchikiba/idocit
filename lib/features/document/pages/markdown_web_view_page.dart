@@ -171,7 +171,7 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
       _setupJavaScriptChannel();
       channelsInitialized = true;
     }
-    _loadTemplatesAndProcessSearchNew(); // Измените название метода
+    _loadTemplatesAndProcessSearch(); // Измените название метода
   }
 
   bool _isHtmlPage(Uri uri) {
@@ -185,7 +185,7 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
         link == _docLinkUri.toString();
   }
 
-  Future<void> _loadTemplatesAndProcessSearchNew() async {
+  Future<void> _loadTemplatesAndProcessSearch() async {
     try {
       // Загружаем основной шаблон
       _htmlTemplate = await rootBundle.loadString('assets/templates/document_template.html');
@@ -197,7 +197,7 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
     }
 
     // Обрабатываем поисковый запрос
-    await _processSearchAndLoadNew(_textFromChunks);
+    await _loadMarkdownWithHighlights(_textFromChunks);
   }
 
   /// Загружает fallback шаблон из файла
@@ -215,10 +215,6 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
 
   /// Встроенный fallback шаблон (на случай, если файл тоже не загрузится)
   String _getBuiltInFallbackTemplate() => StringsConstants.fallbackHtmlTemplate;
-
-  Future<void> _processSearchAndLoadNew(String text) async {
-    await _loadMarkdownWithHighlights(text);
-  }
 
   /// Загружает Markdown с выделениями
   Future<void> _loadMarkdownWithHighlights(String markedMarkdown) async {
@@ -376,7 +372,7 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
 
   void _refreshSearch() {
     LoggerService.logDebug('🔄 Обновление поиска...');
-    _processSearchAndLoadNew(_textFromChunks);
+    _loadMarkdownWithHighlights(_textFromChunks);
   }
 
   /// Убирает первые две строки
@@ -401,12 +397,13 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
     final box = context.findRenderObject() as RenderBox?;
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final docName = widget.knowledge.docName.split('\n').firstOrNull ?? 'Документ';
+    final body = widget.knowledge.text;
     final mdDocName = docName.withExtension('md');
     final htmlDocName = docName.withExtension('html');
     try {
       final shareResult = await SharePlus.instance.share(
         ShareParams(
-          text: _textFromChunks,
+          text: body,
           files: [
             XFile.fromData(
               utf8.encode(_htmlPage),
