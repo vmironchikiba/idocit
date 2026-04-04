@@ -31,6 +31,8 @@ class _SliderMenuState extends State<SliderMenu> {
   bool _isChatInProgress = false;
   String? _isChatInProgressId;
   bool _isNewChatAdded = false;
+  bool _profileOpened = false;
+  final ExpansibleController _controller = ExpansibleController();
 
   @override
   void initState() {
@@ -173,6 +175,12 @@ class _SliderMenuState extends State<SliderMenu> {
                       : ListView(
                           children: <Widget>[
                             ExpansionTile(
+                              controller: _controller,
+                              leading: Icon(
+                                _profileOpened ? Icons.arrow_drop_up : Icons.arrow_drop_down,
+                                color: ColorConstants.white500,
+                              ),
+                              onExpansionChanged: (value) => setState(() => _profileOpened = value),
                               title: Text(
                                 locator<AuthBloc>().state.userData?.username ?? 'No name',
                                 style: const TextStyle(
@@ -188,7 +196,7 @@ class _SliderMenuState extends State<SliderMenu> {
                                 tooltip: 'Log out',
                                 color: ColorConstants.white500,
                               ),
-                              children: [UserProfile()],
+                              children: [UserProfile(onTap: () => _controller.collapse())],
                             ),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,

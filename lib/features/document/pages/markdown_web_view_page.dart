@@ -17,6 +17,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:markdown/markdown.dart' as md;
 import 'package:idocit/idocit/lib/api.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
+import 'package:share_plus/share_plus.dart';
 
 class MarkdownWebViewPage extends StatefulWidget {
   final KnowledgeData knowledge;
@@ -49,6 +50,7 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
   late String _textFromChunks;
   bool channelsInitialized = false;
   int progress = 0;
+  String _htmlPage = '';
 
   WebViewController _initController() {
     // 1. Создаём параметры (без inspectable)
@@ -239,10 +241,10 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
       await _loadFallbackTemplate();
     }
 
-    final htmlPage = _buildHtmlFromTemplate(htmlContent, hasHighlights);
+    _htmlPage = _buildHtmlFromTemplate(htmlContent, hasHighlights);
 
     await _webViewController.loadHtmlString(
-      htmlPage,
+      _htmlPage,
       // baseUrl: _docLinkUri != null && _docLink.isNotEmpty && _docLink != 'about:blank' ? _docLink : null,
     );
 
@@ -396,6 +398,48 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
     _openExternalWithUrl(_docLink);
   }
 
+  void _shareAsXFile(BuildContext context) async {
+    final box = context.findRenderObject() as RenderBox?;
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final docName = widget.knowledge.docName.split('\n').firstOrNull ?? 'Документ';
+    try {
+      final shareResult = await SharePlus.instance.share(
+        ShareParams(
+          text: _textFromChunks,
+          files: [
+            XFile.fromData(
+              utf8.encode(_htmlPage),
+              // name: fileName, // Notice, how setting the name here does not work.
+              mimeType: 'text/html',
+            ),
+          ],
+          subject: docName,
+          sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size,
+          fileNameOverrides: ["$docName.html"],
+          downloadFallbackEnabled: true,
+          // excludedCupertinoActivities: excludedCupertinoActivityType,
+        ),
+      );
+
+      scaffoldMessenger.showSnackBar(getResultSnackBar(shareResult));
+    } catch (e) {
+      scaffoldMessenger.showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
+  }
+
+  SnackBar getResultSnackBar(ShareResult result) {
+    return SnackBar(
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text("Share result: ${result.status}"),
+          if (result.status == ShareResultStatus.success) Text("Shared to: ${result.raw}"),
+        ],
+      ),
+    );
+  }
+
   Future<void> _openExternalWithUrl(String? url) async {
     if (url == null) return;
     final uri = Uri.parse(url);
@@ -432,7 +476,9 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
           if (progress > 0 && progress < 100)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Center(child: Text('$progress%', style: const TextStyle(fontSize: 14))),
+              child: Center(
+                child: Text('$progress%', style: const TextStyle(fontSize: 14, color: ColorConstants.white500)),
+              ),
             ),
         ],
       ),
@@ -462,6 +508,11 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
                       IconButton(
                         onPressed: _openExternal,
                         icon: Icon(Icons.open_in_browser, color: ColorConstants.white500, size: 30),
+                      )
+                    else
+                      IconButton(
+                        onPressed: () => _shareAsXFile(context),
+                        icon: Icon(Icons.ios_share, color: ColorConstants.white500, size: 30),
                       ),
                   ],
                 ),
