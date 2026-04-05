@@ -65,7 +65,7 @@ class _InlineExpandableListState extends State<InlineExpandableList> with Single
       children: List.generate(widget.items.length - 1, (i) {
         final data = widget.items[i + 1];
         return ListTileTheme(
-          contentPadding: EdgeInsets.all(4),
+          contentPadding: EdgeInsets.all(0),
           child: ListTile(
             leading: Column(
               children: [
@@ -97,23 +97,20 @@ class _InlineExpandableListState extends State<InlineExpandableList> with Single
     );
 
     return Card(
-      child: ListTileTheme(
-        contentPadding: EdgeInsets.all(2),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            header,
-            // Анимируем показ/скрытие
-            AnimatedSize(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeInOut,
-              child: ConstrainedBox(
-                constraints: _expanded ? const BoxConstraints() : const BoxConstraints(maxHeight: 0),
-                child: ClipRect(child: rest),
-              ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          header,
+          // Анимируем показ/скрытие
+          AnimatedSize(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeInOut,
+            child: ConstrainedBox(
+              constraints: _expanded ? const BoxConstraints() : const BoxConstraints(maxHeight: 0),
+              child: ClipRect(child: rest),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

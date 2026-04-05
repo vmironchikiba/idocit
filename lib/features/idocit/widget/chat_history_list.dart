@@ -27,44 +27,55 @@ class ChatHistoryList extends StatelessWidget {
         return Card(
           color: color,
           child: ListTile(
-            leading: role == Role.user
+            title: role == Role.user
                 ? Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SvgPicture.asset(ImageConstants.userChatAvatarSvg, height: 30, width: 30),
-                      Text(
-                        'You',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: ColorConstants.white500, fontSize: 9, fontWeight: FontWeight.w800),
+                      Row(
+                        children: [
+                          SvgPicture.asset(ImageConstants.userChatAvatarSvg, height: 30, width: 30),
+                          SizedBox(width: 5),
+                          Text(
+                            'You',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: ColorConstants.white500, fontWeight: FontWeight.w500),
+                          ),
+                        ],
                       ),
+                      SizedBox(height: 4.0),
+                      Text(historyItem.content, style: TextStyle(color: ColorConstants.white500)),
                     ],
                   )
                 : role == Role.assistant
                 ? Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SvgPicture.asset(ImageConstants.igIdocIt, height: 22, width: 22),
-                      Text(
-                        'iDocIt\nAI',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: ColorConstants.black500, fontSize: 9, fontWeight: FontWeight.w800),
+                      Row(
+                        children: [
+                          SvgPicture.asset(ImageConstants.igIdocIt, height: 30, width: 30),
+                          SizedBox(width: 5),
+                          Text(
+                            'iDocIt AI',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: ColorConstants.black500, fontWeight: FontWeight.w800),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 4.0),
+                      MarkdownBody(
+                        data: historyItem.content,
+                        styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
+                          p: const TextStyle(fontSize: 16, height: 1.5, color: ColorConstants.black500),
+                          h1: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: ColorConstants.black500),
+                          h2: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: ColorConstants.black500),
+                          h3: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: ColorConstants.black500),
+                          tableColumnWidth: const IntrinsicColumnWidth(),
+                        ),
+                        shrinkWrap: true,
                       ),
                     ],
                   )
                 : null,
-            title: role != Role.user
-                ? MarkdownBody(
-                    data: historyItem.content,
-                    styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
-                      p: const TextStyle(fontSize: 16, height: 1.5, color: ColorConstants.black500),
-                      h1: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: ColorConstants.black500),
-                      h2: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: ColorConstants.black500),
-                      h3: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: ColorConstants.black500),
-                      tableColumnWidth: const IntrinsicColumnWidth(),
-                    ),
-                    shrinkWrap: true,
-                  )
-                : Text(historyItem.content, style: TextStyle(color: ColorConstants.white500)),
             subtitle: Column(
               children: categories
                   .map(

@@ -530,6 +530,7 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
       ),
 
       floatingActionButton: FloatingActionButton(
+        heroTag: "refresh",
         onPressed: _refreshSearch,
         tooltip: 'Обновить поиск',
         backgroundColor: ColorConstants.loading,
