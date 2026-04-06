@@ -33,7 +33,7 @@ class GetChatHistory implements UseCase<Either<Failure, void>, String> {
     return chatsResult.fold(
       (failure) async {
         chatBloc.add(SetIsInProcess(isInProcess: false));
-        return Left(NetworkFailure());
+        return Left(failure);
       },
       (result) async {
         chatBloc.add(SetChatHistoryMessages(chatHistoryMessages: result));

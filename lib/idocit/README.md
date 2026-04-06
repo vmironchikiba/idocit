@@ -170,6 +170,8 @@ Class | Method | HTTP request | Description
  - [LogoutRequest](doc//LogoutRequest.md)
  - [Model](doc//Model.md)
  - [OneDriveReadFilesPayload](doc//OneDriveReadFilesPayload.md)
+ - [Preset](doc//Preset.md)
+ - [PresetsResponse](doc//PresetsResponse.md)
  - [Provider](doc//Provider.md)
  - [QueryPayload](doc//QueryPayload.md)
  - [QueryRelatedCategoryPayload](doc//QueryRelatedCategoryPayload.md)

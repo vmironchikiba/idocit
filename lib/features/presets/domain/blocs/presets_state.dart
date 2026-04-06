@@ -1,7 +1,7 @@
 part of 'presets_bloc.dart';
 
 class PresetsState {
-  final Object? presets;
+  final PresetsResponse? presets;
 
   const PresetsState({required this.presets});
 
@@ -13,7 +13,7 @@ class PresetsState {
     return PresetsState(presets: null);
   }
 
-  PresetsState update({Object? presets}) {
+  PresetsState update({PresetsResponse? presets}) {
     return PresetsState(presets: presets ?? this.presets);
   }
 }

@@ -5,11 +5,11 @@ import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/common/services/network_listener.dart';
 import 'package:idocit/features/chat/domain/bloc/chat_bloc.dart';
 
-class ChaReset implements UseCase<Either<Failure, void>, NoParams> {
+class ChatReset implements UseCase<Either<Failure, void>, NoParams> {
   final NetworkListenerService networkListenerService;
   final ChatBloc chatBloc;
 
-  const ChaReset({required this.networkListenerService, required this.chatBloc});
+  const ChatReset({required this.networkListenerService, required this.chatBloc});
 
   @override
   Future<Either<Failure, void>> call(NoParams params, {bool isCleanReset = false, bool withArchivedDate = true}) async {

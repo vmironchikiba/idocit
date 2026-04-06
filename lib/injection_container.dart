@@ -90,7 +90,7 @@ void initLocator() {
     () => IdocItReset(networkListenerService: locator<NetworkListenerService>(), idocItBloc: locator<IdocItBloc>()),
   );
   locator.registerLazySingleton(
-    () => ChaReset(networkListenerService: locator<NetworkListenerService>(), chatBloc: locator<ChatBloc>()),
+    () => ChatReset(networkListenerService: locator<NetworkListenerService>(), chatBloc: locator<ChatBloc>()),
   );
   locator.registerLazySingleton(
     () => ChatLazyInitSuggestions(

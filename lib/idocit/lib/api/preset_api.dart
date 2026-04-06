@@ -149,7 +149,7 @@ class PresetApi {
   }
 
   /// Get All Presets
-  Future<Object?> getAllPresetsApiPresetsGet() async {
+  Future<PresetsResponse?> getAllPresetsApiPresetsGet() async {
     final response = await getAllPresetsApiPresetsGetWithHttpInfo();
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
@@ -158,7 +158,7 @@ class PresetApi {
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
     if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Object',) as Object;
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'PresetsResponse',) as PresetsResponse;
     
     }
     return null;

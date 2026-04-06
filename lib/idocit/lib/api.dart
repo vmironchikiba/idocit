@@ -94,6 +94,8 @@ part 'model/load_payload.dart';
 part 'model/logout_request.dart';
 part 'model/model.dart';
 part 'model/one_drive_read_files_payload.dart';
+part 'model/preset.dart';
+part 'model/presets_response.dart';
 part 'model/provider.dart';
 part 'model/query_payload.dart';
 part 'model/query_related_category_payload.dart';

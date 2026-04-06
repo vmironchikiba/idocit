@@ -62,7 +62,9 @@ doc/Model.md
 doc/OneDriveReadFilesPayload.md
 doc/OnedriveApi.md
 doc/OpenAIApi.md
+doc/Preset.md
 doc/PresetApi.md
+doc/PresetsResponse.md
 doc/Provider.md
 doc/QueryApi.md
 doc/QueryPayload.md
@@ -163,6 +165,8 @@ lib/model/load_payload.dart
 lib/model/logout_request.dart
 lib/model/model.dart
 lib/model/one_drive_read_files_payload.dart
+lib/model/preset.dart
+lib/model/presets_response.dart
 lib/model/provider.dart
 lib/model/query_payload.dart
 lib/model/query_related_category_payload.dart
@@ -185,4 +189,5 @@ lib/model/validation_error.dart
 lib/model/validation_error_loc_inner.dart
 lib/model/verba_options.dart
 pubspec.yaml
-test/document_chunk_test.dart
+test/preset_test.dart
+test/presets_response_test.dart

@@ -103,7 +103,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **getAllPresetsApiPresetsGet**
-> Object getAllPresetsApiPresetsGet()
+> PresetsResponse getAllPresetsApiPresetsGet()
 
 Get All Presets
 
@@ -128,7 +128,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-[**Object**](Object.md)
+[**PresetsResponse**](PresetsResponse.md)
 
 ### Authorization
 

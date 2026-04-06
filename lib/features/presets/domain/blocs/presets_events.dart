@@ -5,7 +5,7 @@ abstract class PresetsBlocEvent {
 }
 
 class UpdatePresetsEvent extends PresetsBlocEvent {
-  final Object? presets;
+  final PresetsResponse? presets;
 
   UpdatePresetsEvent({required this.presets}) : super([presets]);
 }
