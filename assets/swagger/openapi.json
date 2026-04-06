@@ -1383,7 +1383,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/PresetsResponse"
+                }
               }
             }
           }
@@ -2792,6 +2794,67 @@
   },
   "components": {
     "schemas": {
+      "PresetsResponse": {
+        "type": "object",
+        "properties": {
+          "presets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Preset"
+            }
+          }
+        },
+        "required": [
+          "presets"
+        ]
+      },
+      "Preset": {
+        "type": "object",
+        "properties": {
+          "preset_id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "reader": {
+            "type": "string"
+          },
+          "chunker": {
+            "type": "string"
+          },
+          "units": {
+            "type": "integer"
+          },
+          "overlap": {
+            "type": "integer"
+          },
+          "tenant": {
+            "type": "string"
+          },
+          "input_form": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "preset_id",
+          "name",
+          "description",
+          "reader",
+          "chunker",
+          "units",
+          "overlap",
+          "tenant",
+          "input_form"
+        ]
+      },
       "ChatDeleteSuccess": {
         "type": "object",
         "properties": {

@@ -319,6 +319,7 @@ class _SliderMenuState extends State<SliderMenu> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 FloatingActionButton.small(
+                  heroTag: "scrlUp",
                   onPressed: () => _scrollController.animateTo(
                     _scrollController.position.minScrollExtent,
                     duration: Duration(milliseconds: 500),
@@ -330,6 +331,7 @@ class _SliderMenuState extends State<SliderMenu> {
                 ),
                 SizedBox(height: 10),
                 FloatingActionButton.small(
+                  heroTag: "scrlDown",
                   onPressed: () => _scrollController.animateTo(
                     _scrollController.position.maxScrollExtent,
                     duration: Duration(milliseconds: 500),

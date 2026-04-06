@@ -1,34 +1,26 @@
 import 'package:dartz/dartz.dart';
-import 'dart:convert';
-import 'package:idocit/common/models/api_message.dart';
+import 'package:idocit/common/models/base_api_handler.dart';
 import 'package:idocit/constants/errors.dart';
 import 'package:idocit/constants/strings.dart';
 import 'package:idocit/common/models/service/failure.dart';
 import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/idocit/lib/api.dart';
 
-class DocumentRemoteDataSource {
-  // Future<Either<Failure, List<ChatSummary>>> getChats(UserToken? token, String chatId) async {
+class DocumentRemoteDataSource extends BaseRepository {
   Future<Either<Failure, DocumentResponse>> getDocument(UserToken? token, GetDocumentPayload getDocumentPayload) async {
-    LoggerService.logDebug('IdocItRemoteDataSource -> getChats()})');
+    LoggerService.logDebug('DocumentRemoteDataSource -> getDocument()})');
     if (token == null) return Left(AuthFailure(message: 'No access token', type: AuthErrorType.badTokensData));
+    final authentication = HttpBearerAuth();
+    authentication.accessToken = token.accessToken;
 
-    try {
-      final authentication = HttpBearerAuth();
-      authentication.accessToken = token.accessToken;
-      final document = (await DocumentApi(
+    final result = await makeRequest(
+      () => DocumentApi(
         ApiClient(basePath: StringsConstants.basePath, authentication: authentication),
-      ).getDocumentApiGetDocumentPost(getDocumentPayload));
-      return document == null ? Left(NetworkFailure()) : Right(document);
-    } on ApiException catch (apiException) {
-      ApiMessage? apiMessage;
-      try {
-        Map<String, dynamic> decodedData = jsonDecode(apiException.message ?? '');
-        apiMessage = ApiMessage.fromJson(decodedData);
-      } catch (e) {
-        apiMessage = null;
-      }
-      return Left(ApiFailure(code: apiException.code, apiMessage: apiMessage));
-    }
+      ).getDocumentApiGetDocumentPost(getDocumentPayload),
+    );
+    return result.fold(
+      (failure) => Left(failure),
+      (document) => document == null ? Left(CommonFailure(message: getDocumentPayload.documentId)) : Right(document),
+    );
   }
 }

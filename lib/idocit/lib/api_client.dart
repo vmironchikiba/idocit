@@ -268,6 +268,10 @@ class ApiClient {
           return Model.fromJson(value);
         case 'OneDriveReadFilesPayload':
           return OneDriveReadFilesPayload.fromJson(value);
+        case 'Preset':
+          return Preset.fromJson(value);
+        case 'PresetsResponse':
+          return PresetsResponse.fromJson(value);
         case 'Provider':
           return Provider.fromJson(value);
         case 'QueryPayload':

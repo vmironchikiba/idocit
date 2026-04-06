@@ -424,22 +424,11 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
         ),
       );
 
-      scaffoldMessenger.showSnackBar(getResultSnackBar(shareResult));
+      scaffoldMessenger.showSnackBar(SnackBar(content: Text('${shareResult.status}')));
     } catch (e) {
-      scaffoldMessenger.showSnackBar(SnackBar(content: Text('Error: $e')));
+      scaffoldMessenger.showSnackBar(SnackBar(content: Text('Error: $e'), duration: Duration(seconds: 5)));
     }
   }
-
-  SnackBar getResultSnackBar(ShareResult result) => SnackBar(
-    content: Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text("Share result: ${result.status}"),
-        if (result.status == ShareResultStatus.success) Text("Shared to: ${result.raw}"),
-      ],
-    ),
-  );
 
   Future<void> _openExternalWithUrl(String? url) async {
     if (url == null) return;
@@ -530,6 +519,7 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
       ),
 
       floatingActionButton: FloatingActionButton(
+        heroTag: "refresh",
         onPressed: _refreshSearch,
         tooltip: 'Обновить поиск',
         backgroundColor: ColorConstants.loading,

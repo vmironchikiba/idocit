@@ -29,7 +29,7 @@ class GetAllPresets implements UseCase<Either<Failure, void>, NoParams> {
     final componentsResult = await presetsRemoteDataSource.getAllPresets(token);
     return componentsResult.fold(
       (failure) async {
-        return Left(NetworkFailure());
+        return Left(failure);
       },
       (presets) async {
         presetsBloc.add(UpdatePresetsEvent(presets: presets));

@@ -13,11 +13,16 @@ class CommonFailure extends Failure {
   const CommonFailure({required String message, this.type = CommonErrorType.none}) : super(message);
 }
 
+class AssertionFailure extends Failure {
+  final StackTrace? stack;
+  final Object? object;
+  const AssertionFailure({required String message, this.stack, this.object}) : super(message);
+}
+
 class ApiFailure extends Failure {
   final ApiMessage? apiMessage;
   final int code;
-
-  const ApiFailure({this.apiMessage, required this.code}) : super('api');
+  ApiFailure({this.apiMessage, required this.code}) : super(apiMessage?.statusMessage ?? 'ApiFailure');
 }
 
 class HTTPFailure extends Failure {

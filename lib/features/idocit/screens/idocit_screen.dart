@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:idocit/common/models/service/usecase.dart';
@@ -12,7 +13,6 @@ import 'package:idocit/features/idocit/domain/usecases/idocit_lazy_init_chats.da
 import 'package:idocit/injection_container.dart';
 import 'package:idocit/features/idocit/widget/idocit_chat.dart';
 import 'package:idocit/features/idocit/widget/slider_menu.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_slider_drawer/flutter_slider_drawer.dart';
 
 class IdocItScreen extends StatefulWidget {
@@ -71,16 +71,42 @@ class _IdocItScreenState extends State<IdocItScreen> {
                 sliderOpenSize: width - 50,
                 slider: SliderMenu(
                   onItemClick: (chatId, chatTitle) async {
-                    final reset = await locator<ChaReset>().call(NoParams());
-                    if (reset.isLeft()) return _sliderDrawerKey.currentState?.closeSlider();
-                    final suggestions = await locator<ChatLazyInitSuggestions>().call(NoParams());
-                    if (suggestions.isLeft()) return _sliderDrawerKey.currentState?.closeSlider();
-                    final history = await locator<GetChatHistory>().call(chatId);
-                    final chats = await locator<IdocItLazyInitChats>().call(NoParams());
-                    if (history.isLeft() || chats.isLeft()) return _sliderDrawerKey.currentState?.closeSlider();
                     _sliderDrawerKey.currentState?.closeSlider();
-                    locator<ChatBloc>().add(SetChatTitle(chatTitle: chatTitle));
-                    locator<ChatBloc>().add(SetChatId(chatId: chatId));
+                    final scaffoldMessenger = ScaffoldMessenger.of(context);
+                    final reset = await locator<ChatReset>().call(NoParams());
+                    reset.fold(
+                      (failure) => scaffoldMessenger.showSnackBar(
+                        SnackBar(content: Text(failure.message), duration: Duration(seconds: 5)),
+                      ),
+                      (_) async {
+                        final suggestions = await locator<ChatLazyInitSuggestions>().call(NoParams());
+                        suggestions.fold(
+                          (failure) => scaffoldMessenger.showSnackBar(
+                            SnackBar(content: Text(failure.message), duration: Duration(seconds: 5)),
+                          ),
+                          (_) async {
+                            final history = await locator<GetChatHistory>().call(chatId);
+                            history.fold(
+                              (failure) => scaffoldMessenger.showSnackBar(
+                                SnackBar(content: Text(failure.message), duration: Duration(seconds: 5)),
+                              ),
+                              (_) async {
+                                final chats = await locator<IdocItLazyInitChats>().call(NoParams());
+                                chats.fold(
+                                  (failure) => scaffoldMessenger.showSnackBar(
+                                    SnackBar(content: Text(failure.message), duration: Duration(seconds: 5)),
+                                  ),
+                                  (_) {
+                                    locator<ChatBloc>().add(SetChatTitle(chatTitle: chatTitle));
+                                    locator<ChatBloc>().add(SetChatId(chatId: chatId));
+                                  },
+                                );
+                              },
+                            );
+                          },
+                        );
+                      },
+                    );
                   },
                 ),
                 child: IdocItChat(chatId: chatState.chatId ?? '' /*, chatTitle: chatTitle*/),
