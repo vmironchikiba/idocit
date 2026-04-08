@@ -70,36 +70,56 @@ class _IdocItChatState extends State<IdocItChat> {
     List<String> preMessageArraySpoken = [];
 
     locator<ComponentsInit>().call(NoParams()).then((result) {
-      result.fold((failure) {}, (_) {});
+      if (!mounted) return;
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
+      result.fold(
+        (failure) =>
+            scaffoldMessenger.showSnackBar(SnackBar(content: Text(failure.message), duration: Duration(seconds: 5))),
+        (_) => null,
+      );
     });
 
     locator<ChatLazyInitSuggestions>().call(NoParams());
-    chatStateSubscription = locator<ChatBloc>().stream.listen(((state) {
-      if (locator<TtsBloc>().state.isEnabled && preMessageArray.length != state.preMessageArray.length) {
-        preMessageArraySpoken = preMessageArray;
-        preMessageArray = state.preMessageArray;
-        preMessageArray.removeWhere((element) => preMessageArraySpoken.contains(element));
-        final text = preMessageArray.join(' ');
-        _speak(text);
-      }
+    chatStateSubscription = locator<ChatBloc>().stream.listen(
+      (state) {
+        if (locator<TtsBloc>().state.isEnabled && preMessageArray.length != state.preMessageArray.length) {
+          preMessageArraySpoken = preMessageArray;
+          preMessageArray = state.preMessageArray;
+          preMessageArray.removeWhere((element) => preMessageArraySpoken.contains(element));
+          final text = preMessageArray.join(' ');
+          _speak(text);
+        }
 
-      sttStateSubscription = locator<SttBloc>().stream.listen((sttState) async {
-        if (sttState.speechRecognitionResult?.finalResult == speechRecognitionResult?.finalResult &&
-            sttState.speechRecognitionResult?.recognizedWords == speechRecognitionResult?.recognizedWords) {
-          return;
-        }
-        speechRecognitionResult = sttState.speechRecognitionResult;
-        _controller.text = speechRecognitionResult?.recognizedWords ?? '';
-        if (speechRecognitionResult?.finalResult ?? false) {
-          locator<ChatSuggestionsWithQuery>().call(sttState.speechRecognitionResult?.recognizedWords ?? '');
-        }
-      });
-      _scrollToBottom();
-    }));
-    locator<GetChatHistory>().call(widget.chatId).then((result) {
-      if (result.isRight()) {
+        sttStateSubscription = locator<SttBloc>().stream.listen(
+          (sttState) async {
+            if (sttState.speechRecognitionResult?.finalResult == speechRecognitionResult?.finalResult &&
+                sttState.speechRecognitionResult?.recognizedWords == speechRecognitionResult?.recognizedWords) {
+              return;
+            }
+            speechRecognitionResult = sttState.speechRecognitionResult;
+            _controller.text = speechRecognitionResult?.recognizedWords ?? '';
+            if (speechRecognitionResult?.finalResult ?? false) {
+              locator<ChatSuggestionsWithQuery>().call(sttState.speechRecognitionResult?.recognizedWords ?? '');
+            }
+          },
+          onError: (err) {
+            LoggerService.logDebug('IdocItChat -> stream -> error: ${err.toString()}');
+          },
+        );
         _scrollToBottom();
-      }
+      },
+      onError: (err) {
+        LoggerService.logDebug('IdocItChat -> stream -> error: ${err.toString()}');
+      },
+    );
+    locator<GetChatHistory>().call(widget.chatId).then((result) {
+      if (!mounted) return;
+      result.fold(
+        (failure) => ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(failure.message), duration: Duration(seconds: 5))),
+        (_) => _scrollToBottom(),
+      );
     });
   }
 
@@ -427,18 +447,53 @@ class _IdocItChatState extends State<IdocItChat> {
                                           role: Role.user.asString(),
                                           onDone: (chatId) async {
                                             final reset = await locator<IdocItReset>().call(NoParams());
+                                            reset.fold(
+                                              (failure) => ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(failure.message),
+                                                  duration: Duration(seconds: 5),
+                                                ),
+                                              ),
+                                              (_) => null,
+                                            );
                                             if (reset.isLeft()) return;
                                             locator<ChatBloc>().add(ResetRequestedData());
                                             final history = await locator<GetChatHistory>().call(chatId);
+                                            history.fold(
+                                              (failure) => ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(failure.message),
+                                                  duration: Duration(seconds: 5),
+                                                ),
+                                              ),
+                                              (_) => null,
+                                            );
                                             if (history.isLeft()) return;
                                             final chats = await locator<IdocItLazyInitChats>().call(NoParams());
+                                            chats.fold(
+                                              (failure) => ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(failure.message),
+                                                  duration: Duration(seconds: 5),
+                                                ),
+                                              ),
+                                              (_) => null,
+                                            );
                                             if (chats.isLeft()) return;
                                             locator<ChatsNotifier>().send(ChatsEvent.close);
                                             setState(() {});
                                             LoggerService.logDebug('message');
                                           },
                                         );
-                                        locator<ChatStartCompletionsStream>().call(request);
+                                        locator<ChatStartCompletionsStream>().call(request).then((completion) {
+                                          completion.fold(
+                                            (failure) => ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(content: Text(failure.message), duration: Duration(seconds: 5)),
+                                            ),
+                                            (_) => null,
+                                          );
+                                        });
+
                                         _controller.clear();
                                         locator<ChatSuggestionsReset>().call(NoParams());
                                         _scrollToBottom();

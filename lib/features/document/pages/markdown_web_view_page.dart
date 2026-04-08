@@ -113,11 +113,22 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
             setState(() => _isLoading = false);
           },
           onHttpError: (error) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  "onHttpError: ${error.request?.uri.toString() ?? 'No request'}  ${error.response?.statusCode ?? 'No response'}",
+                ),
+                duration: Duration(seconds: 5),
+              ),
+            );
             LoggerService.logDebug(
               "onHttpError: ${error.request?.uri.toString() ?? 'No request'}  ${error.response?.statusCode ?? 'No response'}",
             );
           },
           onSslAuthError: (error) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("onSslAuthError: ${error.toString()}"), duration: Duration(seconds: 5)),
+            );
             LoggerService.logDebug("onSslAuthError: ${error.toString()}");
           },
           onWebResourceError: (WebResourceError error) async {
@@ -130,6 +141,12 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
             //     // buttonCallback: _onTryAgainHandler,
             //   ),
             // );
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('onWebResourceError: ${error.errorType} - ${error.errorCode} - ${error.description}'),
+                duration: Duration(seconds: 5),
+              ),
+            );
             LoggerService.logDebug(
               'onWebResourceError: ${error.errorType} - ${error.errorCode} - ${error.description}',
             );

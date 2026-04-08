@@ -92,6 +92,6 @@ class DeviceService {
   }
 
   String currentBuildBanner() {
-    return '${currentBuildMode().toStringLabel()} ${_packageInfo.version}';
+    return '${currentBuildMode().toStringLabel()} ${_packageInfo.version}(${_packageInfo.buildNumber})';
   }
 }
