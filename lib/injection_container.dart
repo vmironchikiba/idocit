@@ -51,7 +51,13 @@ import 'package:idocit/features/stt/domain/usecases/stt_lazy_init.dart';
 import 'package:idocit/features/stt/domain/usecases/stt_set_current_options.dart';
 import 'package:idocit/features/stt/domain/usecases/stt_start_stop.dart';
 import 'package:idocit/features/tts/domain/blocs/tts_bloc.dart';
+import 'package:idocit/features/tts/domain/datasources/tts_preferences_storage.dart';
 import 'package:idocit/features/tts/domain/services/tts_service.dart';
+import 'package:idocit/features/tts/domain/usecases/tts_get_enabled.dart';
+import 'package:idocit/features/tts/domain/usecases/tts_set_enabled.dart';
+import 'package:idocit/features/tts/domain/usecases/tts_set_engine.dart';
+import 'package:idocit/features/tts/domain/usecases/tts_set_language.dart';
+import 'package:idocit/features/tts/domain/usecases/tts_set_voice.dart';
 import 'package:idocit/idocit/lib/api.dart';
 
 final locator = GetIt.instance;
@@ -60,10 +66,10 @@ void initLocator() {
   locator.registerLazySingleton(() => CoreBloc(CoreState.initial()));
   locator.registerLazySingleton(() => TtsBloc(TtsState.initial()));
   locator.registerLazySingleton(() => DeviceService());
-  locator.registerLazySingleton(() => TtsService());
+  locator.registerLazySingleton(() => TtsService(deviceService: locator<DeviceService>()));
   locator.registerLazySingleton(() => SttBloc(SttState.initial()));
 
-  locator.registerLazySingleton(() => SttService());
+  locator.registerLazySingleton(() => SttService(deviceService: locator<DeviceService>()));
   locator.registerLazySingleton(() => ThemeProvider());
   locator.registerLazySingleton(() => ChatsNotifier());
   locator.registerLazySingleton(() => CharlesProvider());
@@ -116,6 +122,7 @@ void initLocator() {
       networkListenerService: locator<NetworkListenerService>(),
       chatBloc: locator<ChatBloc>(),
       authBloc: locator<AuthBloc>(),
+      ttsService: locator<TtsService>(),
     ),
   );
   locator.registerLazySingleton(() => AuthBloc(AuthState.initial()));
@@ -130,13 +137,47 @@ void initLocator() {
     ),
   );
   locator.registerLazySingleton(() => NavigatorService());
-  // locator.registerLazySingleton(
-  //   () => AuthGetUserData(
-  //     networkListenerService: locator<NetworkListenerService>(),
-  //     authBloc: locator<AuthBloc>(),
-  //     authRemoteDataSource: locator<AuthRemoteDataSource>(),
-  //   ),
-  // );
+  locator.registerLazySingleton(
+    () => TtsSetEnabled(
+      networkListenerService: locator<NetworkListenerService>(),
+      ttsBloc: locator<TtsBloc>(),
+      ttsPreferencesStorage: locator<TtsPreferencesStorage>(),
+    ),
+  );
+  locator.registerLazySingleton(
+    () => TtsGetEnabled(
+      networkListenerService: locator<NetworkListenerService>(),
+      ttsBloc: locator<TtsBloc>(),
+      ttsPreferencesStorage: locator<TtsPreferencesStorage>(),
+    ),
+  );
+
+  locator.registerLazySingleton(
+    () => TtsSetLanguage(
+      networkListenerService: locator<NetworkListenerService>(),
+      ttsBloc: locator<TtsBloc>(),
+      ttsService: locator<TtsService>(),
+      ttsPreferencesStorage: locator<TtsPreferencesStorage>(),
+    ),
+  );
+  locator.registerLazySingleton(
+    () => TtsSetEngine(
+      networkListenerService: locator<NetworkListenerService>(),
+      ttsBloc: locator<TtsBloc>(),
+      ttsService: locator<TtsService>(),
+      ttsPreferencesStorage: locator<TtsPreferencesStorage>(),
+    ),
+  );
+  locator.registerLazySingleton(
+    () => TtsSetVoice(
+      networkListenerService: locator<NetworkListenerService>(),
+      ttsBloc: locator<TtsBloc>(),
+      ttsService: locator<TtsService>(),
+      ttsPreferencesStorage: locator<TtsPreferencesStorage>(),
+    ),
+  );
+
+  locator.registerLazySingleton(() => TtsPreferencesStorage());
   locator.registerLazySingleton(() => ApiClient(basePath: 'https://ai-assistant.ibagroupit.com/idocit'));
   locator.registerLazySingleton(() => AuthApi(locator<ApiClient>()));
   locator.registerLazySingleton(() => UsersApi(locator<ApiClient>()));

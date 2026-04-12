@@ -6,10 +6,11 @@ class TtsVoice extends Equatable {
   final String quality;
 
   const TtsVoice({required this.name, required this.locale, required this.quality});
-  factory TtsVoice.fromJson(Map<String, dynamic> json) {
+  factory TtsVoice.fromJson(Map<dynamic, dynamic> json) {
     return TtsVoice(name: json['name'], locale: json['locale'], quality: json['quality']);
   }
   static TtsVoice get nullVoice => TtsVoice(name: '', locale: '', quality: '');
+  TtsVoice? get optional => this == TtsVoice.nullVoice ? null : this;
 
   Map<String, String> toJson() {
     final json = <String, String>{};

@@ -11,6 +11,7 @@ import 'package:idocit/injection_container.dart';
 import 'package:markdown/markdown.dart' as md;
 import 'package:idocit/common/services/logger.dart';
 
+// ignore: must_be_immutable
 class MarkdownInAppWebViewPage extends StatefulWidget {
   final KnowledgeData knowledge;
   MarkdownInAppWebViewPage({super.key, required this.knowledge});
@@ -28,7 +29,6 @@ class _MarkdownInAppWebViewPageState extends State<MarkdownInAppWebViewPage> {
   InAppWebViewController? webViewController;
   final GlobalKey webViewKey = GlobalKey();
   double progress = 0;
-  bool _isLoading = true;
   String _htmlTemplate = '';
   late String _textFromChunks;
   late String _currentSearchQuery = '';

@@ -14,6 +14,7 @@ class TtsState {
   final TtsVoice? defaultVoice;
   final TtsVoice? currentVoice;
   final String? voiceText;
+  final TtsLanguage? currentLanguage;
   const TtsState({
     required this.isEnabled,
     required this.ttsState,
@@ -28,6 +29,7 @@ class TtsState {
     required this.defaultVoice,
     required this.currentVoice,
     required this.voiceText,
+    required this.currentLanguage,
   });
 
   factory TtsState.initial() {
@@ -45,6 +47,7 @@ class TtsState {
       defaultVoice: null,
       currentVoice: null,
       voiceText: null,
+      currentLanguage: null,
     );
   }
 
@@ -62,6 +65,7 @@ class TtsState {
     TtsVoice? defaultVoice,
     TtsVoice? currentVoice,
     String? voiceText,
+    TtsLanguage? currentLanguage,
   }) {
     return TtsState(
       isEnabled: isEnabled ?? this.isEnabled,
@@ -77,6 +81,33 @@ class TtsState {
       defaultVoice: defaultVoice ?? this.defaultVoice,
       currentVoice: currentVoice ?? this.currentVoice,
       voiceText: voiceText ?? this.voiceText,
+      currentLanguage: currentLanguage ?? this.currentLanguage,
+    );
+  }
+
+  TtsState reset({
+    bool defaultEngine = false,
+    bool currentEngine = false,
+    bool defaultVoice = false,
+    bool currentVoice = false,
+    bool voiceText = false,
+    bool currentLanguage = false,
+  }) {
+    return TtsState(
+      isEnabled: isEnabled,
+      ttsState: ttsState,
+      volume: volume,
+      pitch: pitch,
+      rate: rate,
+      engines: engines,
+      languages: languages,
+      voices: voices,
+      defaultEngine: defaultEngine ? null : this.defaultEngine,
+      currentEngine: currentEngine ? null : this.currentEngine,
+      defaultVoice: defaultVoice ? null : this.defaultVoice,
+      currentVoice: currentVoice ? null : this.currentVoice,
+      voiceText: voiceText ? null : this.voiceText,
+      currentLanguage: currentLanguage ? null : this.currentLanguage,
     );
   }
 }

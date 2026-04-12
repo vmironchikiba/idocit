@@ -32,7 +32,7 @@ class IdocItTextInputField extends StatefulWidget {
   final VoidCallback? onClear;
 
   const IdocItTextInputField({
-    Key? key,
+    super.key,
     required this.controller,
     this.labelText,
     this.hintText,
@@ -65,8 +65,7 @@ class IdocItTextInputField extends StatefulWidget {
     this.onFocusChange,
     this.onClear,
   }) : assert(maxLength >= 0),
-       assert(maxLines >= 1),
-       super(key: key);
+       assert(maxLines >= 1);
 
   @override
   State<IdocItTextInputField> createState() => _IdocItTextInputFieldState();
@@ -251,7 +250,7 @@ class _IdocItTextInputFieldState extends State<IdocItTextInputField> with Widget
       duration: _defaultInfoSectionDuration,
       padding: EdgeInsets.symmetric(vertical: _isFocused ? 0.0 : 10.0, horizontal: _isFocused ? 0.0 : 12.0),
       decoration: BoxDecoration(
-        color: _isFocused ? null : ColorConstants.red500.withOpacity(0.2),
+        color: _isFocused ? null : ColorConstants.red500.withValues(alpha: 0.2),
         borderRadius: const BorderRadius.all(Radius.circular(8.0)),
       ),
       child: AnimatedDefaultTextStyle(
@@ -320,14 +319,23 @@ class _IdocItTextInputFieldState extends State<IdocItTextInputField> with Widget
                           IdocItImageButton(
                             image: SvgPicture.asset(
                               ImageConstants.icTextFieldEye,
-                              color: _getServiceIconColor(isProtectedIcon: true),
+                              colorFilter: ColorFilter.mode(
+                                _getServiceIconColor(isProtectedIcon: true) ?? ColorConstants.transparent,
+                                BlendMode.srcIn,
+                              ),
                             ),
                             callback: _onToggleObscureHandler,
                           ),
                         if (widget.isValidField) ...[
                           const SizedBox(width: 4.0),
                           IdocItImageButton(
-                            image: SvgPicture.asset(ImageConstants.icTextFieldOk, color: _getServiceIconColor()),
+                            image: SvgPicture.asset(
+                              ImageConstants.icTextFieldOk,
+                              colorFilter: ColorFilter.mode(
+                                _getServiceIconColor() ?? ColorConstants.transparent,
+                                BlendMode.srcIn,
+                              ),
+                            ),
                             callback: () {},
                           ),
                         ],
@@ -442,7 +450,7 @@ class _InputFieldLabel extends StatefulWidget {
   final bool isOnTopPosition;
 
   const _InputFieldLabel({
-    Key? key,
+    super.key,
     required this.labelText,
     required this.isLabelShownOnTop,
     required this.isOptionalField,
@@ -454,7 +462,7 @@ class _InputFieldLabel extends StatefulWidget {
     required this.textStyle,
     required this.onTap,
     required this.isOnTopPosition,
-  }) : super(key: key);
+  });
 
   @override
   State<_InputFieldLabel> createState() => _InputFieldLabelState();
@@ -546,7 +554,9 @@ class _InputFieldLabelState extends State<_InputFieldLabel> {
                     text: '*',
                     style: TextStyle(
                       height: 1.0,
-                      color: widget.isLabelShownOnTop ? ColorConstants.red500 : ColorConstants.red500.withOpacity(0.5),
+                      color: widget.isLabelShownOnTop
+                          ? ColorConstants.red500
+                          : ColorConstants.red500.withValues(alpha: 0.5),
                     ),
                   ),
               ],
@@ -567,7 +577,7 @@ class _InputFieldHint extends StatefulWidget {
   final VoidCallback onTap;
 
   const _InputFieldHint({
-    Key? key,
+    super.key,
     required this.hintText,
     required this.isOptionalField,
     required this.isFieldEmpty,
@@ -576,7 +586,7 @@ class _InputFieldHint extends StatefulWidget {
     required this.suffixIconSize,
     required this.duration,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   State<_InputFieldHint> createState() => _InputFieldHintState();

@@ -19,7 +19,7 @@ class TtsLazyInit implements UseCase<Either<Failure, void>, NoParams> {
     if (!await networkListenerService.checkNetworkConnection(() => call(params))) {
       return const Left(NetworkFailure());
     }
-    ttsService.initTts();
+    await ttsService.init();
 
     return Right(null);
   }

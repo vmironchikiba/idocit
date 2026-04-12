@@ -11,19 +11,29 @@ import 'package:idocit/features/chat/domain/bloc/chat_bloc.dart';
 import 'package:idocit/features/chat/domain/models/completions_request.dart';
 import 'package:idocit/features/chat/domain/datasources/open_ai_stream_api.dart';
 import 'package:idocit/features/chat/domain/models/query_response.dart';
+import 'package:idocit/features/tts/domain/blocs/tts_bloc.dart';
+import 'package:idocit/features/tts/domain/services/tts_service.dart';
+import 'package:idocit/injection_container.dart';
 
 class ChatStartCompletionsStream implements UseCase<Either<Failure, void>, CompletionRequest> {
   final NetworkListenerService networkListenerService;
   final ChatBloc chatBloc;
   final AuthBloc authBloc;
-  var buffer = '';
+  final TtsService ttsService;
+  var _buffer = '';
   var previewBuffer = '';
   var chatId = '';
+  String get remainingBuffer => _buffer;
   // final List<String> preMessageArray = [];
   // String? traceId;
   // QueryResponse? queryResponse;
 
-  ChatStartCompletionsStream({required this.networkListenerService, required this.chatBloc, required this.authBloc});
+  ChatStartCompletionsStream({
+    required this.networkListenerService,
+    required this.chatBloc,
+    required this.authBloc,
+    required this.ttsService,
+  });
 
   @override
   Future<Either<Failure, void>> call(CompletionRequest request) async {
@@ -51,10 +61,18 @@ class ChatStartCompletionsStream implements UseCase<Either<Failure, void>, Compl
             final delta = Delta.fromJson(choice.delta);
             final content = delta.content;
             final toolCalls = delta.toolCalls ?? [];
-            if (content != null) {
-              buffer += content.replaceAll('\n', ' ');
+
+            if (locator<TtsBloc>().state.isEnabled && content != null) {
+              final sentences = addChunk(content);
+              for (final sentence in sentences) {
+                LoggerService.logDebug('🎤 Озвучиваем: "$sentence"');
+                ttsService.speak(sentence);
+                // await tts.speak(sentence);
+              }
               previewBuffer += content;
+              // _buffer += content.replaceAll('\n', ' ');
             }
+
             final toolCall = toolCalls.isNotEmpty ? ToolCall.fromJson(toolCalls.first) : null;
             final arguments = toolCall?.function?.arguments;
             final updates = arguments?.updatesPayload;
@@ -98,4 +116,107 @@ class ChatStartCompletionsStream implements UseCase<Either<Failure, void>, Compl
     chatBloc.add(AddCompletionRequest(completionRequest: request));
     return Right(null);
   }
+
+  List<String> addChunk(String chunk) {
+    // 1. Заменяем переносы строк на пробелы (как в React)
+    _buffer += chunk.replaceAll('\n', ' ');
+
+    final List<String> completedSentences = [];
+
+    // 2. Ищем границы предложений вручную
+    int lastCutPosition = 0;
+
+    for (int i = 0; i < _buffer.length; i++) {
+      final char = _buffer[i];
+
+      // Проверяем, является ли символ концом предложения
+      if (char == '.' || char == '!' || char == '?') {
+        // Смотрим, что после знака
+        if (i + 1 < _buffer.length) {
+          final nextChar = _buffer[i + 1];
+          // Если после знака пробел - это граница предложения
+          if (nextChar == ' ') {
+            // Забираем предложение ВКЛЮЧАЯ знак пунктуации
+            final sentence = _buffer.substring(lastCutPosition, i + 1);
+            completedSentences.add(sentence);
+            lastCutPosition = i + 2; // Пропускаем знак + пробел
+            i++; // Дополнительный шаг, чтобы не обрабатывать пробел
+          }
+        } else {
+          // Знак в конце строки - возможно, ещё не завершено
+          // Не добавляем в completed, оставляем в буфере
+          break;
+        }
+      }
+    }
+
+    // 3. Оставляем незаконченную часть в буфере (как в React)
+    if (lastCutPosition < _buffer.length) {
+      _buffer = _buffer.substring(lastCutPosition);
+    } else {
+      _buffer = '';
+    }
+
+    return completedSentences;
+  }
+
+  void reset() {
+    _buffer = '';
+  }
+}
+
+class TTSSentenceSplitter {
+  String _buffer = '';
+
+  /// Добавляет новый чанк и возвращает список законченных предложений
+  List<String> addChunk(String chunk) {
+    // 1. Заменяем переносы строк на пробелы (как в React)
+    _buffer += chunk.replaceAll('\n', ' ');
+
+    final List<String> completedSentences = [];
+
+    // 2. Ищем границы предложений вручную
+    int lastCutPosition = 0;
+
+    for (int i = 0; i < _buffer.length; i++) {
+      final char = _buffer[i];
+
+      // Проверяем, является ли символ концом предложения
+      if (char == '.' || char == '!' || char == '?') {
+        // Смотрим, что после знака
+        if (i + 1 < _buffer.length) {
+          final nextChar = _buffer[i + 1];
+          // Если после знака пробел - это граница предложения
+          if (nextChar == ' ') {
+            // Забираем предложение ВКЛЮЧАЯ знак пунктуации
+            final sentence = _buffer.substring(lastCutPosition, i + 1);
+            completedSentences.add(sentence);
+            lastCutPosition = i + 2; // Пропускаем знак + пробел
+            i++; // Дополнительный шаг, чтобы не обрабатывать пробел
+          }
+        } else {
+          // Знак в конце строки - возможно, ещё не завершено
+          // Не добавляем в completed, оставляем в буфере
+          break;
+        }
+      }
+    }
+
+    // 3. Оставляем незаконченную часть в буфере (как в React)
+    if (lastCutPosition < _buffer.length) {
+      _buffer = _buffer.substring(lastCutPosition);
+    } else {
+      _buffer = '';
+    }
+
+    return completedSentences;
+  }
+
+  /// Сбрасывает буфер (при ошибке или завершении потока)
+  void reset() {
+    _buffer = '';
+  }
+
+  /// Возвращает текущий буфер (для отладки)
+  String get remainingBuffer => _buffer;
 }

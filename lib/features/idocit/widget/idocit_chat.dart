@@ -6,7 +6,6 @@ import 'package:idocit/common/models/service/usecase.dart';
 import 'package:idocit/common/providers/chats_notifier.dart';
 import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/common/utils/dialogs.dart';
-import 'package:idocit/common/widgets/buttons/long_press_button.dart';
 import 'package:idocit/common/widgets/dialogs/warning_dialog.dart';
 import 'package:idocit/common/widgets/indicators/loading_indicator.dart';
 import 'package:idocit/common/widgets/input_fields/text_input_field.dart';
@@ -436,7 +435,7 @@ class _IdocItChatState extends State<IdocItChat> {
                                   ? MicrophoneWidget(
                                       onPressed: () async => await locator<SttStartStop>().call(SttActions.stop),
                                     )
-                                  : LongPressButton(
+                                  : InkWell(
                                       onTap: () {
                                         FocusScope.of(context).unfocus();
                                         final request = CompletionRequest(
@@ -513,8 +512,19 @@ class _IdocItChatState extends State<IdocItChat> {
                                           _localsPresented = !_localsPresented;
                                         });
                                       },
-                                      isPresented: _localsPresented,
-                                      isStarted: sttState.isStarted,
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(vertical: 14.0, horizontal: 7),
+                                        child: Icon(
+                                          _localsPresented
+                                              ? sttState.isStarted
+                                                    ? Icons.mic_off_outlined
+                                                    : Icons.mic_none
+                                              : Icons.send,
+                                          color: ColorConstants.white500,
+                                        ),
+                                      ),
+                                      // isPresented: _localsPresented,
+                                      // isStarted: sttState.isStarted,
                                     ),
                             ],
                           );

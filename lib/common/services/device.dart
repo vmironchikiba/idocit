@@ -1,7 +1,10 @@
 import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:devicelocale/devicelocale.dart';
 
 enum BuildMode { dev, prod }
 
@@ -40,6 +43,10 @@ class DeviceService {
   static const _devIsi = 'TODO';
   static const _prodIsi = 'TODO';
 
+  bool isLanguagePerAppSettingSupported = false;
+  List<dynamic> preferredLanguages = [];
+  String? currentLocale;
+
   PackageInfo get packageInfo => _packageInfo;
   bool get isRunOnPhysicalDevice => _isPhysicalDevice;
 
@@ -56,7 +63,30 @@ class DeviceService {
     } else {
       _isPhysicalDevice = true;
     }
+
+    isLanguagePerAppSettingSupported = await _isLanguagePerAppSettingSupported();
+    preferredLanguages = await _preferredLanguages();
+    currentLocale = await _currentLocale();
   }
+
+  Future<String?> _currentLocale() async {
+    try {
+      return await Devicelocale.currentLocale;
+    } on PlatformException {
+      return null;
+    }
+  }
+
+  Future<List<dynamic>> _preferredLanguages() async {
+    try {
+      return await Devicelocale.preferredLanguages ?? [];
+    } on PlatformException {
+      return [];
+    }
+  }
+
+  Future<bool> _isLanguagePerAppSettingSupported() => Devicelocale.isLanguagePerAppSettingSupported;
+  Future<void> setLanguagePerApp(Locale locale) => Devicelocale.setLanguagePerApp(locale);
 
   Future<String> getPackageName() async => (await PackageInfo.fromPlatform()).packageName;
   Future<String> getPackageVersion() async => (await PackageInfo.fromPlatform()).version;
