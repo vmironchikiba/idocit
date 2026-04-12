@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:idocit/common/models/service/failure.dart';
+import 'package:idocit/common/services/device.dart';
 import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/features/stt/domain/blocs/stt_bloc.dart';
 import 'package:idocit/features/stt/domain/models/enums/stt_status.dart';
@@ -11,6 +12,7 @@ import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
 class SttService {
+  final DeviceService deviceService;
   final SpeechToText speech = SpeechToText();
   bool _hasSpeech = false;
   bool get hasSpeech => _hasSpeech;
@@ -20,7 +22,7 @@ class SttService {
 
   SttBloc sttBloc = locator<SttBloc>();
 
-  SttService();
+  SttService({required this.deviceService});
 
   Future<void> initSpeechState({required final SpeechToTextConfig currentOptions}) async {
     LoggerService.logDebug('Initialize');

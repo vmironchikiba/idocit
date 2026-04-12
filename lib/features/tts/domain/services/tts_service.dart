@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:idocit/common/services/device.dart';
 import 'package:idocit/common/services/logger.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:idocit/features/tts/domain/blocs/tts_bloc.dart';
@@ -12,6 +13,7 @@ import 'package:idocit/features/tts/domain/enums/tts_state_enum.dart';
 import 'package:idocit/injection_container.dart';
 
 class TtsService {
+  final DeviceService deviceService;
   // late FlutterTts flutterTts;
   // TtsStateEnum ttsState = TtsStateEnum.stopped;
   List<String?> rawEngines = [];
@@ -54,28 +56,47 @@ class TtsService {
 
   bool get isAndroid => !kIsWeb && Platform.isAndroid;
 
-  TtsService() {
-    initTts();
-  }
+  TtsService({required this.deviceService});
 
-  void initTts() {
-    tts.awaitSpeakCompletion(true).then((onValue) {
-      tts.setStartHandler(() => locator<TtsBloc>().add(UpdateTtsState(ttsState: TtsStateEnum.playing)));
-      tts.setCompletionHandler(() => locator<TtsBloc>().add(UpdateTtsState(ttsState: TtsStateEnum.stopped)));
-      tts.setCancelHandler(() => locator<TtsBloc>().add(UpdateTtsState(ttsState: TtsStateEnum.stopped)));
-      tts.setPauseHandler(() => locator<TtsBloc>().add(UpdateTtsState(ttsState: TtsStateEnum.paused)));
-      tts.setContinueHandler(() => locator<TtsBloc>().add(UpdateTtsState(ttsState: TtsStateEnum.continued)));
-      tts.setErrorHandler((msg) {
-        LoggerService.logDebug(msg);
-        locator<TtsBloc>().add(UpdateTtsState(ttsState: TtsStateEnum.stopped));
-      });
+  Future<void> init() async {
+    final _ = await tts.awaitSpeakCompletion(true);
+    tts.setStartHandler(() => locator<TtsBloc>().add(UpdateTtsState(ttsState: TtsStateEnum.playing)));
+    tts.setCompletionHandler(() => locator<TtsBloc>().add(UpdateTtsState(ttsState: TtsStateEnum.stopped)));
+    tts.setCancelHandler(() => locator<TtsBloc>().add(UpdateTtsState(ttsState: TtsStateEnum.stopped)));
+    tts.setPauseHandler(() => locator<TtsBloc>().add(UpdateTtsState(ttsState: TtsStateEnum.paused)));
+    tts.setContinueHandler(() => locator<TtsBloc>().add(UpdateTtsState(ttsState: TtsStateEnum.continued)));
+    tts.setErrorHandler((msg) {
+      LoggerService.logDebug(msg);
+      locator<TtsBloc>().add(UpdateTtsState(ttsState: TtsStateEnum.stopped));
     });
   }
 
-  Future<dynamic> getEnginesTts() async => await tts.getEngines;
-  Future<dynamic> getVoicesTts() async => await tts.getVoices;
-  Future<dynamic> getLanguagesTts() async => await tts.getLanguages;
-  Future<dynamic> getDefaultEngineTts() async => await tts.getDefaultEngine;
+  Future<dynamic> getEnginesTts() async {
+    final engines = await tts.getEngines as List;
+    final enginesTts = engines.map((engine) => TtsEngine(engine)).toList();
+    locator<TtsBloc>().add(UpdateTtsEngines(engines: enginesTts));
+    return engines;
+  }
+
+  Future<dynamic> getVoicesTts() async {
+    final voices = await tts.getVoices as List;
+    final voicesTts = voices.map((voice) => TtsVoice.fromJson(voice)).toList();
+    locator<TtsBloc>().add(UpdateTtsVoices(voices: voicesTts));
+    return voices;
+  }
+
+  Future<dynamic> getLanguagesTts() async {
+    final languages = await tts.getLanguages as List;
+    locator<TtsBloc>().add(UpdateTtsLanguages(languages: languages.map((code) => TtsLanguage(code)).toList()));
+    return languages;
+  }
+
+  Future<dynamic> getDefaultEngineTts() async {
+    final defaultEngine = await tts.getDefaultEngine as String;
+    locator<TtsBloc>().add(UpdateTtsDefaultEngine(defaultEngine: TtsEngine(defaultEngine)));
+    return defaultEngine;
+  }
+
   Future<dynamic> getDefaultVoiceTts() async => await tts.getDefaultVoice;
   Future<dynamic> getMaxSpeechInputLengthTts() async => tts.getMaxSpeechInputLength;
 

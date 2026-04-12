@@ -13,7 +13,7 @@ class ScaffoldWrapper extends StatelessWidget {
   final bool resizeToAvoidBottomInset;
 
   const ScaffoldWrapper({
-    Key? key,
+    super.key,
     required this.child,
     this.appBar,
     this.bottomNavigationBar,
@@ -21,7 +21,7 @@ class ScaffoldWrapper extends StatelessWidget {
     this.withSafeArea = true,
     this.isBlocked = false,
     this.resizeToAvoidBottomInset = false,
-  }) : super(key: key);
+  });
 
   // Future<bool> _onWillPopCallback() async {
   //   return false;

@@ -38,14 +38,20 @@ class TtsBloc extends Bloc<TtsBlocEvent, TtsState> {
       emit(state.update(defaultEngine: event.defaultEngine));
     });
     on<UpdateTtsCurrentEngine>((event, emit) {
-      emit(state.update(currentEngine: event.currentEngine));
+      emit(
+        event.currentEngine == null
+            ? state.reset(currentEngine: true)
+            : state.update(currentEngine: event.currentEngine),
+      );
     });
 
     on<UpdateTtsDefaultVoice>((event, emit) {
       emit(state.update(defaultVoice: event.defaultVoice));
     });
     on<UpdateTtsCurrentVoice>((event, emit) {
-      emit(state.update(currentVoice: event.currentVoice));
+      emit(
+        event.currentVoice == null ? state.reset(currentVoice: true) : state.update(currentVoice: event.currentVoice),
+      );
     });
 
     on<UpdateTtsLanguages>((event, emit) {
@@ -54,6 +60,13 @@ class TtsBloc extends Bloc<TtsBlocEvent, TtsState> {
 
     on<UpdateTtsVoiceText>((event, emit) {
       emit(state.update(voiceText: event.voiceText));
+    });
+    on<UpdateTtsCurrentLanguage>((event, emit) {
+      emit(
+        event.currentLanguage == null
+            ? state.reset(currentLanguage: true)
+            : state.update(currentLanguage: event.currentLanguage),
+      );
     });
 
     on<SignOutCoreEvent>((event, emit) {

@@ -54,7 +54,14 @@ class _SliderMenuState extends State<SliderMenu> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkScrollNeeded();
     });
-    locator<IdocItLazyInitChats>().call(NoParams()).then((onValue) {
+    locator<IdocItLazyInitChats>().call(NoParams()).then((chats) {
+      if (!mounted) return;
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
+      chats.fold(
+        (failure) =>
+            scaffoldMessenger.showSnackBar(SnackBar(content: Text(failure.message), duration: Duration(seconds: 5))),
+        (_) => null,
+      );
       setState(() {
         _isRequestInProgress = false;
       });
@@ -72,11 +79,12 @@ class _SliderMenuState extends State<SliderMenu> {
     });
   }
 
-  Future<void> _onRefresh() async {
+  Future<void> _onRefresh(BuildContext context) async {
     setState(() {
       _isRequestInProgress = true;
     });
-    await locator<IdocItLazyInitChats>().call(NoParams());
+    final chats = await locator<IdocItLazyInitChats>().call(NoParams());
+    chats.fold((failure) {}, (_) => null);
 
     setState(() {
       _isRequestInProgress = false;
@@ -116,8 +124,8 @@ class _SliderMenuState extends State<SliderMenu> {
           builder: (chatContext, chatState) {
             return BlocBuilder<IdocItBloc, IdocItState>(
               buildWhen: (previous, current) => previous.chats.hashCode != current.chats.hashCode,
-              builder: (context, state) {
-                final chatsButtons = state.chats.map((chat) {
+              builder: (iDocItContext, iDocItState) {
+                final chatsButtons = iDocItState.chats.map((chat) {
                   return AnimatedSwitcher(
                     duration: const Duration(milliseconds: 300),
                     transitionBuilder: (child, animation) {
@@ -160,8 +168,21 @@ class _SliderMenuState extends State<SliderMenu> {
                                       _isChatInProgressId = chat.id;
                                     });
 
-                                    await locator<IdocItDeleteChat>().call(chat.id);
-                                    await locator<IdocItLazyInitChats>().call(NoParams());
+                                    final delete = await locator<IdocItDeleteChat>().call(chat.id);
+                                    delete.fold(
+                                      (failure) => ScaffoldMessenger.of(iDocItContext).showSnackBar(
+                                        SnackBar(content: Text(failure.message), duration: Duration(seconds: 5)),
+                                      ),
+                                      (_) => null,
+                                    );
+
+                                    final chats = await locator<IdocItLazyInitChats>().call(NoParams());
+                                    chats.fold(
+                                      (failure) => ScaffoldMessenger.of(iDocItContext).showSnackBar(
+                                        SnackBar(content: Text(failure.message), duration: Duration(seconds: 5)),
+                                      ),
+                                      (_) => null,
+                                    );
 
                                     setState(() {
                                       _isChatInProgress = false;
@@ -187,7 +208,7 @@ class _SliderMenuState extends State<SliderMenu> {
                   // Добавлен Material виджет как предок для ListTile
                   color: ColorConstants.black300,
                   child: RefreshIndicator(
-                    onRefresh: _onRefresh,
+                    onRefresh: () => _onRefresh(iDocItContext),
                     child: _isRequestInProgress
                         ? Center(child: IdocItLoadingIndicator())
                         : ListView(
@@ -289,8 +310,11 @@ class _SliderMenuState extends State<SliderMenu> {
                                                 setState(() {
                                                   _isNewChatAdded = false;
                                                 });
-                                                if (state.chats.isEmpty || widget.onItemClick == null) return;
-                                                widget.onItemClick!(state.chats.first.id, state.chats.first.title);
+                                                if (iDocItState.chats.isEmpty || widget.onItemClick == null) return;
+                                                widget.onItemClick!(
+                                                  iDocItState.chats.first.id,
+                                                  iDocItState.chats.first.title,
+                                                );
                                               },
                                               borderRadius: BorderRadius.circular(4),
                                               child: const Padding(

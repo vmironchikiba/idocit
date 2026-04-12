@@ -38,10 +38,10 @@ class _IdocItScreenState extends State<IdocItScreen> {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     return BlocBuilder<AuthBloc, AuthState>(
-      builder: (_, authState) {
+      builder: (authContext, authState) {
         return BlocBuilder<ChatBloc, ChatState>(
           buildWhen: (p, c) => p.chatId != c.chatId || p.chatTitle != c.chatTitle,
-          builder: (context, chatState) {
+          builder: (chatContext, chatState) {
             return SafeArea(
               child: SliderDrawer(
                 key: _sliderDrawerKey,
@@ -72,13 +72,14 @@ class _IdocItScreenState extends State<IdocItScreen> {
                 slider: SliderMenu(
                   onItemClick: (chatId, chatTitle) async {
                     _sliderDrawerKey.currentState?.closeSlider();
-                    final scaffoldMessenger = ScaffoldMessenger.of(context);
+                    final scaffoldMessenger = ScaffoldMessenger.of(chatContext);
                     final reset = await locator<ChatReset>().call(NoParams());
                     reset.fold(
                       (failure) => scaffoldMessenger.showSnackBar(
                         SnackBar(content: Text(failure.message), duration: Duration(seconds: 5)),
                       ),
                       (_) async {
+                        FocusScope.of(chatContext).unfocus();
                         final suggestions = await locator<ChatLazyInitSuggestions>().call(NoParams());
                         suggestions.fold(
                           (failure) => scaffoldMessenger.showSnackBar(

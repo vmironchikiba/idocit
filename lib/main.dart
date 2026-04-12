@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:idocit/common/blocs/core_bloc.dart';
@@ -28,6 +29,7 @@ import 'package:idocit/features/stt/domain/blocs/stt_bloc.dart';
 import 'package:idocit/features/stt/domain/models/speech_to_text_config.dart';
 import 'package:idocit/features/stt/domain/usecases/stt_lazy_init.dart';
 import 'package:idocit/features/tts/domain/blocs/tts_bloc.dart';
+import 'package:idocit/features/tts/domain/services/tts_service.dart';
 import 'package:idocit/injection_container.dart';
 import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -38,6 +40,7 @@ import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
 
@@ -46,6 +49,7 @@ void main() async {
   }
   initLocator();
   await locator<DeviceService>().init();
+  await locator<TtsService>().init();
   await AbstractSharedPreferencesDatasource.init();
   Future.wait([AbstractSharedPreferencesDatasource.init()]);
   runApp(const IDocItApp());

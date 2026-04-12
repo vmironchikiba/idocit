@@ -69,6 +69,11 @@ class UpdateTtsVoiceText extends TtsBlocEvent {
   UpdateTtsVoiceText({required this.voiceText}) : super([voiceText]);
 }
 
+class UpdateTtsCurrentLanguage extends TtsBlocEvent {
+  final TtsLanguage? currentLanguage;
+  UpdateTtsCurrentLanguage({required this.currentLanguage}) : super([currentLanguage]);
+}
+
 class SignOutCoreEvent extends TtsBlocEvent {
   SignOutCoreEvent() : super();
 }
