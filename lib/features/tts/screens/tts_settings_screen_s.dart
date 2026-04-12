@@ -34,20 +34,15 @@ class TtsSettingsScreen extends StatefulWidget {
 
 class TtsSettingsScreenState extends State<TtsSettingsScreen> {
   final ttsService = locator<TtsService>();
-  List<String?> rawEngines = [];
-  List<TtsEngine?> rawEnginesTts = [];
-  List<DropdownMenuItem<String?>> engineItems = [];
-  List<DropdownMenuItem<TtsEngine?>> engineItemsTts = [];
+  List<TtsEngine?> rawEngines = [];
+  List<DropdownMenuItem<TtsEngine?>> engineItems = [];
   String? engine;
-  List<Map<String, String>?> rawVoices = [];
-  List<TtsVoice> rawVoicesTts = [];
-  List<DropdownMenuItem<Map<String, String>?>> voiceItems = [];
-  List<DropdownMenuItem<TtsVoice?>> voiceItemsTts = [];
+  List<TtsVoice> rawVoices = [];
+  List<DropdownMenuItem<TtsVoice?>> voiceItems = [];
   Completer<void> _voiceDataReadyCompleter = Completer<void>();
   bool getDefaultVoiceRetried = false;
   List<String?> rawLanguages = [];
-  List<DropdownMenuItem<String?>> languageItems = [];
-  List<DropdownMenuItem<TtsLanguage?>> languageItemsTts = [];
+  List<DropdownMenuItem<TtsLanguage?>> languageItems = [];
   double volume = 0.8;
   double pitch = 1.0;
   double rate = !kIsWeb ? 0.5 : 0.9;
@@ -62,25 +57,25 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
   @override
   initState() {
     super.initState();
-    init();
+    initTts();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _getDefaults(); // invoked after initial build of context is complete
     });
   }
 
   // from initState()
-  void init() {
+  void initTts() {
     locator<TtsService>().init().then((_) async {
       await ttsService.getLanguagesTts();
       await ttsService.getVoicesTts();
-      await ttsService.getEnginesTts();
+      if (isAndroid) await ttsService.getEnginesTts();
     });
     locator<TtsGetEnabled>().call(NoParams());
-    ttsService.getMaxSpeechInputLengthTts().then((onValue) => _inputLength = onValue);
+    if (isAndroid) ttsService.getMaxSpeechInputLengthTts().then((onValue) => _inputLength = onValue);
   }
 
   Future<void> _getDefaults() async {
-    if (kDebugMode) debugPrint('_getDefaults...');
+    LoggerService.logDebug('_getDefaults...');
     if (isAndroid) await _getDefaultEngine();
     if (kIsWeb) setState(() {}); // Tickle the UI
     await _getDefaultVoice();
@@ -110,19 +105,20 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
       }
       return;
     } catch (e) {
-      if (kDebugMode) debugPrint("Error waiting for voice data: $e");
+      LoggerService.logDebug("Error waiting for voice data: $e");
       return;
     }
 
     LoggerService.logDebug('_voiceDataReadyCompleter.isCompleted, so continuing..');
-    LoggerService.logDebug("rawVoices count: ${rawVoicesTts.length}");
-    if (rawVoicesTts.isEmpty) return;
+    LoggerService.logDebug("rawVoices count: ${rawVoices.length}");
+    if (rawVoices.isEmpty) return;
 
     if (isAndroid) {
-      var defVoice = await ttsService.getDefaultVoiceTts();
+      var json = await ttsService.getDefaultVoiceTts();
+      final defVoice = TtsVoice.fromJson(json);
       LoggerService.logDebug('Android Default Voice: $defVoice');
-      if (defVoice != null) {
-        var rawVoice = rawVoicesTts.firstWhere(
+      if (json != null) {
+        var rawVoice = rawVoices.firstWhere(
           (v) => v == defVoice,
           orElse: () => TtsVoice.nullVoice,
         ); //  mapEquals(v, defVoice));
@@ -138,9 +134,15 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
       myLocale = deviceLocale.toLanguageTag();
       LoggerService.logDebug('Device/Browser Locale (BCP47): $myLocale');
       // TTS auto-selects the first matching raw voice with locale
-      var rawVoiceTts = rawVoicesTts.firstWhere(
+      var rawVoiceTts = rawVoices.firstWhere(
         (v) => v.locale == myLocale,
-        orElse: () => rawVoicesTts.firstWhere((v) => v.locale.startsWith(myLocale)),
+        orElse: () => rawVoices.firstWhere(
+          (v) => v.locale.startsWith(myLocale),
+          orElse: () => rawVoices.firstWhere(
+            (v) => v.locale.startsWith(deviceLocale.languageCode),
+            orElse: () => TtsVoice.nullVoice,
+          ),
+        ),
       );
       await locator<TtsSetVoice>().call(rawVoiceTts.optional);
       final voiceTts = locator<TtsBloc>().state.currentVoice;
@@ -179,27 +181,27 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
   }
 
   List<DropdownMenuItem<TtsEngine?>> getEnginesDropDownMenuItems(List<TtsEngine> engines) {
-    if (kDebugMode) debugPrint('getEnginesDropDownMenuItems...');
-    if (engineItemsTts.isEmpty) {
-      rawEnginesTts.clear();
+    LoggerService.logDebug('getEnginesDropDownMenuItems...');
+    if (engineItems.isEmpty) {
+      rawEngines.clear();
       for (TtsEngine item in engines) {
-        rawEnginesTts.add(item);
-        engineItemsTts.add(DropdownMenuItem<TtsEngine?>(value: item, child: Text(item.name)));
+        rawEngines.add(item);
+        engineItems.add(DropdownMenuItem<TtsEngine?>(value: item, child: Text(item.name)));
       }
     }
-    return engineItemsTts;
+    return engineItems;
   }
 
   Future<void> changedEnginesDropDownItem(TtsEngine? selectedEngine) async {
     if (selectedEngine == null || selectedEngine.name.trim().isEmpty) {
       return;
     }
-    if (kDebugMode) debugPrint('changedEnginesDropDownItem...');
+    LoggerService.logDebug('changedEnginesDropDownItem...');
     await ttsService.setEngineTts(selectedEngine);
     locator<TtsBloc>().add(UpdateTtsCurrentEngine(currentEngine: selectedEngine));
-    voiceItemsTts.clear();
+    voiceItems.clear();
     locator<TtsSetVoice>().call(null);
-    languageItemsTts.clear();
+    languageItems.clear();
     await locator<TtsSetLanguage>().call(null);
     isCurrentLanguageInstalled = false;
     _voiceDataReadyCompleter = Completer<void>(); // re-use
@@ -209,37 +211,33 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
   }
 
   List<DropdownMenuItem<TtsVoice?>> getVoicesDropDownMenuItems(List<TtsVoice> voices) {
-    if (kDebugMode) {
-      debugPrint('getVoicesDropDownMenuItems: voices count: ${voices.length}');
-    }
-    if (kDebugMode) debugPrint("voiceItems.count: ${voiceItems.length}");
+    LoggerService.logDebug('getVoicesDropDownMenuItems: voices count: ${voices.length}');
+    LoggerService.logDebug("voiceItems.count: ${voiceItems.length}");
     if (voiceItems.isEmpty) {
-      rawVoicesTts.clear();
+      rawVoices.clear();
       for (TtsVoice item in voices) {
-        rawVoicesTts.add(item); // remains unsorted
+        rawVoices.add(item); // remains unsorted
         var menuItem = DropdownMenuItem<TtsVoice?>(value: item, child: Text("${item.name} (${item.locale})"));
-        if (!voiceItemsTts.any((element) => element.value?.name == menuItem.value?.name)) {
-          voiceItemsTts.add(menuItem);
+        if (!voiceItems.any((element) => element.value?.name == menuItem.value?.name)) {
+          voiceItems.add(menuItem);
         }
       }
-      voiceItemsTts.sort((a, b) {
+      voiceItems.sort((a, b) {
         return a.child.toString().toLowerCase().compareTo(b.child.toString().toLowerCase());
       });
     }
-    if (voiceItemsTts.isNotEmpty && !_voiceDataReadyCompleter.isCompleted) {
+    if (voiceItems.isNotEmpty && !_voiceDataReadyCompleter.isCompleted) {
       _voiceDataReadyCompleter.complete();
-      if (kDebugMode) {
-        debugPrint('_voiceDataReadyCompleter completed with ${voiceItems.length} voiceItems');
-      }
+      LoggerService.logDebug('_voiceDataReadyCompleter completed with ${voiceItems.length} voiceItems');
     }
-    return voiceItemsTts;
+    return voiceItems;
   }
 
   Future<void> changedVoicesDropDownItem(TtsVoice? selectedVoice) async {
     if (selectedVoice == null || selectedVoice == TtsVoice.nullVoice) {
       return;
     }
-    if (kDebugMode) debugPrint('changedVoicesDropDownItem...');
+    LoggerService.logDebug('changedVoicesDropDownItem...');
     await ttsService.setVoiceTts(selectedVoice);
     await locator<TtsSetVoice>().call(selectedVoice);
     await locator<TtsSetLanguage>().call(TtsLanguage(selectedVoice.locale));
@@ -247,28 +245,28 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
   }
 
   List<DropdownMenuItem<TtsLanguage?>> getLanguagesDropDownMenuItems(List<TtsLanguage> languages) {
-    if (kDebugMode) debugPrint('getLanguagesDropDownMenuItems...');
-    if (languageItemsTts.isEmpty) {
+    LoggerService.logDebug('getLanguagesDropDownMenuItems...');
+    if (languageItems.isEmpty) {
       rawLanguages.clear();
       for (TtsLanguage item in languages) {
         rawLanguages.add(item.code); // remains unsorted
         var menuItem = DropdownMenuItem<TtsLanguage?>(value: item, child: Text(item.code));
-        if (!languageItemsTts.any((element) => element.value == menuItem.value)) {
-          languageItemsTts.add(menuItem);
+        if (!languageItems.any((element) => element.value == menuItem.value)) {
+          languageItems.add(menuItem);
         }
       }
-      languageItemsTts.sort((a, b) {
+      languageItems.sort((a, b) {
         return a.child.toString().toLowerCase().compareTo(b.child.toString().toLowerCase());
       });
     }
-    return languageItemsTts;
+    return languageItems;
   }
 
   Future<void> changedLanguagesDropDownItem(TtsLanguage? selectedLanguage) async {
     if (selectedLanguage == null || selectedLanguage.code.trim().isEmpty) {
       return;
     }
-    if (kDebugMode) debugPrint('changedLanguagesDropDownItem...');
+    LoggerService.logDebug('changedLanguagesDropDownItem...');
     await ttsService.setLanguage(selectedLanguage.code);
     await locator<TtsSetLanguage>().call(selectedLanguage);
     await locator<TtsSetLanguage>().call(selectedLanguage);
@@ -281,8 +279,8 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
     }
 
     // if the locale is changed, TTS auto-selects the first matching voice
-    if (voiceItemsTts.isNotEmpty) {
-      var voiceItem = voiceItemsTts.firstWhere((v) => v.value?.locale == selectedLanguage.code);
+    if (voiceItems.isNotEmpty) {
+      var voiceItem = voiceItems.firstWhere((v) => v.value?.locale == selectedLanguage.code);
       locator<TtsSetVoice>().call(voiceItem.value);
       if (voiceItem.value != null) changedVoicesDropDownItem(voiceItem.value);
     }
@@ -308,7 +306,7 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
     if (myText.isEmpty) return;
     String fileName = isAndroid ? '$myText.mp3' : '$myText.caf';
     await ttsService.synthesizeToFile(text, fileName);
-    if (kDebugMode) debugPrint('synthesized to: $fileName');
+    LoggerService.logDebug('synthesized to: $fileName');
   }
 
   @override
@@ -373,7 +371,7 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
       isAndroid ? _enginesDropDownSection(state.engines) : const SizedBox(width: 0, height: 0);
 
   Widget _voiceSection(TtsState state) {
-    if (voiceItemsTts.isNotEmpty) {
+    if (voiceItems.isNotEmpty) {
       if (!_voiceDataReadyCompleter.isCompleted) {
         _voiceDataReadyCompleter.complete(); // Safety complete
       }
