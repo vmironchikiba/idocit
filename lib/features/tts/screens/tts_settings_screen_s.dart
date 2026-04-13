@@ -13,11 +13,16 @@ import 'package:idocit/features/tts/domain/entities/tts_language.dart';
 import 'package:idocit/features/tts/domain/entities/tts_voice.dart';
 import 'package:idocit/features/tts/domain/enums/tts_state_enum.dart';
 import 'package:idocit/features/tts/domain/services/tts_service.dart';
-import 'package:idocit/features/tts/domain/usecases/tts_get_enabled.dart';
-import 'package:idocit/features/tts/domain/usecases/tts_set_enabled.dart';
+import 'package:idocit/features/tts/domain/usecases/profile/tts_get_enabled.dart';
+import 'package:idocit/features/tts/domain/usecases/profile/tts_get_pitch.dart';
+import 'package:idocit/features/tts/domain/usecases/profile/tts_get_rate.dart';
+import 'package:idocit/features/tts/domain/usecases/profile/tts_get_volume.dart';
+import 'package:idocit/features/tts/domain/usecases/profile/tts_set_enabled.dart';
+import 'package:idocit/features/tts/domain/usecases/profile/tts_set_pitch.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_set_engine.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_set_language.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_set_voice.dart';
+import 'package:idocit/features/tts/domain/usecases/profile/tts_set_volume.dart';
 import 'package:idocit/injection_container.dart';
 
 // import 'language_helper.dart'; // Import the facade
@@ -43,9 +48,6 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
   bool getDefaultVoiceRetried = false;
   List<String?> rawLanguages = [];
   List<DropdownMenuItem<TtsLanguage?>> languageItems = [];
-  double volume = 0.8;
-  double pitch = 1.0;
-  double rate = !kIsWeb ? 0.5 : 0.9;
   bool isCurrentLanguageInstalled = false;
 
   String? _newVoiceText;
@@ -63,14 +65,17 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
     });
   }
 
-  // from initState()
   void initTts() {
     locator<TtsService>().init().then((_) async {
       await ttsService.getLanguagesTts();
       await ttsService.getVoicesTts();
       if (isAndroid) await ttsService.getEnginesTts();
+      await locator<TtsGetEnabled>().call(NoParams());
+      await locator<TtsGetVolume>().call(NoParams());
+      await locator<TtsGetPitch>().call(NoParams());
+      await locator<TtsGetRate>().call(NoParams());
     });
-    locator<TtsGetEnabled>().call(NoParams());
+
     if (isAndroid) ttsService.getMaxSpeechInputLengthTts().then((onValue) => _inputLength = onValue);
   }
 
@@ -151,10 +156,10 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
     }
   }
 
-  Future<void> _speak() async {
-    await ttsService.setVolume(volume);
-    await ttsService.setSpeechRate(rate);
-    await ttsService.setPitch(pitch);
+  Future<void> _speak(TtsState state) async {
+    await ttsService.setVolume(state.volume);
+    await ttsService.setSpeechRate(state.rate);
+    await ttsService.setPitch(state.pitch);
 
     if (_newVoiceText != null) {
       if (_newVoiceText!.isNotEmpty) {
@@ -340,11 +345,11 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
                             key: const ValueKey(true),
                             children: [
                               _inputSection(),
-                              _btnSection(),
+                              _btnSection(state),
                               _engineSection(state), // _getEngines
                               _voiceSection(state), // _getVoices
                               _languageDropDownSection(state),
-                              _buildSliders(),
+                              _buildSliders(state),
                               if (isAndroid) Text("Input length $_inputLength characters"),
                             ],
                           )
@@ -393,13 +398,13 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
     ),
   );
 
-  Widget _btnSection() {
+  Widget _btnSection(TtsState state) {
     return Container(
       padding: const EdgeInsets.only(top: 50.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _buildButtonColumn(Colors.green, Colors.greenAccent, Icons.play_arrow, 'PLAY', _speak),
+          _buildButtonColumn(Colors.green, Colors.greenAccent, Icons.play_arrow, 'PLAY', () => _speak(state)),
           _buildButtonColumn(Colors.red, Colors.redAccent, Icons.stop, 'STOP', _stop),
           _buildButtonColumn(Colors.blue, Colors.blueAccent, Icons.pause, 'PAUSE', _pause),
         ],
@@ -478,17 +483,15 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
     );
   }
 
-  Widget _buildSliders() {
-    return Column(children: [_volume(), _pitch(), _rate()]);
+  Widget _buildSliders(TtsState state) {
+    return Column(children: [_volume(state), _pitch(state), _rate(state)]);
   }
 
-  Widget _volume() {
+  Widget _volume(TtsState state) {
+    final volume = locator<TtsBloc>().state.volume;
     return Slider(
       value: volume,
-      onChanged: (newVolume) {
-        locator<TtsBloc>().add(UpdateTtsVolume(volume: newVolume));
-        setState(() => volume = newVolume);
-      },
+      onChanged: (newVolume) => locator<TtsSetVolume>().call(newVolume),
       min: 0.0,
       max: 1.0,
       divisions: 10,
@@ -496,13 +499,11 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
     );
   }
 
-  Widget _pitch() {
+  Widget _pitch(TtsState state) {
+    final pitch = locator<TtsBloc>().state.pitch;
     return Slider(
       value: pitch,
-      onChanged: (newPitch) {
-        locator<TtsBloc>().add(UpdateTtsPitch(pitch: newPitch));
-        setState(() => pitch = newPitch);
-      },
+      onChanged: (newPitch) => locator<TtsSetPitch>().call(newPitch),
       min: 0.5,
       max: 2.0,
       divisions: 15,
@@ -511,13 +512,11 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
     );
   }
 
-  Widget _rate() {
+  Widget _rate(TtsState state) {
+    final rate = locator<TtsBloc>().state.rate;
     return Slider(
       value: rate,
-      onChanged: (newRate) {
-        locator<TtsBloc>().add(UpdateTtsRate(rate: newRate));
-        setState(() => rate = newRate);
-      },
+      onChanged: (newRate) => locator<TtsBloc>().add(UpdateTtsRate(rate: newRate)),
       min: 0.0,
       max: 1.0,
       divisions: 10,

@@ -66,7 +66,10 @@ class ChatStartCompletionsStream implements UseCase<Either<Failure, void>, Compl
               final sentences = addChunk(content);
               for (final sentence in sentences) {
                 LoggerService.logDebug('🎤 Озвучиваем: "$sentence"');
-                ttsService.speak(sentence);
+                ttsService.speak(sentence).then((value) {
+                  LoggerService.logDebug("Озвучиваем value: $value");
+                  LoggerService.logDebug("Озвучиваем буфер: $_buffer");
+                });
                 // await tts.speak(sentence);
               }
               previewBuffer += content;
@@ -106,6 +109,17 @@ class ChatStartCompletionsStream implements UseCase<Either<Failure, void>, Compl
             return Left(CommonFailure(message: err.toString(), type: CommonErrorType.badResponseData));
           },
           onDone: () {
+            if (_buffer.isNotEmpty && locator<TtsBloc>().state.isEnabled) {
+              final sentences = addChunk('', withEnd: true);
+              for (final sentence in sentences) {
+                LoggerService.logDebug('🎤 Озвучиваем: "$sentence"');
+                ttsService.speak(sentence).then((value) {
+                  LoggerService.logDebug("Озвучиваем value end: $value");
+                  LoggerService.logDebug("Озвучиваем буфер end: $_buffer");
+                });
+                // await tts.speak(sentence);
+              }
+            }
             chatBloc.add(SetIsInProcess(isInProcess: false));
             chatBloc.add(SetChatId(chatId: chatId));
             if (request.onDone != null) {
@@ -117,7 +131,7 @@ class ChatStartCompletionsStream implements UseCase<Either<Failure, void>, Compl
     return Right(null);
   }
 
-  List<String> addChunk(String chunk) {
+  List<String> addChunk(String chunk, {bool withEnd = false}) {
     // 1. Заменяем переносы строк на пробелы (как в React)
     _buffer += chunk.replaceAll('\n', ' ');
 
@@ -143,6 +157,11 @@ class ChatStartCompletionsStream implements UseCase<Either<Failure, void>, Compl
             i++; // Дополнительный шаг, чтобы не обрабатывать пробел
           }
         } else {
+          if (withEnd) {
+            final sentence = _buffer.substring(lastCutPosition, _buffer.length - 1);
+            completedSentences.add(sentence);
+            LoggerService.logDebug(sentence);
+          }
           // Знак в конце строки - возможно, ещё не завершено
           // Не добавляем в completed, оставляем в буфере
           break;

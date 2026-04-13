@@ -53,11 +53,17 @@ import 'package:idocit/features/stt/domain/usecases/stt_start_stop.dart';
 import 'package:idocit/features/tts/domain/blocs/tts_bloc.dart';
 import 'package:idocit/features/tts/domain/datasources/tts_preferences_storage.dart';
 import 'package:idocit/features/tts/domain/services/tts_service.dart';
-import 'package:idocit/features/tts/domain/usecases/tts_get_enabled.dart';
-import 'package:idocit/features/tts/domain/usecases/tts_set_enabled.dart';
+import 'package:idocit/features/tts/domain/usecases/profile/tts_get_enabled.dart';
+import 'package:idocit/features/tts/domain/usecases/profile/tts_get_pitch.dart';
+import 'package:idocit/features/tts/domain/usecases/profile/tts_get_rate.dart';
+import 'package:idocit/features/tts/domain/usecases/profile/tts_get_volume.dart';
+import 'package:idocit/features/tts/domain/usecases/profile/tts_set_enabled.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_set_engine.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_set_language.dart';
+import 'package:idocit/features/tts/domain/usecases/profile/tts_set_pitch.dart';
+import 'package:idocit/features/tts/domain/usecases/profile/tts_set_rate.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_set_voice.dart';
+import 'package:idocit/features/tts/domain/usecases/profile/tts_set_volume.dart';
 import 'package:idocit/idocit/lib/api.dart';
 
 final locator = GetIt.instance;
@@ -138,18 +144,31 @@ void initLocator() {
   );
   locator.registerLazySingleton(() => NavigatorService());
   locator.registerLazySingleton(
-    () => TtsSetEnabled(
-      networkListenerService: locator<NetworkListenerService>(),
-      ttsBloc: locator<TtsBloc>(),
-      ttsPreferencesStorage: locator<TtsPreferencesStorage>(),
-    ),
+    () => TtsSetEnabled(ttsBloc: locator<TtsBloc>(), ttsPreferencesStorage: locator<TtsPreferencesStorage>()),
   );
   locator.registerLazySingleton(
-    () => TtsGetEnabled(
-      networkListenerService: locator<NetworkListenerService>(),
-      ttsBloc: locator<TtsBloc>(),
-      ttsPreferencesStorage: locator<TtsPreferencesStorage>(),
-    ),
+    () => TtsSetVolume(ttsBloc: locator<TtsBloc>(), ttsPreferencesStorage: locator<TtsPreferencesStorage>()),
+  );
+  locator.registerLazySingleton(
+    () => TtsSetPitch(ttsBloc: locator<TtsBloc>(), ttsPreferencesStorage: locator<TtsPreferencesStorage>()),
+  );
+  locator.registerLazySingleton(
+    () => TtsSetRate(ttsBloc: locator<TtsBloc>(), ttsPreferencesStorage: locator<TtsPreferencesStorage>()),
+  );
+  locator.registerLazySingleton(
+    () => TtsGetEnabled(ttsBloc: locator<TtsBloc>(), ttsPreferencesStorage: locator<TtsPreferencesStorage>()),
+  );
+
+  locator.registerLazySingleton(
+    () => TtsGetVolume(ttsBloc: locator<TtsBloc>(), ttsPreferencesStorage: locator<TtsPreferencesStorage>()),
+  );
+
+  locator.registerLazySingleton(
+    () => TtsGetPitch(ttsBloc: locator<TtsBloc>(), ttsPreferencesStorage: locator<TtsPreferencesStorage>()),
+  );
+
+  locator.registerLazySingleton(
+    () => TtsGetRate(ttsBloc: locator<TtsBloc>(), ttsPreferencesStorage: locator<TtsPreferencesStorage>()),
   );
 
   locator.registerLazySingleton(
