@@ -19,6 +19,7 @@ import 'package:idocit/features/tts/domain/usecases/profile/tts_get_rate.dart';
 import 'package:idocit/features/tts/domain/usecases/profile/tts_get_volume.dart';
 import 'package:idocit/features/tts/domain/usecases/profile/tts_set_enabled.dart';
 import 'package:idocit/features/tts/domain/usecases/profile/tts_set_pitch.dart';
+import 'package:idocit/features/tts/domain/usecases/profile/tts_set_rate.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_set_engine.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_set_language.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_set_voice.dart';
