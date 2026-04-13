@@ -516,7 +516,7 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
     final rate = locator<TtsBloc>().state.rate;
     return Slider(
       value: rate,
-      onChanged: (newRate) => locator<TtsBloc>().add(UpdateTtsRate(rate: newRate)),
+      onChanged: (newRate) => locator<TtsSetRate>().call(newRate),
       min: 0.0,
       max: 1.0,
       divisions: 10,

@@ -147,28 +147,52 @@ void initLocator() {
     () => TtsSetEnabled(ttsBloc: locator<TtsBloc>(), ttsPreferencesStorage: locator<TtsPreferencesStorage>()),
   );
   locator.registerLazySingleton(
-    () => TtsSetVolume(ttsBloc: locator<TtsBloc>(), ttsPreferencesStorage: locator<TtsPreferencesStorage>()),
+    () => TtsSetVolume(
+      ttsBloc: locator<TtsBloc>(),
+      ttsPreferencesStorage: locator<TtsPreferencesStorage>(),
+      ttsService: locator<TtsService>(),
+    ),
   );
   locator.registerLazySingleton(
-    () => TtsSetPitch(ttsBloc: locator<TtsBloc>(), ttsPreferencesStorage: locator<TtsPreferencesStorage>()),
+    () => TtsSetPitch(
+      ttsBloc: locator<TtsBloc>(),
+      ttsPreferencesStorage: locator<TtsPreferencesStorage>(),
+      ttsService: locator<TtsService>(),
+    ),
   );
   locator.registerLazySingleton(
-    () => TtsSetRate(ttsBloc: locator<TtsBloc>(), ttsPreferencesStorage: locator<TtsPreferencesStorage>()),
+    () => TtsSetRate(
+      ttsBloc: locator<TtsBloc>(),
+      ttsPreferencesStorage: locator<TtsPreferencesStorage>(),
+      ttsService: locator<TtsService>(),
+    ),
   );
   locator.registerLazySingleton(
     () => TtsGetEnabled(ttsBloc: locator<TtsBloc>(), ttsPreferencesStorage: locator<TtsPreferencesStorage>()),
   );
 
   locator.registerLazySingleton(
-    () => TtsGetVolume(ttsBloc: locator<TtsBloc>(), ttsPreferencesStorage: locator<TtsPreferencesStorage>()),
+    () => TtsGetVolume(
+      ttsBloc: locator<TtsBloc>(),
+      ttsPreferencesStorage: locator<TtsPreferencesStorage>(),
+      ttsService: locator<TtsService>(),
+    ),
   );
 
   locator.registerLazySingleton(
-    () => TtsGetPitch(ttsBloc: locator<TtsBloc>(), ttsPreferencesStorage: locator<TtsPreferencesStorage>()),
+    () => TtsGetPitch(
+      ttsBloc: locator<TtsBloc>(),
+      ttsPreferencesStorage: locator<TtsPreferencesStorage>(),
+      ttsService: locator<TtsService>(),
+    ),
   );
 
   locator.registerLazySingleton(
-    () => TtsGetRate(ttsBloc: locator<TtsBloc>(), ttsPreferencesStorage: locator<TtsPreferencesStorage>()),
+    () => TtsGetRate(
+      ttsBloc: locator<TtsBloc>(),
+      ttsPreferencesStorage: locator<TtsPreferencesStorage>(),
+      ttsService: locator<TtsService>(),
+    ),
   );
 
   locator.registerLazySingleton(
