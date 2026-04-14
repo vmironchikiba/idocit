@@ -1,28 +1,18 @@
-// import 'package:dartz/dartz.dart';
-// import 'package:idocit/common/models/service/failure.dart';
-// import 'package:idocit/common/models/service/usecase.dart';
-// import 'package:idocit/common/services/logger.dart';
-// import 'package:idocit/common/services/network_listener.dart';
-// import 'package:idocit/features/tts/domain/blocs/tts_bloc.dart';
-// import 'package:idocit/features/tts/domain/services/tts_service.dart';
+import 'package:idocit/common/models/service/usecase.dart';
+import 'package:idocit/common/services/logger.dart';
+import 'package:idocit/features/tts/domain/blocs/tts_bloc.dart';
+import 'package:idocit/features/tts/domain/services/tts_service.dart';
 
-// class TtsGetEngines implements UseCase<Either<Failure, void>, NoParams> {
-//   final NetworkListenerService networkListenerService;
-//   final TtsBloc ttsBloc;
-//   final TtsService ttsService;
+class TtsGetEngines implements UseCase<void, NoParams> {
+  final TtsBloc ttsBloc;
+  final TtsService ttsService;
 
-//   const TtsGetEngines({required this.networkListenerService, required this.ttsBloc, required this.ttsService});
+  const TtsGetEngines({required this.ttsBloc, required this.ttsService});
 
-//   @override
-//   Future<Either<Failure, void>> call(NoParams params) async {
-//     LoggerService.logDebug('TtsGetEngines -> call()');
-//     if (!await networkListenerService.checkNetworkConnection(() => call(params))) {
-//       return const Left(NetworkFailure());
-//     }
-//     final enginesRaw = await ttsService.getEngines() as List<dynamic>;
-//     final engines = ttsService.getAllEngines(enginesRaw).whereType<String>().toList();
-//     ttsBloc.add(UpdateTtsEngines(engines: engines));
-
-//     return Right(null);
-//   }
-// }
+  @override
+  Future<void> call(NoParams params) async {
+    LoggerService.logDebug('TtsGetEngines -> call()');
+    final engines = await ttsService.getEngines();
+    ttsBloc.add(UpdateTtsEngines(engines: engines));
+  }
+}

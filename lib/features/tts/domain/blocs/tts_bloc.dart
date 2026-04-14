@@ -69,6 +69,10 @@ class TtsBloc extends Bloc<TtsBlocEvent, TtsState> {
       );
     });
 
+    on<UpdateTtsIsCurrentLanguageInstalled>((event, emit) {
+      emit(state.update(isCurrentLanguageInstalled: event.isCurrentLanguageInstalled));
+    });
+
     on<SignOutCoreEvent>((event, emit) {
       emit(TtsState.initial());
     });

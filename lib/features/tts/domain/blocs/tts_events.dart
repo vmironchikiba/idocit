@@ -74,6 +74,11 @@ class UpdateTtsCurrentLanguage extends TtsBlocEvent {
   UpdateTtsCurrentLanguage({required this.currentLanguage}) : super([currentLanguage]);
 }
 
+class UpdateTtsIsCurrentLanguageInstalled extends TtsBlocEvent {
+  final bool isCurrentLanguageInstalled;
+  UpdateTtsIsCurrentLanguageInstalled({required this.isCurrentLanguageInstalled}) : super([isCurrentLanguageInstalled]);
+}
+
 class SignOutCoreEvent extends TtsBlocEvent {
   SignOutCoreEvent() : super();
 }
