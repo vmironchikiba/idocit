@@ -13,6 +13,7 @@ class TtsGetRate implements UseCase<void, NoParams> {
   @override
   Future<void> call(NoParams prams) async {
     final rate = await ttsPreferencesStorage.readRate();
+    if (rate == null) return;
     await ttsService.setSpeechRate(rate);
     ttsBloc.add(UpdateTtsRate(rate: rate));
   }

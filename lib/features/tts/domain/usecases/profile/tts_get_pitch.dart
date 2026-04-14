@@ -13,6 +13,7 @@ class TtsGetPitch implements UseCase<void, NoParams> {
   @override
   Future<void> call(NoParams prams) async {
     final pitch = await ttsPreferencesStorage.readPitch();
+    if (pitch == null) return;
     await ttsService.setPitch(pitch);
     ttsBloc.add(UpdateTtsPitch(pitch: pitch));
   }

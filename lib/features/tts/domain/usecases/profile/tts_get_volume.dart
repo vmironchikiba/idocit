@@ -13,6 +13,7 @@ class TtsGetVolume implements UseCase<void, NoParams> {
   @override
   Future<void> call(NoParams prams) async {
     final volume = await ttsPreferencesStorage.readVolume();
+    if (volume == null) return;
     await ttsService.setVolume(volume);
     ttsBloc.add(UpdateTtsVolume(volume: volume));
   }

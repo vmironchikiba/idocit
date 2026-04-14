@@ -58,7 +58,13 @@ import 'package:idocit/features/tts/domain/usecases/profile/tts_get_pitch.dart';
 import 'package:idocit/features/tts/domain/usecases/profile/tts_get_rate.dart';
 import 'package:idocit/features/tts/domain/usecases/profile/tts_get_volume.dart';
 import 'package:idocit/features/tts/domain/usecases/profile/tts_set_enabled.dart';
-import 'package:idocit/features/tts/domain/usecases/tts_set_engine.dart';
+import 'package:idocit/features/tts/domain/usecases/tts_get_default_engine.dart';
+import 'package:idocit/features/tts/domain/usecases/tts_get_engines.dart';
+import 'package:idocit/features/tts/domain/usecases/tts_get_is_current_language_installed.dart';
+import 'package:idocit/features/tts/domain/usecases/tts_get_languages.dart';
+import 'package:idocit/features/tts/domain/usecases/tts_get_voices.dart';
+import 'package:idocit/features/tts/domain/usecases/tts_set_current_engine.dart';
+import 'package:idocit/features/tts/domain/usecases/tts_set_is_current_language_installed.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_set_language.dart';
 import 'package:idocit/features/tts/domain/usecases/profile/tts_set_pitch.dart';
 import 'package:idocit/features/tts/domain/usecases/profile/tts_set_rate.dart';
@@ -196,21 +202,48 @@ void initLocator() {
   );
 
   locator.registerLazySingleton(
+    () => TtsGetIsCurrentLanguageInstalled(ttsBloc: locator<TtsBloc>(), ttsService: locator<TtsService>()),
+  );
+
+  locator.registerLazySingleton(() => TtsSetIsCurrentLanguageInstalled(ttsBloc: locator<TtsBloc>()));
+
+  locator.registerLazySingleton(
     () => TtsSetLanguage(
       networkListenerService: locator<NetworkListenerService>(),
       ttsBloc: locator<TtsBloc>(),
       ttsService: locator<TtsService>(),
       ttsPreferencesStorage: locator<TtsPreferencesStorage>(),
+      ttsGetIsCurrentLanguageInstalled: locator<TtsGetIsCurrentLanguageInstalled>(),
     ),
   );
   locator.registerLazySingleton(
-    () => TtsSetEngine(
+    () => TtsGetLanguages(
+      networkListenerService: locator<NetworkListenerService>(),
+      ttsBloc: locator<TtsBloc>(),
+      ttsService: locator<TtsService>(),
+    ),
+  );
+
+  locator.registerLazySingleton(
+    () => TtsSetCurrentEngine(
       networkListenerService: locator<NetworkListenerService>(),
       ttsBloc: locator<TtsBloc>(),
       ttsService: locator<TtsService>(),
       ttsPreferencesStorage: locator<TtsPreferencesStorage>(),
     ),
   );
+
+  locator.registerLazySingleton(
+    () => TtsGetDefaultEngine(
+      networkListenerService: locator<NetworkListenerService>(),
+      ttsBloc: locator<TtsBloc>(),
+      ttsService: locator<TtsService>(),
+      ttsPreferencesStorage: locator<TtsPreferencesStorage>(),
+      ttsSetCurrentEngine: locator<TtsSetCurrentEngine>(),
+    ),
+  );
+  locator.registerLazySingleton(() => TtsGetEngines(ttsBloc: locator<TtsBloc>(), ttsService: locator<TtsService>()));
+  locator.registerLazySingleton(() => TtsGetVoices(ttsBloc: locator<TtsBloc>(), ttsService: locator<TtsService>()));
   locator.registerLazySingleton(
     () => TtsSetVoice(
       networkListenerService: locator<NetworkListenerService>(),
@@ -346,18 +379,4 @@ void initLocator() {
       sttService: locator<SttService>(),
     ),
   );
-  // locator.registerLazySingleton(
-  //   () => TtsGetVoices(
-  //     networkListenerService: locator<NetworkListenerService>(),
-  //     ttsBloc: locator<TtsBloc>(),
-  //     ttsService: locator<TtsService>(),
-  //   ),
-  // );
-  // locator.registerLazySingleton(
-  //   () => TtsGetLanguages(
-  //     networkListenerService: locator<NetworkListenerService>(),
-  //     ttsBloc: locator<TtsBloc>(),
-  //     ttsService: locator<TtsService>(),
-  //   ),
-  // );
 }
