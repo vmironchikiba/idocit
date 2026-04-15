@@ -118,6 +118,7 @@ void initLocator() {
       chatBloc: locator<ChatBloc>(),
       authBloc: locator<AuthBloc>(),
       chatRemoteDataSource: locator<ChatSuggestionsRemoteDataSource>(),
+      authAutoSignIn: locator<AuthAutoSignIn>(),
     ),
   );
   locator.registerLazySingleton(
@@ -126,6 +127,7 @@ void initLocator() {
       chatBloc: locator<ChatBloc>(),
       authBloc: locator<AuthBloc>(),
       chatRemoteDataSource: locator<ChatSuggestionsRemoteDataSource>(),
+      authAutoSignIn: locator<AuthAutoSignIn>(),
     ),
   );
   locator.registerLazySingleton(() => ChatSuggestionsReset(chatBloc: locator<ChatBloc>()));
@@ -328,6 +330,7 @@ void initLocator() {
       idocItBloc: locator<IdocItBloc>(),
       authBloc: locator<AuthBloc>(),
       idocItRemoteDataSource: locator<IdocItRemoteDataSource>(),
+      authAutoSignIn: locator<AuthAutoSignIn>(),
     ),
   );
 
@@ -338,6 +341,7 @@ void initLocator() {
       authBloc: locator<AuthBloc>(),
       idocItRemoteDataSource: locator<IdocItRemoteDataSource>(),
       idocItLazyInitChats: locator<IdocItLazyInitChats>(),
+      authAutoSignIn: locator<AuthAutoSignIn>(),
     ),
   );
   //IdocItDeleteChat
@@ -347,6 +351,7 @@ void initLocator() {
       chatBloc: locator<ChatBloc>(),
       authBloc: locator<AuthBloc>(),
       chatHistoryRemoteDataSource: locator<ChatHistoryRemoteDataSource>(),
+      authAutoSignIn: locator<AuthAutoSignIn>(),
     ),
   );
   locator.registerLazySingleton(
