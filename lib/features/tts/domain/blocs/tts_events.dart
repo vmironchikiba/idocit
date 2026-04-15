@@ -79,6 +79,11 @@ class UpdateTtsIsCurrentLanguageInstalled extends TtsBlocEvent {
   UpdateTtsIsCurrentLanguageInstalled({required this.isCurrentLanguageInstalled}) : super([isCurrentLanguageInstalled]);
 }
 
+class UpdateTtsMaxSpeechInputLength extends TtsBlocEvent {
+  final int? maxSpeechInputLength;
+  UpdateTtsMaxSpeechInputLength({required this.maxSpeechInputLength}) : super([maxSpeechInputLength]);
+}
+
 class SignOutCoreEvent extends TtsBlocEvent {
   SignOutCoreEvent() : super();
 }

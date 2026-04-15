@@ -13,6 +13,7 @@ import 'package:idocit/features/tts/domain/entities/tts_language.dart';
 import 'package:idocit/features/tts/domain/entities/tts_voice.dart';
 import 'package:idocit/features/tts/domain/enums/tts_state_enum.dart';
 import 'package:idocit/features/tts/domain/services/tts_service.dart';
+import 'package:idocit/features/tts/domain/usecases/get_max_speech_input_length.dart';
 import 'package:idocit/features/tts/domain/usecases/profile/tts_get_enabled.dart';
 import 'package:idocit/features/tts/domain/usecases/profile/tts_get_pitch.dart';
 import 'package:idocit/features/tts/domain/usecases/profile/tts_get_rate.dart';
@@ -52,10 +53,8 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
   Completer<void> _voiceDataReadyCompleter = Completer<void>();
   bool getDefaultVoiceRetried = false;
   List<DropdownMenuItem<TtsLanguage?>> languageItems = [];
-  // bool isCurrentLanguageInstalled = false;
 
   String? _newVoiceText;
-  int? _inputLength;
 
   bool get isAndroid => !kIsWeb && Platform.isAndroid;
   bool get isIOS => !kIsWeb && Platform.isIOS;
@@ -63,31 +62,9 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
   @override
   initState() {
     super.initState();
-    initTts();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _getDefaults(); // invoked after initial build of context is complete
+      _getDefaultVoice(); // invoked after initial build of context is complete
     });
-  }
-
-  void initTts() {
-    locator<TtsService>().init().then((_) async {
-      await locator<TtsGetLanguages>().call(NoParams());
-      await locator<TtsGetVoices>().call(NoParams());
-      if (isAndroid) await locator<TtsGetEngines>().call(NoParams());
-      await locator<TtsGetEnabled>().call(NoParams());
-      await locator<TtsGetVolume>().call(NoParams());
-      await locator<TtsGetPitch>().call(NoParams());
-      await locator<TtsGetRate>().call(NoParams());
-    });
-
-    if (isAndroid) ttsService.getMaxSpeechInputLengthTts().then((onValue) => _inputLength = onValue);
-  }
-
-  Future<void> _getDefaults() async {
-    LoggerService.logDebug('_getDefaults...');
-    if (isAndroid) await locator<TtsGetDefaultEngine>().call(NoParams());
-    if (kIsWeb) setState(() {}); // Tickle the UI
-    await _getDefaultVoice();
   }
 
   Future<void> _getDefaultVoice() async {
@@ -176,10 +153,10 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
     ttsService.stop();
   }
 
-  List<DropdownMenuItem<TtsEngine?>> getEnginesDropDownMenuItems(List<TtsEngine> engines) {
+  List<DropdownMenuItem<TtsEngine?>> getEnginesDropDownMenuItems(TtsState state) {
     LoggerService.logDebug('getEnginesDropDownMenuItems...');
     if (engineItems.isEmpty) {
-      for (TtsEngine item in engines) {
+      for (TtsEngine item in state.engines) {
         engineItems.add(DropdownMenuItem<TtsEngine?>(value: item, child: Text(item.name)));
       }
     }
@@ -204,12 +181,12 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
     await _getDefaultVoice();
   }
 
-  List<DropdownMenuItem<TtsVoice?>> getVoicesDropDownMenuItems(List<TtsVoice> voices) {
-    LoggerService.logDebug('getVoicesDropDownMenuItems: voices count: ${voices.length}');
+  List<DropdownMenuItem<TtsVoice?>> getVoicesDropDownMenuItems(TtsState state) {
+    LoggerService.logDebug('getVoicesDropDownMenuItems: voices count: ${state.voices.length}');
     LoggerService.logDebug("voiceItems.count: ${voiceItems.length}");
     if (voiceItems.isEmpty) {
       rawVoices.clear();
-      for (TtsVoice item in voices) {
+      for (TtsVoice item in state.voices) {
         rawVoices.add(item); // remains unsorted
         var menuItem = DropdownMenuItem<TtsVoice?>(value: item, child: Text("${item.name} (${item.locale})"));
         if (!voiceItems.any((element) => element.value?.name == menuItem.value?.name)) {
@@ -238,10 +215,10 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
     setState(() {});
   }
 
-  List<DropdownMenuItem<TtsLanguage?>> getLanguagesDropDownMenuItems(List<TtsLanguage> languages) {
+  List<DropdownMenuItem<TtsLanguage?>> getLanguagesDropDownMenuItems(TtsState state) {
     LoggerService.logDebug('getLanguagesDropDownMenuItems...');
     if (languageItems.isEmpty) {
-      for (TtsLanguage item in languages) {
+      for (TtsLanguage item in state.languages) {
         var menuItem = DropdownMenuItem<TtsLanguage?>(value: item, child: Text(item.code));
         if (!languageItems.any((element) => element.value == menuItem.value)) {
           languageItems.add(menuItem);
@@ -330,7 +307,7 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
                               _voiceSection(state), // _getVoices
                               _languageDropDownSection(state),
                               _buildSliders(state),
-                              if (isAndroid) Text("Input length $_inputLength characters"),
+                              if (isAndroid) Text("Input length ${state.maxSpeechInputLength ?? 'unknown'} characters"),
                             ],
                           )
                         : const SizedBox.shrink(key: ValueKey(false)),
@@ -353,7 +330,7 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
   }
 
   Widget _engineSection(TtsState state) =>
-      isAndroid ? _enginesDropDownSection(state.engines) : const SizedBox(width: 0, height: 0);
+      isAndroid ? _enginesDropDownSection(state) : const SizedBox(width: 0, height: 0);
 
   Widget _voiceSection(TtsState state) {
     if (voiceItems.isNotEmpty) {
@@ -392,14 +369,14 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
     );
   }
 
-  Widget _enginesDropDownSection(List<TtsEngine> engines) {
+  Widget _enginesDropDownSection(TtsState state) {
     return Container(
       padding: const EdgeInsets.only(top: 50.0),
       child: DropdownButton<TtsEngine?>(
         value: locator<TtsBloc>().state.currentEngine,
         icon: Icon(Icons.settings, color: ColorConstants.white500),
         hint: const Text('Choose an engine'),
-        items: getEnginesDropDownMenuItems(engines),
+        items: getEnginesDropDownMenuItems(state),
         onChanged: changedEnginesDropDownItem,
       ),
     );
@@ -412,7 +389,7 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
         value: state.currentVoice,
         icon: Icon(Icons.record_voice_over, color: ColorConstants.white500),
         hint: const Text('Choose a voice'),
-        items: getVoicesDropDownMenuItems(state.voices),
+        items: getVoicesDropDownMenuItems(state),
         onChanged: changedVoicesDropDownItem,
       ),
     );
@@ -428,7 +405,7 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
             value: state.currentLanguage, // languageTts,
             icon: Icon(Icons.language, color: ColorConstants.white500),
             hint: const Text('Choose a language', style: TextStyle(color: ColorConstants.red600)),
-            items: getLanguagesDropDownMenuItems(state.languages),
+            items: getLanguagesDropDownMenuItems(state),
             onChanged: changedLanguagesDropDownItem,
           ),
           const SizedBox(width: 5.0),

@@ -16,6 +16,7 @@ class TtsState {
   final String? voiceText;
   final TtsLanguage? currentLanguage;
   final bool isCurrentLanguageInstalled;
+  final int? maxSpeechInputLength;
   const TtsState({
     required this.isEnabled,
     required this.ttsState,
@@ -32,6 +33,7 @@ class TtsState {
     required this.voiceText,
     required this.currentLanguage,
     required this.isCurrentLanguageInstalled,
+    required this.maxSpeechInputLength,
   });
 
   factory TtsState.initial() {
@@ -51,6 +53,7 @@ class TtsState {
       voiceText: null,
       currentLanguage: null,
       isCurrentLanguageInstalled: false,
+      maxSpeechInputLength: null,
     );
   }
 
@@ -70,6 +73,7 @@ class TtsState {
     String? voiceText,
     TtsLanguage? currentLanguage,
     bool? isCurrentLanguageInstalled,
+    int? maxSpeechInputLength,
   }) {
     return TtsState(
       isEnabled: isEnabled ?? this.isEnabled,
@@ -87,6 +91,7 @@ class TtsState {
       voiceText: voiceText ?? this.voiceText,
       currentLanguage: currentLanguage ?? this.currentLanguage,
       isCurrentLanguageInstalled: isCurrentLanguageInstalled ?? this.isCurrentLanguageInstalled,
+      maxSpeechInputLength: maxSpeechInputLength ?? this.maxSpeechInputLength,
     );
   }
 
@@ -97,6 +102,7 @@ class TtsState {
     bool currentVoice = false,
     bool voiceText = false,
     bool currentLanguage = false,
+    bool maxSpeechInputLength = false,
   }) {
     return TtsState(
       isEnabled: isEnabled,
@@ -114,6 +120,7 @@ class TtsState {
       voiceText: voiceText ? null : this.voiceText,
       currentLanguage: currentLanguage ? null : this.currentLanguage,
       isCurrentLanguageInstalled: isCurrentLanguageInstalled,
+      maxSpeechInputLength: maxSpeechInputLength ? null : this.maxSpeechInputLength,
     );
   }
 }

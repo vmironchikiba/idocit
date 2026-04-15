@@ -61,11 +61,20 @@ class TtsBloc extends Bloc<TtsBlocEvent, TtsState> {
     on<UpdateTtsVoiceText>((event, emit) {
       emit(state.update(voiceText: event.voiceText));
     });
+
     on<UpdateTtsCurrentLanguage>((event, emit) {
       emit(
         event.currentLanguage == null
             ? state.reset(currentLanguage: true)
             : state.update(currentLanguage: event.currentLanguage),
+      );
+    });
+
+    on<UpdateTtsMaxSpeechInputLength>((event, emit) {
+      emit(
+        event.maxSpeechInputLength == null
+            ? state.reset(maxSpeechInputLength: true)
+            : state.update(maxSpeechInputLength: event.maxSpeechInputLength),
       );
     });
 
