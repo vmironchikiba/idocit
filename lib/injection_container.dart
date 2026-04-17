@@ -60,6 +60,7 @@ import 'package:idocit/features/tts/domain/usecases/profile/tts_get_rate.dart';
 import 'package:idocit/features/tts/domain/usecases/profile/tts_get_volume.dart';
 import 'package:idocit/features/tts/domain/usecases/profile/tts_set_enabled.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_get_default_engine.dart';
+import 'package:idocit/features/tts/domain/usecases/tts_get_default_voice.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_get_engines.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_get_is_current_language_installed.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_get_languages.dart';
@@ -277,6 +278,16 @@ void initLocator() {
       ttsPreferencesStorage: locator<TtsPreferencesStorage>(),
     ),
   );
+
+  locator.registerLazySingleton(
+    () => TtsGetDefaultVoice(
+      ttsBloc: locator<TtsBloc>(),
+      ttsService: locator<TtsService>(),
+      ttsSetVoice: locator<TtsSetVoice>(),
+    ),
+  );
+
+  // TtsGetSwfaultVoice
 
   locator.registerLazySingleton(() => TtsPreferencesStorage());
   locator.registerLazySingleton(() => ApiClient(basePath: 'https://ai-assistant.ibagroupit.com/idocit'));

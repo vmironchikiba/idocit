@@ -4,7 +4,6 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:idocit/common/models/service/usecase.dart';
 import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/constants/colors.dart';
 import 'package:idocit/features/tts/domain/blocs/tts_bloc.dart';
@@ -13,20 +12,11 @@ import 'package:idocit/features/tts/domain/entities/tts_language.dart';
 import 'package:idocit/features/tts/domain/entities/tts_voice.dart';
 import 'package:idocit/features/tts/domain/enums/tts_state_enum.dart';
 import 'package:idocit/features/tts/domain/services/tts_service.dart';
-import 'package:idocit/features/tts/domain/usecases/get_max_speech_input_length.dart';
-import 'package:idocit/features/tts/domain/usecases/profile/tts_get_enabled.dart';
-import 'package:idocit/features/tts/domain/usecases/profile/tts_get_pitch.dart';
-import 'package:idocit/features/tts/domain/usecases/profile/tts_get_rate.dart';
-import 'package:idocit/features/tts/domain/usecases/profile/tts_get_volume.dart';
 import 'package:idocit/features/tts/domain/usecases/profile/tts_set_enabled.dart';
 import 'package:idocit/features/tts/domain/usecases/profile/tts_set_pitch.dart';
 import 'package:idocit/features/tts/domain/usecases/profile/tts_set_rate.dart';
-import 'package:idocit/features/tts/domain/usecases/tts_get_default_engine.dart';
-import 'package:idocit/features/tts/domain/usecases/tts_get_engines.dart';
+import 'package:idocit/features/tts/domain/usecases/tts_get_default_voice.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_get_is_current_language_installed.dart';
-import 'package:idocit/features/tts/domain/usecases/tts_get_languages.dart';
-import 'package:idocit/features/tts/domain/usecases/tts_get_voices.dart';
-import 'package:idocit/features/tts/domain/usecases/tts_set_current_engine.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_set_is_current_language_installed.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_set_language.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_set_voice.dart';
@@ -89,39 +79,13 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
     LoggerService.logDebug("rawVoices count: ${rawVoices.length}");
     if (rawVoices.isEmpty) return;
 
-    if (isAndroid) {
-      var json = await ttsService.getDefaultVoiceTts();
-      final defVoice = TtsVoice.fromJson(json);
-      LoggerService.logDebug('Android Default Voice: $defVoice');
-      if (json != null) {
-        var rawVoice = rawVoices.firstWhere((v) => v == defVoice, orElse: () => TtsVoice.nullVoice);
-        await locator<TtsSetVoice>().call(rawVoice.optional);
-        final voiceTts = locator<TtsBloc>().state.currentVoice;
-        if (voiceTts != null) changedVoicesDropDownItem(voiceTts);
-      }
-    } else {
-      String myLocale;
-      Locale deviceLocale = WidgetsBinding.instance.platformDispatcher.locale;
-      LoggerService.logDebug('Device Locale (ISO): $deviceLocale');
-      // TTS uses Unicode BCP47 Locale Identifiers instead of the ISO standard
-      myLocale = deviceLocale.toLanguageTag();
-      LoggerService.logDebug('Device/Browser Locale (BCP47): $myLocale');
-      // TTS auto-selects the first matching raw voice with locale
-      var rawVoiceTts = rawVoices.firstWhere(
-        (v) => v.locale == myLocale,
-        orElse: () => rawVoices.firstWhere(
-          (v) => v.locale.startsWith(myLocale),
-          orElse: () => rawVoices.firstWhere(
-            (v) => v.locale.startsWith(deviceLocale.languageCode),
-            orElse: () => TtsVoice.nullVoice,
-          ),
-        ),
-      );
-      await locator<TtsSetVoice>().call(rawVoiceTts.optional);
-      final voiceTts = locator<TtsBloc>().state.currentVoice;
-      LoggerService.logDebug('Computed Default Voice: ${voiceTts?.name}');
-      if (voiceTts != null) changedVoicesDropDownItem(voiceTts);
-    }
+    final defaultVoiceResult = await locator<TtsGetDefaultVoice>().call(rawVoices);
+    defaultVoiceResult.fold(
+      (fault) => ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Get default voice error: ${fault.message}}"), duration: Duration(seconds: 5)),
+      ),
+      (voiceTts) => changedVoicesDropDownItem(voiceTts),
+    );
   }
 
   Future<void> _speak(TtsState state) async {
