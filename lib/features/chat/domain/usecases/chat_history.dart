@@ -5,6 +5,7 @@ import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/common/services/network_listener.dart';
 import 'package:idocit/constants/errors.dart';
 import 'package:idocit/features/authentication/domain/bloc/auth_bloc.dart';
+import 'package:idocit/features/authentication/domain/usecases/sign/auth_auto_sign_in.dart';
 import 'package:idocit/features/chat/domain/bloc/chat_bloc.dart';
 import 'package:idocit/features/chat/domain/datasources/chat_history_remote_datasource.dart';
 
@@ -13,12 +14,14 @@ class GetChatHistory implements UseCase<Either<Failure, void>, String> {
   final ChatBloc chatBloc;
   final AuthBloc authBloc;
   final ChatHistoryRemoteDataSource chatHistoryRemoteDataSource;
+  final AuthAutoSignIn authAutoSignIn;
 
   const GetChatHistory({
     required this.networkListenerService,
     required this.chatBloc,
     required this.authBloc,
     required this.chatHistoryRemoteDataSource,
+    required this.authAutoSignIn,
   });
 
   @override
@@ -32,8 +35,12 @@ class GetChatHistory implements UseCase<Either<Failure, void>, String> {
     final chatsResult = await chatHistoryRemoteDataSource.getChats(token, chatId);
     return chatsResult.fold(
       (failure) async {
-        chatBloc.add(SetIsInProcess(isInProcess: false));
-        return Left(failure);
+        if (failure is TokenExpiredFailure) {
+          return (await authAutoSignIn.call(NoParams())).fold((authFailure) => Left(authFailure), (_) => call(chatId));
+        } else {
+          chatBloc.add(SetIsInProcess(isInProcess: false));
+          return Left(failure);
+        }
       },
       (result) async {
         chatBloc.add(SetChatHistoryMessages(chatHistoryMessages: result));

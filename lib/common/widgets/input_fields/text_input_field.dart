@@ -30,6 +30,7 @@ class IdocItTextInputField extends StatefulWidget {
   final VoidCallback? onTap;
   final Function(bool)? onFocusChange;
   final VoidCallback? onClear;
+  final bool isExpanded;
 
   const IdocItTextInputField({
     super.key,
@@ -64,6 +65,7 @@ class IdocItTextInputField extends StatefulWidget {
     this.onTap,
     this.onFocusChange,
     this.onClear,
+    this.isExpanded = false,
   }) : assert(maxLength >= 0),
        assert(maxLines >= 1);
 
@@ -376,7 +378,7 @@ class _IdocItTextInputFieldState extends State<IdocItTextInputField> with Widget
                 validator: widget.validator,
                 autovalidateMode: widget.autovalidateMode,
                 maxLengthEnforcement: widget.maxLengthEnforcement,
-                maxLines: widget.maxLines,
+                maxLines: widget.isExpanded ? null : widget.maxLines,
                 autofillHints: widget.autofillHints,
                 onChanged: _onChangedHandler,
                 onEditingComplete: widget.onEditingComplete,

@@ -6,6 +6,7 @@ import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/common/services/network_listener.dart';
 import 'package:idocit/constants/errors.dart';
 import 'package:idocit/features/authentication/domain/bloc/auth_bloc.dart';
+import 'package:idocit/features/authentication/domain/usecases/sign/auth_auto_sign_in.dart';
 import 'package:idocit/features/idocit/domain/blocs/idocit/idocit_bloc.dart';
 import 'package:idocit/features/idocit/domain/datasources/idocit_remote_datasource.dart';
 
@@ -14,12 +15,14 @@ class IdocItLazyInitChats implements UseCase<Either<Failure, void>, NoParams> {
   final IdocItBloc idocItBloc;
   final AuthBloc authBloc;
   final IdocItRemoteDataSource idocItRemoteDataSource;
+  final AuthAutoSignIn authAutoSignIn;
 
   const IdocItLazyInitChats({
     required this.networkListenerService,
     required this.idocItBloc,
     required this.authBloc,
     required this.idocItRemoteDataSource,
+    required this.authAutoSignIn,
   });
 
   @override
@@ -31,7 +34,11 @@ class IdocItLazyInitChats implements UseCase<Either<Failure, void>, NoParams> {
     final chatsResult = await idocItRemoteDataSource.getChats(token);
     return chatsResult.fold(
       (failure) async {
-        return Left(NetworkFailure());
+        if (failure is TokenExpiredFailure) {
+          return (await authAutoSignIn.call(NoParams())).fold((authFailure) => Left(authFailure), (_) => call(params));
+        } else {
+          return Left(failure);
+        }
       },
       (result) async {
         idocItBloc.add(SetChatsEvent(chats: result));

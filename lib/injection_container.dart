@@ -53,16 +53,19 @@ import 'package:idocit/features/stt/domain/usecases/stt_start_stop.dart';
 import 'package:idocit/features/tts/domain/blocs/tts_bloc.dart';
 import 'package:idocit/features/tts/domain/datasources/tts_preferences_storage.dart';
 import 'package:idocit/features/tts/domain/services/tts_service.dart';
+import 'package:idocit/features/tts/domain/usecases/get_max_speech_input_length.dart';
 import 'package:idocit/features/tts/domain/usecases/profile/tts_get_enabled.dart';
 import 'package:idocit/features/tts/domain/usecases/profile/tts_get_pitch.dart';
 import 'package:idocit/features/tts/domain/usecases/profile/tts_get_rate.dart';
 import 'package:idocit/features/tts/domain/usecases/profile/tts_get_volume.dart';
 import 'package:idocit/features/tts/domain/usecases/profile/tts_set_enabled.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_get_default_engine.dart';
+import 'package:idocit/features/tts/domain/usecases/tts_get_default_voice.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_get_engines.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_get_is_current_language_installed.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_get_languages.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_get_voices.dart';
+import 'package:idocit/features/tts/domain/usecases/tts_lazy_init.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_set_current_engine.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_set_is_current_language_installed.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_set_language.dart';
@@ -116,6 +119,7 @@ void initLocator() {
       chatBloc: locator<ChatBloc>(),
       authBloc: locator<AuthBloc>(),
       chatRemoteDataSource: locator<ChatSuggestionsRemoteDataSource>(),
+      authAutoSignIn: locator<AuthAutoSignIn>(),
     ),
   );
   locator.registerLazySingleton(
@@ -124,6 +128,7 @@ void initLocator() {
       chatBloc: locator<ChatBloc>(),
       authBloc: locator<AuthBloc>(),
       chatRemoteDataSource: locator<ChatSuggestionsRemoteDataSource>(),
+      authAutoSignIn: locator<AuthAutoSignIn>(),
     ),
   );
   locator.registerLazySingleton(() => ChatSuggestionsReset(chatBloc: locator<ChatBloc>()));
@@ -173,6 +178,23 @@ void initLocator() {
       ttsService: locator<TtsService>(),
     ),
   );
+
+  locator.registerLazySingleton(
+    () => TtsLazyInit(
+      networkListenerService: locator<NetworkListenerService>(),
+      ttsBloc: locator<TtsBloc>(),
+      ttsService: locator<TtsService>(),
+      ttsGetLanguages: locator<TtsGetLanguages>(),
+      ttsGetVoices: locator<TtsGetVoices>(),
+      ttsGetEnabled: locator<TtsGetEnabled>(),
+      ttsGetPitch: locator<TtsGetPitch>(),
+      ttsGetRate: locator<TtsGetRate>(),
+      ttsGetVolume: locator<TtsGetVolume>(),
+      ttsGetDefaultEngine: locator<TtsGetDefaultEngine>(),
+      ttsGetEngines: locator<TtsGetEngines>(),
+    ),
+  );
+
   locator.registerLazySingleton(
     () => TtsGetEnabled(ttsBloc: locator<TtsBloc>(), ttsPreferencesStorage: locator<TtsPreferencesStorage>()),
   );
@@ -206,6 +228,10 @@ void initLocator() {
   );
 
   locator.registerLazySingleton(() => TtsSetIsCurrentLanguageInstalled(ttsBloc: locator<TtsBloc>()));
+
+  locator.registerLazySingleton(
+    () => TtsGetMaxSpeechInputLength(ttsBloc: locator<TtsBloc>(), ttsService: locator<TtsService>()),
+  );
 
   locator.registerLazySingleton(
     () => TtsSetLanguage(
@@ -252,6 +278,16 @@ void initLocator() {
       ttsPreferencesStorage: locator<TtsPreferencesStorage>(),
     ),
   );
+
+  locator.registerLazySingleton(
+    () => TtsGetDefaultVoice(
+      ttsBloc: locator<TtsBloc>(),
+      ttsService: locator<TtsService>(),
+      ttsSetVoice: locator<TtsSetVoice>(),
+    ),
+  );
+
+  // TtsGetSwfaultVoice
 
   locator.registerLazySingleton(() => TtsPreferencesStorage());
   locator.registerLazySingleton(() => ApiClient(basePath: 'https://ai-assistant.ibagroupit.com/idocit'));
@@ -305,6 +341,7 @@ void initLocator() {
       idocItBloc: locator<IdocItBloc>(),
       authBloc: locator<AuthBloc>(),
       idocItRemoteDataSource: locator<IdocItRemoteDataSource>(),
+      authAutoSignIn: locator<AuthAutoSignIn>(),
     ),
   );
 
@@ -315,6 +352,7 @@ void initLocator() {
       authBloc: locator<AuthBloc>(),
       idocItRemoteDataSource: locator<IdocItRemoteDataSource>(),
       idocItLazyInitChats: locator<IdocItLazyInitChats>(),
+      authAutoSignIn: locator<AuthAutoSignIn>(),
     ),
   );
   //IdocItDeleteChat
@@ -324,6 +362,7 @@ void initLocator() {
       chatBloc: locator<ChatBloc>(),
       authBloc: locator<AuthBloc>(),
       chatHistoryRemoteDataSource: locator<ChatHistoryRemoteDataSource>(),
+      authAutoSignIn: locator<AuthAutoSignIn>(),
     ),
   );
   locator.registerLazySingleton(
@@ -332,6 +371,7 @@ void initLocator() {
       documentBloc: locator<DocumentBloc>(),
       authBloc: locator<AuthBloc>(),
       documentRemoteDataSource: locator<DocumentRemoteDataSource>(),
+      authAutoSignIn: locator<AuthAutoSignIn>(),
     ),
   );
   locator.registerLazySingleton(

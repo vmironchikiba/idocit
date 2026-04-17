@@ -9,6 +9,6 @@ class TtsGetEnabled implements UseCase<void, NoParams> {
   const TtsGetEnabled({required this.ttsBloc, required this.ttsPreferencesStorage});
 
   @override
-  Future<void> call(NoParams isEnabled) async =>
+  Future<void> call(NoParams param) async =>
       ttsBloc.add(UpdateTtsIsEnabled(isEnabled: await ttsPreferencesStorage.readIsEnabled()));
 }
