@@ -4,6 +4,7 @@ class ChatState {
   final DateTime selectedDate;
   final bool isInProcess;
   final SuggestionsResponse? suggestionsResponse;
+  final bool suggestionsInProcess;
   final String? query;
   final ChatCompletionChunk? chunk;
   final List<CompletionRequest> completionRequests;
@@ -28,6 +29,7 @@ class ChatState {
     this.chatTitle,
     required this.preMessageArray,
     this.chatHistoryMessages = const [],
+    required this.suggestionsInProcess,
   });
 
   factory ChatState.initial() {
@@ -45,6 +47,7 @@ class ChatState {
       chatTitle: null,
       preMessageArray: [],
       chatHistoryMessages: [],
+      suggestionsInProcess: false,
     );
   }
 
@@ -62,6 +65,7 @@ class ChatState {
     String? chatTitle,
     List<String>? preMessageArray,
     List<ChatHistoryMessage>? chatHistoryMessages,
+    bool? suggestionsInProcess,
   }) {
     return ChatState(
       selectedDate: selectedDate ?? this.selectedDate,
@@ -77,6 +81,7 @@ class ChatState {
       chatTitle: chatTitle ?? this.chatTitle,
       preMessageArray: preMessageArray ?? this.preMessageArray,
       chatHistoryMessages: chatHistoryMessages ?? this.chatHistoryMessages,
+      suggestionsInProcess: suggestionsInProcess ?? this.suggestionsInProcess,
     );
   }
 
@@ -94,6 +99,7 @@ class ChatState {
       chatTitle: chatTitle,
       preMessageArray: preMessageArray,
       chatHistoryMessages: chatHistoryMessages,
+      suggestionsInProcess: false,
     );
   }
 
@@ -112,6 +118,7 @@ class ChatState {
       chatTitle: chatTitle,
       preMessageArray: preMessageArray,
       chatHistoryMessages: chatHistoryMessages,
+      suggestionsInProcess: suggestionsInProcess,
     );
   }
 
@@ -130,6 +137,7 @@ class ChatState {
       chatTitle: chatTitle,
       preMessageArray: preMessageArray,
       chatHistoryMessages: chatHistoryMessages,
+      suggestionsInProcess: suggestionsInProcess,
     );
   }
 
@@ -148,6 +156,7 @@ class ChatState {
       chatTitle: chatTitle,
       preMessageArray: [],
       chatHistoryMessages: chatHistoryMessages,
+      suggestionsInProcess: suggestionsInProcess,
     );
   }
 
@@ -166,6 +175,7 @@ class ChatState {
       chatTitle: chatTitle,
       preMessageArray: preMessageArray,
       chatHistoryMessages: chatHistoryMessages,
+      suggestionsInProcess: suggestionsInProcess,
     );
   }
 

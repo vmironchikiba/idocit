@@ -14,6 +14,8 @@ class ChatBloc extends Bloc<ChatBlocEvent, ChatState> {
 
     on<SetIsInProcess>((event, emit) => emit(state.update(isInProcess: event.isInProcess)));
 
+    on<SetSuggestionsInProcess>((event, emit) => emit(state.update(suggestionsInProcess: event.suggestionsInProcess)));
+
     on<SetSuggestionsResponseEvent>((event, emit) {
       LoggerService.logDebug('ChatBloc SetSuggestionsResponseEvent ${event.suggestionsResponse.toString()}');
       emit(state.update(suggestionsResponse: event.suggestionsResponse));

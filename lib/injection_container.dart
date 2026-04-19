@@ -66,6 +66,7 @@ import 'package:idocit/features/tts/domain/usecases/tts_get_is_current_language_
 import 'package:idocit/features/tts/domain/usecases/tts_get_languages.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_get_voices.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_lazy_init.dart';
+import 'package:idocit/features/tts/domain/usecases/tts_pause.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_set_current_engine.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_set_is_current_language_installed.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_set_language.dart';
@@ -73,6 +74,7 @@ import 'package:idocit/features/tts/domain/usecases/profile/tts_set_pitch.dart';
 import 'package:idocit/features/tts/domain/usecases/profile/tts_set_rate.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_set_voice.dart';
 import 'package:idocit/features/tts/domain/usecases/profile/tts_set_volume.dart';
+import 'package:idocit/features/tts/domain/usecases/tts_stop.dart';
 import 'package:idocit/idocit/lib/api.dart';
 
 final locator = GetIt.instance;
@@ -287,7 +289,10 @@ void initLocator() {
     ),
   );
 
-  // TtsGetSwfaultVoice
+  locator.registerLazySingleton(
+    () => TtsStop(ttsService: locator<TtsService>(), chatStartCompletionsStream: locator<ChatStartCompletionsStream>()),
+  );
+  locator.registerLazySingleton(() => TtsPause(ttsService: locator<TtsService>()));
 
   locator.registerLazySingleton(() => TtsPreferencesStorage());
   locator.registerLazySingleton(() => ApiClient(basePath: 'https://ai-assistant.ibagroupit.com/idocit'));
