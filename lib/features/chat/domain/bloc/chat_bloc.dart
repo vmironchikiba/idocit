@@ -93,9 +93,7 @@ class ChatBloc extends Bloc<ChatBlocEvent, ChatState> {
               final Map generationResult = (generation['generation_result'] as Map?) ?? {};
               final system = generationResult['system'] as String?;
               if (system != null) {
-                LoggerService.logDebug('//////////////////////////////////////////');
                 LoggerService.logDebug(system);
-                LoggerService.logDebug('//////////////////////////////////////////');
               }
             }
           }

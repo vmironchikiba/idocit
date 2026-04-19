@@ -70,13 +70,14 @@ class _IdocItScreenState extends State<IdocItScreen> {
                 ),
                 sliderOpenSize: width - 50,
                 slider: SliderMenu(
+                  onClose: () => _sliderDrawerKey.currentState?.closeSlider(),
                   onItemClick: (chatId, chatTitle) async {
                     _sliderDrawerKey.currentState?.closeSlider();
                     final scaffoldMessenger = ScaffoldMessenger.of(chatContext);
                     final reset = await locator<ChatReset>().call(NoParams());
                     reset.fold(
                       (failure) => scaffoldMessenger.showSnackBar(
-                        SnackBar(content: Text(failure.message), duration: Duration(seconds: 5)),
+                        SnackBar(key: UniqueKey(), content: Text(failure.message), duration: Duration(seconds: 5)),
                       ),
                       (_) async {
                         FocusScope.of(chatContext).unfocus();
@@ -89,13 +90,21 @@ class _IdocItScreenState extends State<IdocItScreen> {
                             final history = await locator<GetChatHistory>().call(chatId);
                             history.fold(
                               (failure) => scaffoldMessenger.showSnackBar(
-                                SnackBar(content: Text(failure.message), duration: Duration(seconds: 5)),
+                                SnackBar(
+                                  key: UniqueKey(),
+                                  content: Text(failure.message),
+                                  duration: Duration(seconds: 5),
+                                ),
                               ),
                               (_) async {
                                 final chats = await locator<IdocItLazyInitChats>().call(NoParams());
                                 chats.fold(
                                   (failure) => scaffoldMessenger.showSnackBar(
-                                    SnackBar(content: Text(failure.message), duration: Duration(seconds: 5)),
+                                    SnackBar(
+                                      key: UniqueKey(),
+                                      content: Text(failure.message),
+                                      duration: Duration(seconds: 5),
+                                    ),
                                   ),
                                   (_) {
                                     locator<ChatBloc>().add(SetChatTitle(chatTitle: chatTitle));

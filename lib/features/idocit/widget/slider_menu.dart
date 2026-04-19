@@ -19,8 +19,9 @@ import 'package:flutter/material.dart';
 
 class SliderMenu extends StatefulWidget {
   final Function(String, String)? onItemClick;
+  final Function()? onClose;
 
-  const SliderMenu({super.key, this.onItemClick});
+  const SliderMenu({super.key, this.onItemClick, this.onClose});
 
   @override
   State<SliderMenu> createState() => _SliderMenuState();
@@ -58,8 +59,9 @@ class _SliderMenuState extends State<SliderMenu> {
       if (!mounted) return;
       final scaffoldMessenger = ScaffoldMessenger.of(context);
       chats.fold(
-        (failure) =>
-            scaffoldMessenger.showSnackBar(SnackBar(content: Text(failure.message), duration: Duration(seconds: 5))),
+        (failure) => scaffoldMessenger.showSnackBar(
+          SnackBar(key: UniqueKey(), content: Text(failure.message), duration: Duration(seconds: 5)),
+        ),
         (_) => null,
       );
       setState(() {
@@ -171,7 +173,11 @@ class _SliderMenuState extends State<SliderMenu> {
                                     final delete = await locator<IdocItDeleteChat>().call(chat.id);
                                     delete.fold(
                                       (failure) => ScaffoldMessenger.of(iDocItContext).showSnackBar(
-                                        SnackBar(content: Text(failure.message), duration: Duration(seconds: 5)),
+                                        SnackBar(
+                                          key: UniqueKey(),
+                                          content: Text(failure.message),
+                                          duration: Duration(seconds: 5),
+                                        ),
                                       ),
                                       (_) => null,
                                     );
@@ -179,7 +185,11 @@ class _SliderMenuState extends State<SliderMenu> {
                                     final chats = await locator<IdocItLazyInitChats>().call(NoParams());
                                     chats.fold(
                                       (failure) => ScaffoldMessenger.of(iDocItContext).showSnackBar(
-                                        SnackBar(content: Text(failure.message), duration: Duration(seconds: 5)),
+                                        SnackBar(
+                                          key: UniqueKey(),
+                                          content: Text(failure.message),
+                                          duration: Duration(seconds: 5),
+                                        ),
                                       ),
                                       (_) => null,
                                     );
@@ -236,7 +246,16 @@ class _SliderMenuState extends State<SliderMenu> {
                                   tooltip: 'Log out',
                                   color: ColorConstants.white500,
                                 ),
-                                children: [UserProfile(onTap: () => _controller.collapse())],
+                                children: [
+                                  UserProfile(
+                                    onTap: () {
+                                      if (widget.onClose != null) {
+                                        widget.onClose!();
+                                      }
+                                      _controller.collapse();
+                                    },
+                                  ),
+                                ],
                               ),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

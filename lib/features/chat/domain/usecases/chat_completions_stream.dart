@@ -24,7 +24,7 @@ class ChatStartCompletionsStream implements UseCase<Either<Failure, void>, Compl
   var previewBuffer = '';
   var chatId = '';
   String get remainingBuffer => _buffer;
-  // final List<String> preMessageArray = [];
+  final List<String> preMessageArray = [];
   // String? traceId;
   // QueryResponse? queryResponse;
 
@@ -51,7 +51,7 @@ class ChatStartCompletionsStream implements UseCase<Either<Failure, void>, Compl
     OpenAIStreamApi(basePath: StringsConstants.basePath)
         .streamChatCompletions(request.toChatCompletionRequest(), token.accessToken)
         .listen(
-          (chunk) {
+          (chunk) async {
             final currentChatId = chunk.id;
             if (currentChatId != null) {
               chatId = currentChatId;
@@ -65,7 +65,7 @@ class ChatStartCompletionsStream implements UseCase<Either<Failure, void>, Compl
 
             if (locator<TtsBloc>().state.isEnabled && content != null) {
               final sentences = addChunk(content);
-              speakSentences(sentences);
+              await _speakSentences(sentences);
               previewBuffer += content;
             }
 
@@ -76,6 +76,9 @@ class ChatStartCompletionsStream implements UseCase<Either<Failure, void>, Compl
               if (arguments?.type == 'system.token') {
                 final message = (arguments?.message ?? '').trim();
                 if (message.isNotEmpty) {
+                  if (locator<TtsBloc>().state.isEnabled) {
+                    await _speakSentence(message);
+                  }
                   final preMessageArray = chatBloc.state.preMessageArray;
                   preMessageArray.add(message);
                   chatBloc.add(SetPreMessageArray(preMessageArray: preMessageArray));
@@ -89,8 +92,9 @@ class ChatStartCompletionsStream implements UseCase<Either<Failure, void>, Compl
                 chatBloc.add(SetGenerationResultSystem(generationResultSystem: system));
               }
               if (toolCall?.id == 'generation.node_update') {
-                if (updates.generation?.knowledge != null) {
-                  chatBloc.add(SetQueryResponse(queryResponse: updates.generation?.knowledge));
+                final knowledge = updates.generation?.knowledge;
+                if (knowledge != null) {
+                  chatBloc.add(SetQueryResponse(queryResponse: knowledge));
                 }
                 chatBloc.add(SetTraceId(traceId: arguments?.traceId));
               }
@@ -101,10 +105,10 @@ class ChatStartCompletionsStream implements UseCase<Either<Failure, void>, Compl
             chatBloc.add(SetIsInProcess(isInProcess: false));
             return Left(CommonFailure(message: err.toString(), type: CommonErrorType.badResponseData));
           },
-          onDone: () {
+          onDone: () async {
             if (_buffer.isNotEmpty && locator<TtsBloc>().state.isEnabled) {
               final sentences = addChunk('', withEnd: true);
-              speakSentences(sentences);
+              await _speakSentences(sentences);
             }
             chatBloc.add(SetIsInProcess(isInProcess: false));
             chatBloc.add(SetChatId(chatId: chatId));
@@ -117,16 +121,17 @@ class ChatStartCompletionsStream implements UseCase<Either<Failure, void>, Compl
     return Right(null);
   }
 
-  void speakSentences(List<String> sentences) {
+  Future<void> _speakSentences(List<String> sentences) async {
     for (final sentence in sentences) {
-      ttsService.awaitSpeakCompletion(true).then((value) {
-        LoggerService.logDebug('🎤 $value Озвучиваем: "$sentence"');
-        ttsService.speak(sentence).then((value) {
-          LoggerService.logDebug("Озвучиваем value: $value");
-          LoggerService.logDebug("Озвучиваем буфер: $_buffer");
-        });
-      });
+      await _speakSentence(sentence);
     }
+  }
+
+  Future<void> _speakSentence(String sentence) async {
+    final awaitSpeakCompletion = await ttsService.awaitSpeakCompletion(true);
+    LoggerService.logDebug('🎤 $awaitSpeakCompletion Озвучиваем: "$sentence"');
+    final speak = await ttsService.speak(sentence);
+    LoggerService.logDebug("🎤 $speak Озвучиваем буфер: $_buffer");
   }
 
   List<String> addChunk(String chunk, {bool withEnd = false}) {

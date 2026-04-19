@@ -30,17 +30,6 @@ class OpenAIStreamApi {
     }
 
     final lines = streamedResponse.stream.transform(utf8.decoder).transform(const LineSplitter());
-
-    // await for (final line in lines) {
-    //   if (line.trim().isEmpty) continue;
-    //   try {
-    //     final chunk = ChatCompletionChunk.fromJson(jsonDecode(line) as Map<String, dynamic>);
-    //     if (chunk != null) yield chunk;
-    //   } catch (e) {
-    //     LoggerService.logDebug(e.toString());
-    //     continue;
-    //   }
-    // }
     await for (final line in lines) {
       final trimmed = line.trim();
 

@@ -72,8 +72,9 @@ class _IdocItChatState extends State<IdocItChat> {
       if (!mounted) return;
       final scaffoldMessenger = ScaffoldMessenger.of(context);
       result.fold(
-        (failure) =>
-            scaffoldMessenger.showSnackBar(SnackBar(content: Text(failure.message), duration: Duration(seconds: 5))),
+        (failure) => scaffoldMessenger.showSnackBar(
+          SnackBar(key: UniqueKey(), content: Text(failure.message), duration: Duration(seconds: 5)),
+        ),
         (_) => null,
       );
     });
@@ -110,7 +111,7 @@ class _IdocItChatState extends State<IdocItChat> {
       result.fold(
         (failure) => ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(failure.message), duration: Duration(seconds: 5))),
+        ).showSnackBar(SnackBar(key: UniqueKey(), content: Text(failure.message), duration: Duration(seconds: 5))),
         (_) => _scrollToBottom(),
       );
     });
@@ -156,6 +157,7 @@ class _IdocItChatState extends State<IdocItChat> {
               BlocBuilder<ChatBloc, ChatState>(
                 builder: (context, state) {
                   WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+                  final categories = state.queryResponse?.categories.expand((c) => c.knowledgeData).toList() ?? [];
                   return Stack(
                     children: [
                       ListView(
@@ -204,12 +206,10 @@ class _IdocItChatState extends State<IdocItChat> {
 
                           AnimatedSwitcher(
                             duration: const Duration(milliseconds: 300),
-                            child:
-                                (state.queryResponse?.categories.expand((c) => c.knowledgeData).toList() ?? [])
-                                    .isNotEmpty
+                            child: categories.isNotEmpty
                                 ? InlineExpandableList(
                                     key: const ValueKey('knowledge_list'),
-                                    items: state.queryResponse!.categories.expand((c) => c.knowledgeData).toList(),
+                                    items: categories,
                                     onItemTap: (udid, index) {},
                                   )
                                 : const SizedBox(key: ValueKey('empty_knowledge')),
@@ -448,6 +448,7 @@ class _IdocItChatState extends State<IdocItChat> {
                                                 reset.fold(
                                                   (failure) => ScaffoldMessenger.of(context).showSnackBar(
                                                     SnackBar(
+                                                      key: UniqueKey(),
                                                       content: Text(failure.message),
                                                       duration: Duration(seconds: 5),
                                                     ),
@@ -460,6 +461,7 @@ class _IdocItChatState extends State<IdocItChat> {
                                                 history.fold(
                                                   (failure) => ScaffoldMessenger.of(context).showSnackBar(
                                                     SnackBar(
+                                                      key: UniqueKey(),
                                                       content: Text(failure.message),
                                                       duration: Duration(seconds: 5),
                                                     ),
@@ -471,6 +473,7 @@ class _IdocItChatState extends State<IdocItChat> {
                                                 chats.fold(
                                                   (failure) => ScaffoldMessenger.of(context).showSnackBar(
                                                     SnackBar(
+                                                      key: UniqueKey(),
                                                       content: Text(failure.message),
                                                       duration: Duration(seconds: 5),
                                                     ),
@@ -487,6 +490,7 @@ class _IdocItChatState extends State<IdocItChat> {
                                               completion.fold(
                                                 (failure) => ScaffoldMessenger.of(context).showSnackBar(
                                                   SnackBar(
+                                                    key: UniqueKey(),
                                                     content: Text(failure.message),
                                                     duration: Duration(seconds: 5),
                                                   ),

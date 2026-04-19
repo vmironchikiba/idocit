@@ -27,6 +27,9 @@ class MarkdownWebViewPage extends StatefulWidget {
 }
 
 class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
+  bool _snackBarIsProcessing = false;
+  late ScaffoldMessengerState _scaffoldMessenger;
+
   static const hasDebugInfo = false;
   late final WebViewController _webViewController;
   final String docType =
@@ -36,15 +39,12 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
     locator<DocumentBloc>().state.documentResponse?.document.properties.docLink ?? '::Not valid URI::',
   );
   final List<DocumentChunk> _chunks = locator<DocumentBloc>().state.documentResponse?.chunks ?? [];
-  // final String _originalMarkdownData =
-  //     locator<DocumentBloc>().state.documentResponse?.document.properties.text.replaceAll('\n\n', '\n') ?? '';
+
   late String _currentSearchQuery = '';
   bool _isLoading = true;
   double _scrollPosition = 0;
   final List<SearchMatch> _matches = [];
   String _htmlTemplate = '';
-  String _fallbackTemplate = ''; // Добавьте это поле
-  // late String _preparedText;
   final Map<String, double> _scrollPositions = {};
   late String _textFromChunks;
   bool channelsInitialized = false;
@@ -112,43 +112,17 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
             // }
             setState(() => _isLoading = false);
           },
-          onHttpError: (error) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  "onHttpError: ${error.request?.uri.toString() ?? 'No request'}  ${error.response?.statusCode ?? 'No response'}",
-                ),
-                duration: Duration(seconds: 5),
-              ),
-            );
-            LoggerService.logDebug(
-              "onHttpError: ${error.request?.uri.toString() ?? 'No request'}  ${error.response?.statusCode ?? 'No response'}",
-            );
-          },
-          onSslAuthError: (error) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("onSslAuthError: ${error.toString()}"), duration: Duration(seconds: 5)),
-            );
-            LoggerService.logDebug("onSslAuthError: ${error.toString()}");
-          },
+          onHttpError: (error) => showSnackBar(
+            context,
+            "onHttpError: ${error.request?.uri.toString() ?? 'No request'}  ${error.response?.statusCode ?? 'No response'}",
+            5,
+          ),
+          onSslAuthError: (error) => showSnackBar(context, "onSslAuthError: ${error.toString()}", 5),
           onWebResourceError: (WebResourceError error) async {
-            // await idocitShowDialog<bool?>(
-            //   IdocItWarningDialog(
-            //     label: error.errorType.toString(),
-            //     description: error.description,
-            //     iconSrc: ImageConstants.igIdocIt,
-            //     buttonText: 'OK',
-            //     // buttonCallback: _onTryAgainHandler,
-            //   ),
-            // );
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('onWebResourceError: ${error.errorType} - ${error.errorCode} - ${error.description}'),
-                duration: Duration(seconds: 5),
-              ),
-            );
-            LoggerService.logDebug(
+            await showSnackBar(
+              context,
               'onWebResourceError: ${error.errorType} - ${error.errorCode} - ${error.description}',
+              5,
             );
 
             // КЛЮЧЕВОЕ: обрабатываем именно ошибку завершения процесса
@@ -162,6 +136,31 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
           },
         ),
       );
+  }
+
+  Future<void> showSnackBar(BuildContext context, String text, int seconds) async {
+    if (_snackBarIsProcessing || !mounted) return;
+    setState(() {
+      _snackBarIsProcessing = true;
+    });
+    _scaffoldMessenger.showSnackBar(
+      SnackBar(
+        key: UniqueKey(),
+        content: Text(text),
+        duration: Duration(seconds: seconds),
+      ),
+    );
+    await Future.delayed(Duration(seconds: seconds + 2));
+    setState(() {
+      _snackBarIsProcessing = false;
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Сохраняем ссылку на ScaffoldMessenger при первом построении
+    _scaffoldMessenger = ScaffoldMessenger.of(context);
   }
 
   @override
@@ -189,6 +188,13 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
       channelsInitialized = true;
     }
     _loadTemplatesAndProcessSearch(); // Измените название метода
+  }
+
+  @override
+  void dispose() {
+    // Используем сохраненную ссылку, а не context
+    _scaffoldMessenger.clearSnackBars();
+    super.dispose();
   }
 
   bool _isHtmlPage(Uri uri) {
@@ -411,8 +417,8 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
   }
 
   void _shareAsXFile(BuildContext context) async {
+    _scaffoldMessenger.clearSnackBars();
     final box = context.findRenderObject() as RenderBox?;
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
     final docName = widget.knowledge.docName.split('\n').firstOrNull ?? 'Документ';
     final body = widget.knowledge.text;
     final mdDocName = docName.withExtension('md');
@@ -440,10 +446,13 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
           // excludedCupertinoActivities: excludedCupertinoActivityType,
         ),
       );
-
-      scaffoldMessenger.showSnackBar(SnackBar(content: Text('${shareResult.status}')));
+      if (shareResult.status == ShareResultStatus.unavailable) {
+        // ignore: use_build_context_synchronously
+        await showSnackBar(context, shareResult.status.message, 3);
+      }
     } catch (e) {
-      scaffoldMessenger.showSnackBar(SnackBar(content: Text('Error: $e'), duration: Duration(seconds: 5)));
+      // ignore: use_build_context_synchronously
+      showSnackBar(context, 'Error: $e', 5);
     }
   }
 
@@ -459,88 +468,91 @@ class _MarkdownWebViewPageState extends State<MarkdownWebViewPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: SvgPicture.asset(ImageConstants.igIdocIt, height: 8, width: 8),
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Text(
-                widget.knowledge.docName.split('\n').firstOrNull ?? 'Документ',
-                maxLines: 2,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14.0,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          if (progress > 0 && progress < 100)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Center(
-                child: Text('$progress%', style: const TextStyle(fontSize: 14, color: ColorConstants.white500)),
-              ),
-            ),
-        ],
-      ),
-
-      body: Stack(
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return PopScope(
+      canPop: !_snackBarIsProcessing,
+      child: Scaffold(
+        appBar: AppBar(
+          leading: SvgPicture.asset(ImageConstants.igIdocIt, height: 8, width: 8),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 3.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 8.0),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8.0),
-                        color: Color.fromRGBO(255, 217, 39, 1.0),
-                      ),
-                      child: Text(
-                        docType,
-                        style: TextStyle(color: ColorConstants.black500, fontSize: 16, fontWeight: FontWeight.w900),
-                      ),
-                    ),
-                    if (_docLink.isNotEmpty)
-                      IconButton(
-                        onPressed: _openExternal,
-                        icon: Icon(Icons.open_in_browser, color: ColorConstants.white500, size: 30),
-                      )
-                    else
-                      IconButton(
-                        onPressed: () => _shareAsXFile(context),
-                        icon: Icon(Icons.ios_share, color: ColorConstants.white500, size: 30),
-                      ),
-                  ],
+              Expanded(
+                child: Text(
+                  widget.knowledge.docName.split('\n').firstOrNull ?? 'Документ',
+                  maxLines: 2,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14.0,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ),
-              Expanded(child: WebViewWidget(controller: _webViewController)),
             ],
           ),
-          if (_isLoading)
-            Container(
-              color: Colors.white,
-              child: const Center(child: IdocItLoadingIndicator(size: 40.0, color: ColorConstants.loading)),
-            ),
-        ],
-      ),
+          actions: [
+            if (progress > 0 && progress < 100)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Center(
+                  child: Text('$progress%', style: const TextStyle(fontSize: 14, color: ColorConstants.white500)),
+                ),
+              ),
+          ],
+        ),
 
-      floatingActionButton: FloatingActionButton(
-        heroTag: "refresh",
-        onPressed: _refreshSearch,
-        tooltip: 'Обновить поиск',
-        backgroundColor: ColorConstants.loading,
-        child: const Icon(Icons.refresh, color: ColorConstants.black350),
+        body: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 3.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 8.0),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8.0),
+                          color: Color.fromRGBO(255, 217, 39, 1.0),
+                        ),
+                        child: Text(
+                          docType,
+                          style: TextStyle(color: ColorConstants.black500, fontSize: 16, fontWeight: FontWeight.w900),
+                        ),
+                      ),
+                      if (_docLink.isNotEmpty)
+                        IconButton(
+                          onPressed: _openExternal,
+                          icon: Icon(Icons.open_in_browser, color: ColorConstants.white500, size: 30),
+                        )
+                      else
+                        IconButton(
+                          onPressed: () => _shareAsXFile(context),
+                          icon: Icon(Icons.ios_share, color: ColorConstants.white500, size: 30),
+                        ),
+                    ],
+                  ),
+                ),
+                Expanded(child: WebViewWidget(controller: _webViewController)),
+              ],
+            ),
+            if (_isLoading)
+              Container(
+                color: Colors.white,
+                child: const Center(child: IdocItLoadingIndicator(size: 40.0, color: ColorConstants.loading)),
+              ),
+          ],
+        ),
+
+        floatingActionButton: FloatingActionButton(
+          heroTag: "refresh",
+          onPressed: _refreshSearch,
+          tooltip: 'Обновить поиск',
+          backgroundColor: ColorConstants.loading,
+          child: const Icon(Icons.refresh, color: ColorConstants.black350),
+        ),
       ),
     );
   }
@@ -560,4 +572,12 @@ class SearchMatch {
   String toString() {
     return 'SearchMatch{id: $id, index: $index, position: $position, text: "${text.substring(0, 50)}..."}';
   }
+}
+
+extension _ShareResultStatusString on ShareResultStatus {
+  String get message => switch (this) {
+    ShareResultStatus.success => 'Успешно',
+    ShareResultStatus.dismissed => 'Отмена',
+    ShareResultStatus.unavailable => 'Недоступно',
+  };
 }

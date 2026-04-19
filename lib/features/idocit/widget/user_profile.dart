@@ -14,6 +14,9 @@ class UserProfile extends StatelessWidget {
   UserProfile({super.key, this.onTap});
 
   Future<void> _handleTtsSettings(BuildContext context) async {
+    if (onTap != null) {
+      onTap!();
+    }
     Navigator.push(context, CupertinoPageRoute(builder: (_) => TtsSettingsScreen()));
   }
 
