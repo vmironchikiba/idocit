@@ -3,6 +3,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:idocit/constants/image.dart';
 import 'package:idocit/features/document/domain/bloc/document_bloc.dart';
 import 'package:idocit/features/document/pages/markdown_web_view_page.dart';
+import 'package:idocit/features/document/pages/markdown_in_app_web_view_page.dart';
 import 'package:idocit/features/document/pages/web_view_page.dart';
 import 'package:idocit/injection_container.dart';
 import 'package:idocit/idocit/lib/api.dart';
@@ -63,7 +64,7 @@ class _DocumentScreenState extends State<DocumentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return MarkdownWebViewPage(knowledge: widget.knowledge);
+    return MarkdownInAppWebViewPage(knowledge: widget.knowledge);
     // (docType == 'MD Format' || docType == 'HTML Documents' || docType == 'WEB documents' || docType == 'Confluence')
     //     ? MarkdownWebViewPage(knowledge: widget.knowledge)
     //     : docType == 'WEB documents' || docType == 'Confluence'
