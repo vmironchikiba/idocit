@@ -14,6 +14,7 @@ import 'package:idocit/injection_container.dart';
 import 'package:markdown/markdown.dart' as md;
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_marquee_plus/flutter_marquee_plus.dart';
 
 class MarkdownInAppWebViewPage extends StatefulWidget {
   final KnowledgeData knowledge;
@@ -220,23 +221,25 @@ class _MarkdownInAppWebViewPageState extends State<MarkdownInAppWebViewPage> {
       child: Scaffold(
         appBar: AppBar(
           leading: SvgPicture.asset(ImageConstants.igIdocIt, height: 8, width: 8),
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Text(
-                  widget.knowledge.docName.split('\n').firstOrNull ?? 'Документ',
-                  maxLines: 2,
-                  style: const TextStyle(
-                    color: ColorConstants.white500,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14.0,
-                    overflow: TextOverflow.ellipsis,
+          title:
+              // MarqueePlus(text: widget.knowledge.docName.split('\n').firstOrNull ?? 'Документ', velocity: 50),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Text(
+                      widget.knowledge.docName.split('\n').firstOrNull ?? 'Документ',
+                      maxLines: 2,
+                      style: const TextStyle(
+                        color: ColorConstants.white500,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14.0,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
           actions: [
             if (progress > 0 && progress < 100)
               Padding(

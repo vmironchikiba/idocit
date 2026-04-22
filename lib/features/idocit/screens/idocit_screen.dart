@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_marquee_plus/flutter_marquee_plus.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:idocit/common/models/service/usecase.dart';
 import 'package:idocit/constants/colors.dart';
@@ -48,18 +49,37 @@ class _IdocItScreenState extends State<IdocItScreen> {
                 isDraggable: false,
                 appBar: SliderAppBar(
                   config: SliderAppBarConfig(
-                    title: Text(
-                      chatState.chatTitle ?? "New Chat",
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        inherit: false,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        fontStyle: FontStyle.normal,
-                        color: ColorConstants.white500,
-                        overflow: TextOverflow.ellipsis,
+                    title: Padding(
+                      padding: EdgeInsetsGeometry.only(top: 15),
+                      child: MarqueePlus(
+                        text: chatState.chatTitle ?? "New Chat",
+                        scrollAxis: Axis.horizontal,
+                        velocity: 50.0,
+                        gap: 20,
+                        pauseAfterRound: Duration(seconds: 1),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          inherit: false,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          fontStyle: FontStyle.normal,
+                          color: ColorConstants.white500,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ),
+                    // Text(
+                    //   chatState.chatTitle ?? "New Chat",
+                    //   textAlign: TextAlign.center,
+                    //   style: const TextStyle(
+                    //     inherit: false,
+                    //     fontSize: 16,
+                    //     fontWeight: FontWeight.w500,
+                    //     fontStyle: FontStyle.normal,
+                    //     color: ColorConstants.white500,
+                    //     overflow: TextOverflow.ellipsis,
+                    //   ),
+                    // ),
                     backgroundColor: ColorConstants.black300,
                     drawerIconColor: ColorConstants.white500,
                     trailing: Padding(
