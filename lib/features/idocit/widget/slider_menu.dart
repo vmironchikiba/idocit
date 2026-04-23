@@ -33,7 +33,7 @@ class _SliderMenuState extends State<SliderMenu> {
   String? _isChatInProgressId;
   bool _isNewChatAdded = false;
   bool _profileOpened = false;
-  final ExpansibleController _controller = ExpansibleController();
+  final ExpansibleController _expansibleController = ExpansibleController();
   final ScrollController _scrollController = ScrollController();
   bool _isFullVisible = true;
 
@@ -76,7 +76,7 @@ class _SliderMenuState extends State<SliderMenu> {
         });
       }
     });
-    _controller.addListener(() {
+    _expansibleController.addListener(() {
       _checkScrollNeeded();
     });
   }
@@ -146,6 +146,7 @@ class _SliderMenuState extends State<SliderMenu> {
                             child: IdocItTextButton(
                               contentText: chat.title,
                               callback: () async {
+                                _expansibleController.collapse();
                                 _isNewChatAdded = false;
                                 setState(() {
                                   _isChatInProgress = true;
@@ -165,6 +166,7 @@ class _SliderMenuState extends State<SliderMenu> {
                           _isChatInProgressId != chat.id
                               ? InkWell(
                                   onTap: () async {
+                                    _expansibleController.collapse();
                                     setState(() {
                                       _isChatInProgress = true;
                                       _isChatInProgressId = chat.id;
@@ -225,7 +227,7 @@ class _SliderMenuState extends State<SliderMenu> {
                             controller: _scrollController,
                             children: <Widget>[
                               ExpansionTile(
-                                controller: _controller,
+                                controller: _expansibleController,
                                 leading: Icon(
                                   _profileOpened ? Icons.arrow_drop_up : Icons.arrow_drop_down,
                                   color: ColorConstants.white500,
@@ -252,7 +254,7 @@ class _SliderMenuState extends State<SliderMenu> {
                                       if (widget.onClose != null) {
                                         widget.onClose!();
                                       }
-                                      _controller.collapse();
+                                      _expansibleController.collapse();
                                     },
                                   ),
                                 ],
@@ -317,6 +319,7 @@ class _SliderMenuState extends State<SliderMenu> {
                                               child: IdocItTextButton(
                                                 contentText: 'New chat',
                                                 callback: () async {
+                                                  _expansibleController.collapse();
                                                   if (widget.onItemClick == null) return;
                                                   await widget.onItemClick!('', 'New chat');
                                                 },
@@ -326,6 +329,7 @@ class _SliderMenuState extends State<SliderMenu> {
                                             ),
                                             InkWell(
                                               onTap: () {
+                                                _expansibleController.collapse();
                                                 setState(() {
                                                   _isNewChatAdded = false;
                                                 });

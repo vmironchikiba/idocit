@@ -7,6 +7,7 @@ import 'package:idocit/constants/image.dart';
 import 'package:idocit/features/authentication/domain/bloc/auth_bloc.dart';
 import 'package:idocit/features/tts/screens/tts_settings_screen_s.dart';
 import 'package:idocit/injection_container.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 // ignore: must_be_immutable
 class UserProfile extends StatelessWidget {
@@ -73,7 +74,7 @@ class UserProfile extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
             child: InkWell(
               onTap: () => _handleTtsSettings(context),
               child: RichText(
@@ -92,6 +93,25 @@ class UserProfile extends StatelessWidget {
                       child: SizedBox(width: 10.0), // Отступ
                     ),
                     TextSpan(text: 'TTS Settings'),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
+            child: InkWell(
+              onTap: () async {
+                await WakelockPlus.enabled ? await WakelockPlus.disable() : await WakelockPlus.enable();
+              },
+              child: RichText(
+                text: TextSpan(
+                  children: [
+                    WidgetSpan(child: Icon(Icons.screen_lock_portrait, size: 22, color: ColorConstants.white500)),
+                    WidgetSpan(
+                      child: SizedBox(width: 10.0), // Отступ
+                    ),
+                    TextSpan(text: 'Screen locked'),
                   ],
                 ),
               ),
