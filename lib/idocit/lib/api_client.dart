@@ -186,6 +186,8 @@ class ApiClient {
           return AdminLoadPayload.fromJson(value);
         case 'AdminQueryPayload':
           return AdminQueryPayload.fromJson(value);
+        case 'BodyLoginApiLoginPost':
+          return BodyLoginApiLoginPost.fromJson(value);
         case 'ChatCompletionChoice':
           return ChatCompletionChoice.fromJson(value);
         case 'ChatCompletionChunk':

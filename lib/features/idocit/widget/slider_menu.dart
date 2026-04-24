@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:idocit/common/blocs/core_bloc.dart';
 import 'package:idocit/common/models/service/usecase.dart';
 import 'package:idocit/common/providers/chats_notifier.dart';
 import 'package:idocit/common/utils/dialogs.dart';
@@ -249,12 +250,18 @@ class _SliderMenuState extends State<SliderMenu> {
                                   color: ColorConstants.white500,
                                 ),
                                 children: [
-                                  UserProfile(
-                                    onTap: () {
-                                      if (widget.onClose != null) {
-                                        widget.onClose!();
-                                      }
-                                      _expansibleController.collapse();
+                                  BlocBuilder<CoreBloc, CoreState>(
+                                    buildWhen: (p, c) => p.screenLock != c.screenLock,
+                                    builder: (coreContext, coreState) {
+                                      return UserProfile(
+                                        onTap: () {
+                                          if (widget.onClose != null) {
+                                            widget.onClose!();
+                                          }
+                                          _expansibleController.collapse();
+                                        },
+                                        screenLock: coreState.screenLock,
+                                      );
                                     },
                                   ),
                                 ],

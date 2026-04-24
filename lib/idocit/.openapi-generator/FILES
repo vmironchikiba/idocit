@@ -7,6 +7,7 @@ doc/AdminQueryPayload.md
 doc/ApiKeysApi.md
 doc/AppStatusApi.md
 doc/AuthApi.md
+doc/BodyLoginApiLoginPost.md
 doc/CategoryApi.md
 doc/CategoryTypeApi.md
 doc/ChatApi.md
@@ -124,6 +125,7 @@ lib/auth/http_bearer_auth.dart
 lib/auth/oauth.dart
 lib/model/admin_load_payload.dart
 lib/model/admin_query_payload.dart
+lib/model/body_login_api_login_post.dart
 lib/model/chat_completion_choice.dart
 lib/model/chat_completion_chunk.dart
 lib/model/chat_completion_request.dart
@@ -189,5 +191,3 @@ lib/model/validation_error.dart
 lib/model/validation_error_loc_inner.dart
 lib/model/verba_options.dart
 pubspec.yaml
-test/preset_test.dart
-test/presets_response_test.dart

@@ -10,9 +10,9 @@ import 'package:idocit/injection_container.dart';
 
 class AuthRemoteDataSource extends BaseRepository {
   // UserToken? token;
-  Future<Either<Failure, UserToken>> signIn(LoginData data) async {
-    LoggerService.logDebug('AuthRemoteDataSource -> signIn(email: ${data.email})');
-    final result = await makeRequest(() => locator<AuthApi>().loginApiLoginPost(data.email, data.password));
+  Future<Either<Failure, UserToken>> signIn(BodyLoginApiLoginPost data) async {
+    LoggerService.logDebug('AuthRemoteDataSource -> signIn(email: ${data.username})');
+    final result = await makeRequest(() => locator<AuthApi>().loginApiLoginPost(data));
     return result.fold(
       (failure) => Left(failure),
       (response) => response == null ? Left(UnautorizedFailure()) : Right(response),
