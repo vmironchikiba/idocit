@@ -50,7 +50,7 @@ class _MarkdownInAppWebViewPageState extends State<MarkdownInAppWebViewPage> {
   void initState() {
     super.initState();
     final url = locator<DocumentBloc>().state.documentResponse?.document.properties.docLink;
-    _docLink = url != null ? WebUri(url) : null;
+    _docLink = url != null && url.trim().isNotEmpty ? WebUri(url) : null;
     _currentUri = _docLink;
 
     // _currentSearchQuery = widget.knowledge.text;
@@ -113,7 +113,7 @@ class _MarkdownInAppWebViewPageState extends State<MarkdownInAppWebViewPage> {
     _htmlPage = _htmlTemplate.replaceFirst('<!-- CONTENT_PLACEHOLDER -->', html);
 
     if (_controller != null) {
-      await _controller!.loadData(data: _htmlPage, mimeType: "text/html", encoding: "utf-8");
+      await _controller!.loadData(data: _htmlPage, mimeType: "text/html", encoding: "utf-8", baseUrl: _docLink);
     }
   }
 
