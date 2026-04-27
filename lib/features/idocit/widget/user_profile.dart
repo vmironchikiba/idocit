@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:idocit/common/blocs/core_bloc.dart';
 import 'package:idocit/common/services/device.dart';
+import 'package:idocit/common/usecases/core_update_screenlock.dart';
 import 'package:idocit/constants/colors.dart';
 import 'package:idocit/constants/image.dart';
 import 'package:idocit/features/authentication/domain/bloc/auth_bloc.dart';
@@ -124,10 +125,7 @@ class UserProfile extends StatelessWidget {
                 ),
               ),
               value: screenLock,
-              onChanged: (value) async {
-                value ? await WakelockPlus.enable() : await WakelockPlus.disable();
-                locator<CoreBloc>().add(UpdateScreenLock(screenLock: value));
-              },
+              onChanged: (value) async => await locator<CoreUpdateScreenlockIsEnabled>().call(value),
             ),
 
             // InkWell(

@@ -14,7 +14,6 @@ import 'package:idocit/injection_container.dart';
 import 'package:markdown/markdown.dart' as md;
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter_marquee_plus/flutter_marquee_plus.dart';
 
 class MarkdownInAppWebViewPage extends StatefulWidget {
   final KnowledgeData knowledge;

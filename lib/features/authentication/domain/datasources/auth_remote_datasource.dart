@@ -2,7 +2,6 @@ import 'package:dartz/dartz.dart';
 import 'package:idocit/common/models/base_api_handler.dart';
 import 'package:idocit/constants/errors.dart';
 import 'package:idocit/constants/strings.dart';
-import 'package:idocit/features/authentication/domain/models/login_data.dart';
 import 'package:idocit/common/models/service/failure.dart';
 import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/idocit/lib/api.dart';

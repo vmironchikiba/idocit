@@ -16,7 +16,6 @@ import 'package:idocit/constants/errors.dart';
 import 'package:idocit/constants/image.dart';
 import 'package:idocit/constants/sizes.dart';
 import 'package:idocit/constants/style.dart';
-import 'package:idocit/features/authentication/domain/models/login_data.dart';
 import 'package:idocit/features/authentication/domain/usecases/sign/auth_sign_in.dart';
 import 'package:idocit/idocit/lib/api.dart';
 import 'package:idocit/injection_container.dart';

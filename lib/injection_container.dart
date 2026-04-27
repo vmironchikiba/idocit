@@ -7,6 +7,7 @@ import 'package:idocit/common/services/in_app_failures/in_app_failure_provider.d
 import 'package:idocit/common/services/navigator.dart';
 import 'package:idocit/common/services/network_listener.dart';
 import 'package:idocit/common/usecases/core_update_in_app_toast.dart';
+import 'package:idocit/common/usecases/core_update_screenlock.dart';
 import 'package:idocit/features/authentication/domain/bloc/auth_bloc.dart';
 import 'package:idocit/common/providers/charles_provider.dart';
 import 'package:idocit/common/providers/theme_provider.dart';
@@ -104,6 +105,10 @@ void initLocator() {
       charlesProvider: locator<CharlesProvider>(),
     ),
   );
+  locator.registerLazySingleton(
+    () => CoreUpdateScreenlockIsEnabled(coreBloc: locator<CoreBloc>(), storage: locator<CorePreferencesStorage>()),
+  );
+
   locator.registerLazySingleton(() => IdocItBloc(IdocItState.initial()));
   locator.registerLazySingleton(() => ComponentsBloc(ComponentsState.initial()));
   locator.registerLazySingleton(() => PresetsBloc(PresetsState.initial()));

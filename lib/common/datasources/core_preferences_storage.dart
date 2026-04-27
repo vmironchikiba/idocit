@@ -21,11 +21,13 @@ class CorePreferencesStorage extends AbstractSharedPreferencesDatasource {
     final themeTypeIndex = await CorePreferencesStorage().read('selected_theme_type');
     final isCharlesProxyEnabled = await CorePreferencesStorage().read('is_charles_proxy_enabled');
     final proxyIP = await CorePreferencesStorage().read('proxy_ip');
+    final screenlockIsEnabled = await CorePreferencesStorage().read('screenlock_is_enabled');
 
     return AppSettingsData(
       themeType: themeTypeIndex is int ? ThemeStyleType.values[themeTypeIndex] : null,
       isCharlesProxyEnabled: isCharlesProxyEnabled,
       proxyIP: proxyIP,
+      screenlockIsEnabled: screenlockIsEnabled,
     );
   }
 
@@ -41,6 +43,9 @@ class CorePreferencesStorage extends AbstractSharedPreferencesDatasource {
 
     if (settingsData.proxyIP != null) {
       await CorePreferencesStorage().write('proxy_ip', settingsData.proxyIP);
+    }
+    if (settingsData.screenlockIsEnabled != null) {
+      await CorePreferencesStorage().write('screenlock_is_enabled', settingsData.screenlockIsEnabled);
     }
   }
 }

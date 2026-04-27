@@ -251,7 +251,7 @@ class _SliderMenuState extends State<SliderMenu> {
                                 ),
                                 children: [
                                   BlocBuilder<CoreBloc, CoreState>(
-                                    buildWhen: (p, c) => p.screenLock != c.screenLock,
+                                    buildWhen: (p, c) => p.screenlockIsEnabled != c.screenlockIsEnabled,
                                     builder: (coreContext, coreState) {
                                       return UserProfile(
                                         onTap: () {
@@ -260,7 +260,7 @@ class _SliderMenuState extends State<SliderMenu> {
                                           }
                                           _expansibleController.collapse();
                                         },
-                                        screenLock: coreState.screenLock,
+                                        screenLock: coreState.screenlockIsEnabled,
                                       );
                                     },
                                   ),

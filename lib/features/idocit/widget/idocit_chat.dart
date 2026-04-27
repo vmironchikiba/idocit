@@ -6,6 +6,7 @@ import 'package:idocit/common/models/service/usecase.dart';
 import 'package:idocit/common/providers/chats_notifier.dart';
 import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/common/utils/dialogs.dart';
+import 'package:idocit/common/utils/gif_builder.dart';
 import 'package:idocit/common/widgets/dialogs/warning_dialog.dart';
 import 'package:idocit/common/widgets/indicators/loading_indicator.dart';
 import 'package:idocit/common/widgets/input_fields/text_input_field.dart';
@@ -38,7 +39,6 @@ import 'package:idocit/features/stt/widgets/microphone_widget.dart';
 import 'package:idocit/features/stt/widgets/session_options_widget.dart';
 import 'package:idocit/features/tts/domain/blocs/tts_bloc.dart';
 import 'package:idocit/features/tts/domain/enums/tts_state_enum.dart';
-import 'package:idocit/features/tts/domain/services/tts_service.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_stop.dart';
 import 'package:idocit/injection_container.dart';
 import 'package:flutter/material.dart';
@@ -59,10 +59,13 @@ class _IdocItChatState extends State<IdocItChat> {
   late bool _localsPresented;
   late StreamSubscription<SttState> sttStateSubscription;
   SpeechRecognitionResult? speechRecognitionResult;
+  late final GifController _gifController;
+  bool _gifLoaded = false;
 
   @override
   initState() {
     super.initState();
+    _gifController = GifController(isLoop: false, isInverted: true, onFinish: () => setState(() => _gifLoaded = true));
     _localsPresented = false;
     _scrollController = ScrollController();
 
@@ -222,7 +225,20 @@ class _IdocItChatState extends State<IdocItChat> {
                           state.generationResultSystem == null &&
                           state.queryResponse == null &&
                           !state.isInProcess)
-                        Center(child: Image.asset(ImageConstants.chatPreviewPng)),
+                        _gifLoaded
+                            ? Center(child: Image.asset(ImageConstants.chatPreviewPng))
+                            : Center(
+                                child: GifBuilder.asset(
+                                  ImageConstants.chatPreviewGif,
+                                  controller: _gifController,
+                                  // onLoading: SizedBox(
+                                  //   // height: imageHeight,
+                                  //   // width: imageWidth,
+                                  //   child: Image.asset(ImageConstants.chatPreviewPng),
+                                  // ),
+                                ),
+                              ),
+                      // Center(child: Image.asset(ImageConstants.chatPreviewPng)),
                       // if (state.isInProcess) Center(child: IdocItLoadingIndicator(size: 30.0)),
                     ],
                   );

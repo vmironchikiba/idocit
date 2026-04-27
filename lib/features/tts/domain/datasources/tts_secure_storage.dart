@@ -7,24 +7,39 @@ class TtsSecureStorage extends AbstractSecureDatasource {
 
   Future<TtsData?> readTtsData() async {
     LoggerService.logDebug('TtsSecureStorage -> readTtsData()');
-    final enaled = await TtsSecureStorage().read('tts.is_enabled');
+    try {
+      final enabled = await TtsSecureStorage().read('tts.is_enabled');
 
-    if (enaled != null) {
-      final isEnabled = bool.tryParse(enaled);
-      if (isEnabled != null) {
-        return TtsData(isEnabled: isEnabled);
+      if (enabled != null) {
+        final isEnabled = bool.tryParse(enabled);
+        if (isEnabled != null) {
+          return TtsData(isEnabled: isEnabled);
+        }
       }
+    } catch (e) {
+      LoggerService.logDebug('TtsSecureStorage->readTokensData error: ${e.toString()}');
+      return null;
     }
     return null;
   }
 
   Future<void> writeTtsData(TtsData data) async {
     LoggerService.logDebug('TtsSecureStorage -> writeTtsData()');
-    await TtsSecureStorage().write('tts.is_enabled', data.isEnabled.toString());
+    try {
+      await TtsSecureStorage().write('tts.is_enabled', data.isEnabled.toString());
+    } catch (e) {
+      LoggerService.logDebug('TtsSecureStorage->writeTtsData error: ${e.toString()}');
+      return;
+    }
   }
 
   Future<void> deleteTtsData() async {
     LoggerService.logDebug('TtsSecureStorage -> deleteTtsData()');
-    await TtsSecureStorage().delete('tts.is_enabled');
+    try {
+      await TtsSecureStorage().delete('tts.is_enabled');
+    } catch (e) {
+      LoggerService.logDebug('TtsSecureStorage->deleteTtsData error: ${e.toString()}');
+      return;
+    }
   }
 }

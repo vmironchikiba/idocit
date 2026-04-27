@@ -11,8 +11,8 @@ class UpdateInAppToastEvent extends CoreBlocEvent {
 }
 
 class UpdateScreenLock extends CoreBlocEvent {
-  final bool screenLock;
-  UpdateScreenLock({required this.screenLock}) : super([screenLock]);
+  final bool screenlockIsEnabled;
+  UpdateScreenLock({required this.screenlockIsEnabled}) : super([screenlockIsEnabled]);
 }
 
 class SignOutCoreEvent extends CoreBlocEvent {

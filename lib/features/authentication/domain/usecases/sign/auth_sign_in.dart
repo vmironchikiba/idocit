@@ -3,7 +3,6 @@ import 'package:idocit/common/services/firebase.dart';
 import 'package:idocit/features/authentication/domain/bloc/auth_bloc.dart';
 import 'package:idocit/features/authentication/domain/datasources/auth_remote_datasource.dart';
 import 'package:idocit/features/authentication/domain/datasources/auth_secure_storage.dart';
-import 'package:idocit/features/authentication/domain/models/login_data.dart';
 import 'package:idocit/common/models/service/failure.dart';
 import 'package:idocit/common/models/service/usecase.dart';
 import 'package:idocit/common/services/logger.dart';
