@@ -24,48 +24,20 @@ class AuthApi {
   ///
   /// Parameters:
   ///
-  /// * [String] username (required):
-  ///
-  /// * [String] password (required):
-  ///
-  /// * [String] grantType:
-  ///
-  /// * [String] scope:
-  ///
-  /// * [String] clientId:
-  ///
-  /// * [String] clientSecret:
-  Future<Response> loginApiLoginPostWithHttpInfo(String username, String password, { String? grantType, String? scope, String? clientId, String? clientSecret, }) async {
+  /// * [BodyLoginApiLoginPost] bodyLoginApiLoginPost (required):
+  Future<Response> loginApiLoginPostWithHttpInfo(BodyLoginApiLoginPost bodyLoginApiLoginPost,) async {
     // ignore: prefer_const_declarations
-    final path = r'/api/login';
+    final path = r'/api/v1/auth/login';
 
     // ignore: prefer_final_locals
-    Object? postBody;
+    Object? postBody = bodyLoginApiLoginPost;
 
     final queryParams = <QueryParam>[];
     final headerParams = <String, String>{};
     final formParams = <String, String>{};
 
-    const contentTypes = <String>['application/x-www-form-urlencoded'];
+    const contentTypes = <String>['application/json'];
 
-    if (grantType != null) {
-      formParams[r'grant_type'] = parameterToString(grantType);
-    }
-    if (username != null) {
-      formParams[r'username'] = parameterToString(username);
-    }
-    if (password != null) {
-      formParams[r'password'] = parameterToString(password);
-    }
-    if (scope != null) {
-      formParams[r'scope'] = parameterToString(scope);
-    }
-    if (clientId != null) {
-      formParams[r'client_id'] = parameterToString(clientId);
-    }
-    if (clientSecret != null) {
-      formParams[r'client_secret'] = parameterToString(clientSecret);
-    }
 
     return apiClient.invokeAPI(
       path,
@@ -84,19 +56,9 @@ class AuthApi {
   ///
   /// Parameters:
   ///
-  /// * [String] username (required):
-  ///
-  /// * [String] password (required):
-  ///
-  /// * [String] grantType:
-  ///
-  /// * [String] scope:
-  ///
-  /// * [String] clientId:
-  ///
-  /// * [String] clientSecret:
-  Future<UserToken?> loginApiLoginPost(String username, String password, { String? grantType, String? scope, String? clientId, String? clientSecret, }) async {
-    final response = await loginApiLoginPostWithHttpInfo(username, password,  grantType: grantType, scope: scope, clientId: clientId, clientSecret: clientSecret, );
+  /// * [BodyLoginApiLoginPost] bodyLoginApiLoginPost (required):
+  Future<UserToken?> loginApiLoginPost(BodyLoginApiLoginPost bodyLoginApiLoginPost,) async {
+    final response = await loginApiLoginPostWithHttpInfo(bodyLoginApiLoginPost,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
@@ -121,7 +83,7 @@ class AuthApi {
   /// * [LogoutRequest] logoutRequest (required):
   Future<Response> logoutApiLogoutPostWithHttpInfo(LogoutRequest logoutRequest,) async {
     // ignore: prefer_const_declarations
-    final path = r'/api/logout';
+    final path = r'/api/v1/auth/logout';
 
     // ignore: prefer_final_locals
     Object? postBody = logoutRequest;
@@ -177,7 +139,7 @@ class AuthApi {
   /// * [RefreshTokenRequest] refreshTokenRequest:
   Future<Response> refreshApiTokenRefreshPostWithHttpInfo({ RefreshTokenRequest? refreshTokenRequest, }) async {
     // ignore: prefer_const_declarations
-    final path = r'/api/token/refresh';
+    final path = r'/api/v1/auth/refresh';
 
     // ignore: prefer_final_locals
     Object? postBody = refreshTokenRequest;

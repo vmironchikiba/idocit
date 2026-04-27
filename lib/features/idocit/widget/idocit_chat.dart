@@ -6,6 +6,7 @@ import 'package:idocit/common/models/service/usecase.dart';
 import 'package:idocit/common/providers/chats_notifier.dart';
 import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/common/utils/dialogs.dart';
+import 'package:idocit/common/utils/gif_builder.dart';
 import 'package:idocit/common/widgets/dialogs/warning_dialog.dart';
 import 'package:idocit/common/widgets/indicators/loading_indicator.dart';
 import 'package:idocit/common/widgets/input_fields/text_input_field.dart';
@@ -37,7 +38,8 @@ import 'package:idocit/features/stt/widgets/help_widget.dart';
 import 'package:idocit/features/stt/widgets/microphone_widget.dart';
 import 'package:idocit/features/stt/widgets/session_options_widget.dart';
 import 'package:idocit/features/tts/domain/blocs/tts_bloc.dart';
-import 'package:idocit/features/tts/domain/services/tts_service.dart';
+import 'package:idocit/features/tts/domain/enums/tts_state_enum.dart';
+import 'package:idocit/features/tts/domain/usecases/tts_stop.dart';
 import 'package:idocit/injection_container.dart';
 import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
@@ -56,56 +58,52 @@ class _IdocItChatState extends State<IdocItChat> {
   List<String> suggestions = [];
   late bool _localsPresented;
   late StreamSubscription<SttState> sttStateSubscription;
-  late StreamSubscription<ChatState> chatStateSubscription;
   SpeechRecognitionResult? speechRecognitionResult;
+  late final GifController _gifController;
+  bool _gifLoaded = false;
 
   @override
   initState() {
     super.initState();
+    _gifController = GifController(isLoop: false, isInverted: true, onFinish: () => setState(() => _gifLoaded = true));
     _localsPresented = false;
     _scrollController = ScrollController();
 
-    List<String> preMessageArray = [];
-    List<String> preMessageArraySpoken = [];
-
+    // List<String> preMessageArray = [];
+    // List<String> preMessageArraySpoken = [];
     locator<ComponentsInit>().call(NoParams()).then((result) {
       if (!mounted) return;
       final scaffoldMessenger = ScaffoldMessenger.of(context);
       result.fold(
-        (failure) =>
-            scaffoldMessenger.showSnackBar(SnackBar(content: Text(failure.message), duration: Duration(seconds: 5))),
+        (failure) => scaffoldMessenger.showSnackBar(
+          SnackBar(key: UniqueKey(), content: Text(failure.message), duration: Duration(seconds: 5)),
+        ),
         (_) => null,
       );
     });
 
     locator<ChatLazyInitSuggestions>().call(NoParams());
-    chatStateSubscription = locator<ChatBloc>().stream.listen(
-      (state) {
-        if (locator<TtsBloc>().state.isEnabled && preMessageArray.length != state.preMessageArray.length) {
-          preMessageArraySpoken = preMessageArray;
-          preMessageArray = state.preMessageArray;
-          preMessageArray.removeWhere((element) => preMessageArraySpoken.contains(element));
-          final text = preMessageArray.join(' ');
-          _speak(text);
-        }
+    // chatStateSubscription = locator<ChatBloc>().stream.listen(
+    //   (state) {
+    //     if (locator<TtsBloc>().state.isEnabled && preMessageArray.length != state.preMessageArray.length) {
+    //       preMessageArraySpoken = preMessageArray;
+    //       preMessageArray = state.preMessageArray;
+    //       preMessageArray.removeWhere((element) => preMessageArraySpoken.contains(element));
+    //       final text = preMessageArray.join(' ');
+    //       _speak(text);
+    //     }
 
-        sttStateSubscription = locator<SttBloc>().stream.listen(
-          (sttState) async {
-            if (sttState.speechRecognitionResult?.finalResult == speechRecognitionResult?.finalResult &&
-                sttState.speechRecognitionResult?.recognizedWords == speechRecognitionResult?.recognizedWords) {
-              return;
-            }
-            speechRecognitionResult = sttState.speechRecognitionResult;
-            _controller.text = speechRecognitionResult?.recognizedWords ?? '';
-            if (speechRecognitionResult?.finalResult ?? false) {
-              locator<ChatSuggestionsWithQuery>().call(sttState.speechRecognitionResult?.recognizedWords ?? '');
-            }
-          },
-          onError: (err) {
-            LoggerService.logDebug('IdocItChat -> stream -> error: ${err.toString()}');
-          },
-        );
-        _scrollToBottom();
+    sttStateSubscription = locator<SttBloc>().stream.listen(
+      (sttState) async {
+        if (sttState.speechRecognitionResult?.finalResult == speechRecognitionResult?.finalResult &&
+            sttState.speechRecognitionResult?.recognizedWords == speechRecognitionResult?.recognizedWords) {
+          return;
+        }
+        speechRecognitionResult = sttState.speechRecognitionResult;
+        _controller.text = speechRecognitionResult?.recognizedWords ?? '';
+        if (speechRecognitionResult?.finalResult ?? false) {
+          locator<ChatSuggestionsWithQuery>().call(sttState.speechRecognitionResult?.recognizedWords ?? '');
+        }
       },
       onError: (err) {
         LoggerService.logDebug('IdocItChat -> stream -> error: ${err.toString()}');
@@ -116,7 +114,7 @@ class _IdocItChatState extends State<IdocItChat> {
       result.fold(
         (failure) => ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(failure.message), duration: Duration(seconds: 5))),
+        ).showSnackBar(SnackBar(key: UniqueKey(), content: Text(failure.message), duration: Duration(seconds: 5))),
         (_) => _scrollToBottom(),
       );
     });
@@ -125,21 +123,20 @@ class _IdocItChatState extends State<IdocItChat> {
   @override
   dispose() {
     sttStateSubscription.cancel();
-    chatStateSubscription.cancel();
     super.dispose();
   }
 
-  Future<void> _speak(String? text) async {
-    await locator<TtsService>().tts.setVolume(locator<TtsBloc>().state.volume);
-    await locator<TtsService>().tts.setSpeechRate(locator<TtsBloc>().state.rate);
-    await locator<TtsService>().tts.setPitch(locator<TtsBloc>().state.pitch);
+  // Future<void> _speak(String? text) async {
+  //   await locator<TtsService>().tts.setVolume(locator<TtsBloc>().state.volume);
+  //   await locator<TtsService>().tts.setSpeechRate(locator<TtsBloc>().state.rate);
+  //   await locator<TtsService>().tts.setPitch(locator<TtsBloc>().state.pitch);
 
-    if (text != null) {
-      if (text.isNotEmpty) {
-        await locator<TtsService>().tts.speak(text);
-      }
-    }
-  }
+  //   if (text != null) {
+  //     if (text.isNotEmpty) {
+  //       await locator<TtsService>().tts.speak(text);
+  //     }
+  //   }
+  // }
 
   void _scrollToBottom() {
     if (!_scrollController.hasClients) return;
@@ -147,22 +144,6 @@ class _IdocItChatState extends State<IdocItChat> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
     });
-  }
-
-  // void _scrollToBottom() {
-  //   if (!_scrollController.hasClients) return;
-
-  //   WidgetsBinding.instance.addPostFrameCallback((_) {
-  //     _scrollController.animateTo(
-  //       _scrollController.position.maxScrollExtent,
-  //       duration: const Duration(milliseconds: 300),
-  //       curve: Curves.easeOut,
-  //     );
-  //   });
-  // }
-
-  Future<void> fetchSuggestions(String query) async {
-    await locator<ChatSuggestionsWithQuery>().call(query);
   }
 
   @override
@@ -179,6 +160,7 @@ class _IdocItChatState extends State<IdocItChat> {
               BlocBuilder<ChatBloc, ChatState>(
                 builder: (context, state) {
                   WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+                  final categories = state.queryResponse?.categories.expand((c) => c.knowledgeData).toList() ?? [];
                   return Stack(
                     children: [
                       ListView(
@@ -227,12 +209,10 @@ class _IdocItChatState extends State<IdocItChat> {
 
                           AnimatedSwitcher(
                             duration: const Duration(milliseconds: 300),
-                            child:
-                                (state.queryResponse?.categories.expand((c) => c.knowledgeData).toList() ?? [])
-                                    .isNotEmpty
+                            child: categories.isNotEmpty
                                 ? InlineExpandableList(
                                     key: const ValueKey('knowledge_list'),
-                                    items: state.queryResponse!.categories.expand((c) => c.knowledgeData).toList(),
+                                    items: categories,
                                     onItemTap: (udid, index) {},
                                   )
                                 : const SizedBox(key: ValueKey('empty_knowledge')),
@@ -245,7 +225,20 @@ class _IdocItChatState extends State<IdocItChat> {
                           state.generationResultSystem == null &&
                           state.queryResponse == null &&
                           !state.isInProcess)
-                        Center(child: Image.asset(ImageConstants.chatPreviewPng)),
+                        _gifLoaded
+                            ? Center(child: Image.asset(ImageConstants.chatPreviewPng))
+                            : Center(
+                                child: GifBuilder.asset(
+                                  ImageConstants.chatPreviewGif,
+                                  controller: _gifController,
+                                  // onLoading: SizedBox(
+                                  //   // height: imageHeight,
+                                  //   // width: imageWidth,
+                                  //   child: Image.asset(ImageConstants.chatPreviewPng),
+                                  // ),
+                                ),
+                              ),
+                      // Center(child: Image.asset(ImageConstants.chatPreviewPng)),
                       // if (state.isInProcess) Center(child: IdocItLoadingIndicator(size: 30.0)),
                     ],
                   );
@@ -314,9 +307,9 @@ class _IdocItChatState extends State<IdocItChat> {
                   child: _localsPresented
                       ? BlocBuilder<ComponentsBloc, ComponentsState>(
                           key: const ValueKey('opened_locals'),
-                          buildWhen: (previous, current) =>
-                              (previous.componentConfig?.defaultValues?.preferredLanguages ?? []).length !=
-                              (current.componentConfig?.defaultValues?.preferredLanguages ?? []).length,
+                          buildWhen: (p, c) =>
+                              (p.componentConfig?.defaultValues?.preferredLanguages ?? []).length !=
+                              (c.componentConfig?.defaultValues?.preferredLanguages ?? []).length,
                           builder: (context, componentsState) {
                             return BlocBuilder<SttBloc, SttState>(
                               buildWhen: (p, c) =>
@@ -401,7 +394,10 @@ class _IdocItChatState extends State<IdocItChat> {
               // INPUT FIELD
               // ======================================
               BlocBuilder<ChatBloc, ChatState>(
-                buildWhen: (p, c) => p.isInProcess != c.isInProcess || p.chatId != c.chatId,
+                buildWhen: (p, c) =>
+                    p.isInProcess != c.isInProcess ||
+                    p.chatId != c.chatId ||
+                    p.suggestionsInProcess != c.suggestionsInProcess,
                 builder: (context, state) {
                   return Positioned(
                     bottom: 0,
@@ -413,122 +409,150 @@ class _IdocItChatState extends State<IdocItChat> {
                       child: BlocBuilder<SttBloc, SttState>(
                         buildWhen: (p, c) => p.isStarted != c.isStarted || p.currentOptions != c.currentOptions,
                         builder: (context, sttState) {
-                          return Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Expanded(
-                                child: IdocItTextInputField(
-                                  controller: _controller,
-                                  keyboardType: TextInputType.text,
-                                  withClearButton: true,
-                                  maxLength: 1000,
-                                  isEnabled: !state.isInProcess && !sttState.isStarted,
-                                  isExpanded: true,
-                                  onChanged: (v) => locator<ChatSuggestionsWithQuery>().call(v),
-                                  onClear: () => locator<ChatSuggestionsReset>().call(NoParams()),
-                                ),
-                              ),
-                              state.isInProcess
-                                  ? Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: 14.0, horizontal: 9),
-                                      child: IdocItLoadingIndicator(color: ColorConstants.white500),
-                                    )
-                                  : sttState.isStarted
-                                  ? MicrophoneWidget(
-                                      onPressed: () async => await locator<SttStartStop>().call(SttActions.stop),
-                                    )
-                                  : InkWell(
-                                      onTap: () {
-                                        FocusScope.of(context).unfocus();
-                                        final request = CompletionRequest(
-                                          tenant: locator<AuthBloc>().state.userData?.tenant ?? '',
-                                          chatId: state.chatId ?? widget.chatId,
-                                          language: 'en-US',
-                                          content: _controller.text,
-                                          role: Role.user.asString(),
-                                          onDone: (chatId) async {
-                                            final reset = await locator<IdocItReset>().call(NoParams());
-                                            reset.fold(
-                                              (failure) => ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(failure.message),
-                                                  duration: Duration(seconds: 5),
-                                                ),
-                                              ),
-                                              (_) => null,
-                                            );
-                                            if (reset.isLeft()) return;
-                                            locator<ChatBloc>().add(ResetRequestedData());
-                                            final history = await locator<GetChatHistory>().call(chatId);
-                                            history.fold(
-                                              (failure) => ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(failure.message),
-                                                  duration: Duration(seconds: 5),
-                                                ),
-                                              ),
-                                              (_) => null,
-                                            );
-                                            if (history.isLeft()) return;
-                                            final chats = await locator<IdocItLazyInitChats>().call(NoParams());
-                                            chats.fold(
-                                              (failure) => ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(failure.message),
-                                                  duration: Duration(seconds: 5),
-                                                ),
-                                              ),
-                                              (_) => null,
-                                            );
-                                            if (chats.isLeft()) return;
-                                            locator<ChatsNotifier>().send(ChatsEvent.close);
-                                            setState(() {});
-                                            LoggerService.logDebug('message');
-                                          },
-                                        );
-                                        locator<ChatStartCompletionsStream>().call(request).then((completion) {
-                                          completion.fold(
-                                            (failure) => ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(content: Text(failure.message), duration: Duration(seconds: 5)),
-                                            ),
-                                            (_) => null,
-                                          );
-                                        });
-
-                                        _controller.clear();
-                                        locator<ChatSuggestionsReset>().call(NoParams());
-                                        _scrollToBottom();
-                                      },
-                                      onDoubleTap: () async {
-                                        setState(() {
-                                          _localsPresented = false;
-                                        });
-                                        final currentOptions = await showSetUp(
-                                          context,
-                                          sttState.currentOptions ?? SpeechToTextConfig.startOptions,
-                                        );
-                                        locator<SttBloc>().add(UpdateSttCurrentOptions(currentOptions: currentOptions));
-                                      },
-                                      onLongPress: () {
-                                        setState(() {
-                                          _localsPresented = !_localsPresented;
-                                        });
-                                      },
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(vertical: 14.0, horizontal: 7),
-                                        child: Icon(
-                                          _localsPresented
-                                              ? sttState.isStarted
-                                                    ? Icons.mic_off_outlined
-                                                    : Icons.mic_none
-                                              : Icons.send,
-                                          color: ColorConstants.white500,
-                                        ),
-                                      ),
-                                      // isPresented: _localsPresented,
-                                      // isStarted: sttState.isStarted,
+                          return BlocBuilder<TtsBloc, TtsState>(
+                            buildWhen: (p, c) => p.ttsState != c.ttsState,
+                            builder: (ttsContext, ttsState) {
+                              return Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Expanded(
+                                    child: IdocItTextInputField(
+                                      controller: _controller,
+                                      keyboardType: TextInputType.text,
+                                      withClearButton: true,
+                                      maxLength: 1000,
+                                      isEnabled:
+                                          !state.isInProcess &&
+                                          !sttState.isStarted &&
+                                          ttsState.ttsState != TtsStateEnum.playing,
+                                      isExpanded: true,
+                                      onChanged: (v) => state.suggestionsInProcess
+                                          ? null
+                                          : locator<ChatSuggestionsWithQuery>().call(v),
+                                      onClear: () => locator<ChatSuggestionsReset>().call(NoParams()),
                                     ),
-                            ],
+                                  ),
+                                  ttsState.ttsState == TtsStateEnum.playing
+                                      ? InkWell(
+                                          onTap: () => locator<TtsStop>().call(NoParams()),
+                                          onDoubleTap: () {},
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(vertical: 14.0, horizontal: 7),
+                                            child: Icon(Icons.stop_circle_outlined, color: ColorConstants.white500),
+                                          ),
+                                        )
+                                      : state.isInProcess || state.suggestionsInProcess
+                                      ? Padding(
+                                          padding: const EdgeInsets.symmetric(vertical: 14.0, horizontal: 9),
+                                          child: IdocItLoadingIndicator(color: ColorConstants.white500),
+                                        )
+                                      : sttState.isStarted
+                                      ? MicrophoneWidget(
+                                          onPressed: () async => await locator<SttStartStop>().call(SttActions.stop),
+                                        )
+                                      : InkWell(
+                                          onTap: () {
+                                            FocusScope.of(context).unfocus();
+                                            final request = CompletionRequest(
+                                              tenant: locator<AuthBloc>().state.userData?.tenant ?? '',
+                                              chatId: state.chatId ?? widget.chatId,
+                                              language: 'en-US',
+                                              content: _controller.text,
+                                              role: Role.user.asString(),
+                                              onDone: (chatId) async {
+                                                final reset = await locator<IdocItReset>().call(NoParams());
+                                                reset.fold(
+                                                  (failure) => ScaffoldMessenger.of(context).showSnackBar(
+                                                    SnackBar(
+                                                      key: UniqueKey(),
+                                                      content: Text(failure.message),
+                                                      duration: Duration(seconds: 5),
+                                                    ),
+                                                  ),
+                                                  (_) => null,
+                                                );
+                                                if (reset.isLeft()) return;
+                                                locator<ChatBloc>().add(ResetRequestedData());
+                                                final history = await locator<GetChatHistory>().call(chatId);
+                                                history.fold(
+                                                  (failure) => ScaffoldMessenger.of(context).showSnackBar(
+                                                    SnackBar(
+                                                      key: UniqueKey(),
+                                                      content: Text(failure.message),
+                                                      duration: Duration(seconds: 5),
+                                                    ),
+                                                  ),
+                                                  (_) => null,
+                                                );
+                                                if (history.isLeft()) return;
+                                                final chats = await locator<IdocItLazyInitChats>().call(NoParams());
+                                                chats.fold(
+                                                  (failure) => ScaffoldMessenger.of(context).showSnackBar(
+                                                    SnackBar(
+                                                      key: UniqueKey(),
+                                                      content: Text(failure.message),
+                                                      duration: Duration(seconds: 5),
+                                                    ),
+                                                  ),
+                                                  (_) => null,
+                                                );
+                                                if (chats.isLeft()) return;
+                                                locator<ChatsNotifier>().send(ChatsEvent.close);
+                                                setState(() {});
+                                                LoggerService.logDebug('message');
+                                              },
+                                            );
+                                            locator<ChatStartCompletionsStream>().call(request).then((completion) {
+                                              completion.fold(
+                                                (failure) => ScaffoldMessenger.of(context).showSnackBar(
+                                                  SnackBar(
+                                                    key: UniqueKey(),
+                                                    content: Text(failure.message),
+                                                    duration: Duration(seconds: 5),
+                                                  ),
+                                                ),
+                                                (_) => null,
+                                              );
+                                            });
+
+                                            _controller.clear();
+                                            locator<ChatSuggestionsReset>().call(NoParams());
+                                            _scrollToBottom();
+                                          },
+                                          onDoubleTap: () async {
+                                            setState(() {
+                                              _localsPresented = false;
+                                            });
+                                            final currentOptions = await showSetUp(
+                                              context,
+                                              sttState.currentOptions ?? SpeechToTextConfig.startOptions,
+                                            );
+                                            locator<SttBloc>().add(
+                                              UpdateSttCurrentOptions(currentOptions: currentOptions),
+                                            );
+                                          },
+                                          onLongPress: () {
+                                            setState(() {
+                                              _localsPresented = !_localsPresented;
+                                            });
+                                          },
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(vertical: 14.0, horizontal: 7),
+                                            child: Icon(
+                                              _localsPresented
+                                                  ? sttState.isStarted
+                                                        ? Icons.mic_off_outlined
+                                                        : Icons.mic_none
+                                                  : Icons.send,
+                                              color: ColorConstants.white500,
+                                            ),
+                                          ),
+                                          // isPresented: _localsPresented,
+                                          // isStarted: sttState.isStarted,
+                                        ),
+                                ],
+                              );
+                            },
                           );
                         },
                       ),

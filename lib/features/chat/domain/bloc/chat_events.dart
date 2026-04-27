@@ -14,6 +14,11 @@ class SetIsInProcess extends ChatBlocEvent {
   SetIsInProcess({required this.isInProcess}) : super([isInProcess]);
 }
 
+class SetSuggestionsInProcess extends ChatBlocEvent {
+  final bool suggestionsInProcess;
+  SetSuggestionsInProcess({required this.suggestionsInProcess}) : super([suggestionsInProcess]);
+}
+
 class SetSuggestionsResponseEvent extends ChatBlocEvent {
   SuggestionsResponse? suggestionsResponse;
 

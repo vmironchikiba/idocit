@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:idocit/common/blocs/core_bloc.dart';
 import 'package:idocit/common/models/service/usecase.dart';
 import 'package:idocit/common/providers/chats_notifier.dart';
 import 'package:idocit/common/utils/dialogs.dart';
@@ -19,8 +20,9 @@ import 'package:flutter/material.dart';
 
 class SliderMenu extends StatefulWidget {
   final Function(String, String)? onItemClick;
+  final Function()? onClose;
 
-  const SliderMenu({super.key, this.onItemClick});
+  const SliderMenu({super.key, this.onItemClick, this.onClose});
 
   @override
   State<SliderMenu> createState() => _SliderMenuState();
@@ -32,7 +34,7 @@ class _SliderMenuState extends State<SliderMenu> {
   String? _isChatInProgressId;
   bool _isNewChatAdded = false;
   bool _profileOpened = false;
-  final ExpansibleController _controller = ExpansibleController();
+  final ExpansibleController _expansibleController = ExpansibleController();
   final ScrollController _scrollController = ScrollController();
   bool _isFullVisible = true;
 
@@ -58,8 +60,9 @@ class _SliderMenuState extends State<SliderMenu> {
       if (!mounted) return;
       final scaffoldMessenger = ScaffoldMessenger.of(context);
       chats.fold(
-        (failure) =>
-            scaffoldMessenger.showSnackBar(SnackBar(content: Text(failure.message), duration: Duration(seconds: 5))),
+        (failure) => scaffoldMessenger.showSnackBar(
+          SnackBar(key: UniqueKey(), content: Text(failure.message), duration: Duration(seconds: 5)),
+        ),
         (_) => null,
       );
       setState(() {
@@ -74,7 +77,7 @@ class _SliderMenuState extends State<SliderMenu> {
         });
       }
     });
-    _controller.addListener(() {
+    _expansibleController.addListener(() {
       _checkScrollNeeded();
     });
   }
@@ -144,6 +147,7 @@ class _SliderMenuState extends State<SliderMenu> {
                             child: IdocItTextButton(
                               contentText: chat.title,
                               callback: () async {
+                                _expansibleController.collapse();
                                 _isNewChatAdded = false;
                                 setState(() {
                                   _isChatInProgress = true;
@@ -163,6 +167,7 @@ class _SliderMenuState extends State<SliderMenu> {
                           _isChatInProgressId != chat.id
                               ? InkWell(
                                   onTap: () async {
+                                    _expansibleController.collapse();
                                     setState(() {
                                       _isChatInProgress = true;
                                       _isChatInProgressId = chat.id;
@@ -171,7 +176,11 @@ class _SliderMenuState extends State<SliderMenu> {
                                     final delete = await locator<IdocItDeleteChat>().call(chat.id);
                                     delete.fold(
                                       (failure) => ScaffoldMessenger.of(iDocItContext).showSnackBar(
-                                        SnackBar(content: Text(failure.message), duration: Duration(seconds: 5)),
+                                        SnackBar(
+                                          key: UniqueKey(),
+                                          content: Text(failure.message),
+                                          duration: Duration(seconds: 5),
+                                        ),
                                       ),
                                       (_) => null,
                                     );
@@ -179,7 +188,11 @@ class _SliderMenuState extends State<SliderMenu> {
                                     final chats = await locator<IdocItLazyInitChats>().call(NoParams());
                                     chats.fold(
                                       (failure) => ScaffoldMessenger.of(iDocItContext).showSnackBar(
-                                        SnackBar(content: Text(failure.message), duration: Duration(seconds: 5)),
+                                        SnackBar(
+                                          key: UniqueKey(),
+                                          content: Text(failure.message),
+                                          duration: Duration(seconds: 5),
+                                        ),
                                       ),
                                       (_) => null,
                                     );
@@ -215,7 +228,7 @@ class _SliderMenuState extends State<SliderMenu> {
                             controller: _scrollController,
                             children: <Widget>[
                               ExpansionTile(
-                                controller: _controller,
+                                controller: _expansibleController,
                                 leading: Icon(
                                   _profileOpened ? Icons.arrow_drop_up : Icons.arrow_drop_down,
                                   color: ColorConstants.white500,
@@ -236,7 +249,22 @@ class _SliderMenuState extends State<SliderMenu> {
                                   tooltip: 'Log out',
                                   color: ColorConstants.white500,
                                 ),
-                                children: [UserProfile(onTap: () => _controller.collapse())],
+                                children: [
+                                  BlocBuilder<CoreBloc, CoreState>(
+                                    buildWhen: (p, c) => p.screenlockIsEnabled != c.screenlockIsEnabled,
+                                    builder: (coreContext, coreState) {
+                                      return UserProfile(
+                                        onTap: () {
+                                          if (widget.onClose != null) {
+                                            widget.onClose!();
+                                          }
+                                          _expansibleController.collapse();
+                                        },
+                                        screenLock: coreState.screenlockIsEnabled,
+                                      );
+                                    },
+                                  ),
+                                ],
                               ),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -298,6 +326,7 @@ class _SliderMenuState extends State<SliderMenu> {
                                               child: IdocItTextButton(
                                                 contentText: 'New chat',
                                                 callback: () async {
+                                                  _expansibleController.collapse();
                                                   if (widget.onItemClick == null) return;
                                                   await widget.onItemClick!('', 'New chat');
                                                 },
@@ -307,6 +336,7 @@ class _SliderMenuState extends State<SliderMenu> {
                                             ),
                                             InkWell(
                                               onTap: () {
+                                                _expansibleController.collapse();
                                                 setState(() {
                                                   _isNewChatAdded = false;
                                                 });

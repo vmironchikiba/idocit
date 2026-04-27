@@ -2,7 +2,6 @@ import 'package:dartz/dartz.dart';
 import 'package:idocit/common/models/base_api_handler.dart';
 import 'package:idocit/constants/errors.dart';
 import 'package:idocit/constants/strings.dart';
-import 'package:idocit/features/authentication/domain/models/login_data.dart';
 import 'package:idocit/common/models/service/failure.dart';
 import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/idocit/lib/api.dart';
@@ -10,9 +9,9 @@ import 'package:idocit/injection_container.dart';
 
 class AuthRemoteDataSource extends BaseRepository {
   // UserToken? token;
-  Future<Either<Failure, UserToken>> signIn(LoginData data) async {
-    LoggerService.logDebug('AuthRemoteDataSource -> signIn(email: ${data.email})');
-    final result = await makeRequest(() => locator<AuthApi>().loginApiLoginPost(data.email, data.password));
+  Future<Either<Failure, UserToken>> signIn(BodyLoginApiLoginPost data) async {
+    LoggerService.logDebug('AuthRemoteDataSource -> signIn(email: ${data.username})');
+    final result = await makeRequest(() => locator<AuthApi>().loginApiLoginPost(data));
     return result.fold(
       (failure) => Left(failure),
       (response) => response == null ? Left(UnautorizedFailure()) : Right(response),

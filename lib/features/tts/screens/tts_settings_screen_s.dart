@@ -82,7 +82,11 @@ class TtsSettingsScreenState extends State<TtsSettingsScreen> {
     final defaultVoiceResult = await locator<TtsGetDefaultVoice>().call(rawVoices);
     defaultVoiceResult.fold(
       (fault) => ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Get default voice error: ${fault.message}}"), duration: Duration(seconds: 5)),
+        SnackBar(
+          key: UniqueKey(),
+          content: Text("Get default voice error: ${fault.message}}"),
+          duration: Duration(seconds: 5),
+        ),
       ),
       (voiceTts) => changedVoicesDropDownItem(voiceTts),
     );

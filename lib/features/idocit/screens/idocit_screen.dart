@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_marquee_plus/flutter_marquee_plus.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:idocit/common/models/service/usecase.dart';
 import 'package:idocit/constants/colors.dart';
@@ -48,18 +49,37 @@ class _IdocItScreenState extends State<IdocItScreen> {
                 isDraggable: false,
                 appBar: SliderAppBar(
                   config: SliderAppBarConfig(
-                    title: Text(
-                      chatState.chatTitle ?? "New Chat",
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        inherit: false,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        fontStyle: FontStyle.normal,
-                        color: ColorConstants.white500,
-                        overflow: TextOverflow.ellipsis,
+                    title: Padding(
+                      padding: EdgeInsetsGeometry.only(top: 15),
+                      child: MarqueePlus(
+                        text: chatState.chatTitle ?? "New Chat",
+                        scrollAxis: Axis.horizontal,
+                        velocity: 50.0,
+                        gap: 20,
+                        pauseAfterRound: Duration(seconds: 1),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          inherit: false,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          fontStyle: FontStyle.normal,
+                          color: ColorConstants.white500,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ),
+                    // Text(
+                    //   chatState.chatTitle ?? "New Chat",
+                    //   textAlign: TextAlign.center,
+                    //   style: const TextStyle(
+                    //     inherit: false,
+                    //     fontSize: 16,
+                    //     fontWeight: FontWeight.w500,
+                    //     fontStyle: FontStyle.normal,
+                    //     color: ColorConstants.white500,
+                    //     overflow: TextOverflow.ellipsis,
+                    //   ),
+                    // ),
                     backgroundColor: ColorConstants.black300,
                     drawerIconColor: ColorConstants.white500,
                     trailing: Padding(
@@ -70,13 +90,14 @@ class _IdocItScreenState extends State<IdocItScreen> {
                 ),
                 sliderOpenSize: width - 50,
                 slider: SliderMenu(
+                  onClose: () => _sliderDrawerKey.currentState?.closeSlider(),
                   onItemClick: (chatId, chatTitle) async {
                     _sliderDrawerKey.currentState?.closeSlider();
                     final scaffoldMessenger = ScaffoldMessenger.of(chatContext);
                     final reset = await locator<ChatReset>().call(NoParams());
                     reset.fold(
                       (failure) => scaffoldMessenger.showSnackBar(
-                        SnackBar(content: Text(failure.message), duration: Duration(seconds: 5)),
+                        SnackBar(key: UniqueKey(), content: Text(failure.message), duration: Duration(seconds: 5)),
                       ),
                       (_) async {
                         FocusScope.of(chatContext).unfocus();
@@ -89,13 +110,21 @@ class _IdocItScreenState extends State<IdocItScreen> {
                             final history = await locator<GetChatHistory>().call(chatId);
                             history.fold(
                               (failure) => scaffoldMessenger.showSnackBar(
-                                SnackBar(content: Text(failure.message), duration: Duration(seconds: 5)),
+                                SnackBar(
+                                  key: UniqueKey(),
+                                  content: Text(failure.message),
+                                  duration: Duration(seconds: 5),
+                                ),
                               ),
                               (_) async {
                                 final chats = await locator<IdocItLazyInitChats>().call(NoParams());
                                 chats.fold(
                                   (failure) => scaffoldMessenger.showSnackBar(
-                                    SnackBar(content: Text(failure.message), duration: Duration(seconds: 5)),
+                                    SnackBar(
+                                      key: UniqueKey(),
+                                      content: Text(failure.message),
+                                      duration: Duration(seconds: 5),
+                                    ),
                                   ),
                                   (_) {
                                     locator<ChatBloc>().add(SetChatTitle(chatTitle: chatTitle));

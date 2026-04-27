@@ -1,17 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
+import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/constants/colors.dart';
 import 'package:idocit/constants/image.dart';
 import 'package:idocit/features/chat/domain/models/enums/role.dart';
 import 'package:idocit/features/chat/domain/models/extensions/percent_string.dart';
 import 'package:idocit/features/idocit/widget/doc_names_expandable_list.dart';
 import 'package:idocit/idocit/lib/api.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ChatHistoryList extends StatelessWidget {
   final List<ChatHistoryMessage> messages;
 
   const ChatHistoryList({super.key, required this.messages});
+
+  Future<void> _handleExternalUrl(BuildContext context, String? href) async {
+    LoggerService.logDebug("Open external: $href");
+
+    if (href == null) return;
+    final scaffoldMessenger = ScaffoldMessenger.maybeOf(context);
+    if (scaffoldMessenger == null) return;
+    scaffoldMessenger.clearSnackBars();
+    final link = Uri.tryParse(href);
+    if (link == null) {
+      scaffoldMessenger.showSnackBar(
+        SnackBar(key: UniqueKey(), content: Text('Wrong uri $href'), duration: Duration(seconds: 5)),
+      );
+      return;
+    }
+    final canLaunch = await canLaunchUrl(link);
+    if (!canLaunch) return;
+    if (!await canLaunchUrl(link) || !await launchUrl(link, mode: LaunchMode.externalApplication)) {
+      // ignore: use_build_context_synchronously
+      scaffoldMessenger.showSnackBar(
+        SnackBar(key: UniqueKey(), content: Text('Could not launch $link'), duration: Duration(seconds: 5)),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,6 +98,7 @@ class ChatHistoryList extends StatelessWidget {
                           tableColumnWidth: const IntrinsicColumnWidth(),
                         ),
                         shrinkWrap: true,
+                        onTapLink: (_, href, _) async => await _handleExternalUrl(context, href),
                       ),
                     ],
                   )

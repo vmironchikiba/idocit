@@ -24,7 +24,7 @@ class ChatStartCompletionsStream implements UseCase<Either<Failure, void>, Compl
   var previewBuffer = '';
   var chatId = '';
   String get remainingBuffer => _buffer;
-  // final List<String> preMessageArray = [];
+  final List<String> preMessageArray = [];
   // String? traceId;
   // QueryResponse? queryResponse;
 
@@ -47,10 +47,11 @@ class ChatStartCompletionsStream implements UseCase<Either<Failure, void>, Compl
     if (token == null) return Left(AuthFailure(message: 'Token is empty', type: AuthErrorType.badTokensData));
     chatId = '';
     chatBloc.add(SetChatTitle(chatTitle: request.content));
+    reset();
     OpenAIStreamApi(basePath: StringsConstants.basePath)
         .streamChatCompletions(request.toChatCompletionRequest(), token.accessToken)
         .listen(
-          (chunk) {
+          (chunk) async {
             final currentChatId = chunk.id;
             if (currentChatId != null) {
               chatId = currentChatId;
@@ -64,16 +65,8 @@ class ChatStartCompletionsStream implements UseCase<Either<Failure, void>, Compl
 
             if (locator<TtsBloc>().state.isEnabled && content != null) {
               final sentences = addChunk(content);
-              for (final sentence in sentences) {
-                LoggerService.logDebug('🎤 Озвучиваем: "$sentence"');
-                ttsService.speak(sentence).then((value) {
-                  LoggerService.logDebug("Озвучиваем value: $value");
-                  LoggerService.logDebug("Озвучиваем буфер: $_buffer");
-                });
-                // await tts.speak(sentence);
-              }
+              await _speakSentences(sentences);
               previewBuffer += content;
-              // _buffer += content.replaceAll('\n', ' ');
             }
 
             final toolCall = toolCalls.isNotEmpty ? ToolCall.fromJson(toolCalls.first) : null;
@@ -81,8 +74,11 @@ class ChatStartCompletionsStream implements UseCase<Either<Failure, void>, Compl
             final updates = arguments?.updatesPayload;
             if (choice.finishReason == 'tool_calls') {
               if (arguments?.type == 'system.token') {
-                final message = arguments?.message ?? '';
+                final message = (arguments?.message ?? '').trim();
                 if (message.isNotEmpty) {
+                  if (locator<TtsBloc>().state.isEnabled) {
+                    await _speakSentence(message);
+                  }
                   final preMessageArray = chatBloc.state.preMessageArray;
                   preMessageArray.add(message);
                   chatBloc.add(SetPreMessageArray(preMessageArray: preMessageArray));
@@ -96,8 +92,9 @@ class ChatStartCompletionsStream implements UseCase<Either<Failure, void>, Compl
                 chatBloc.add(SetGenerationResultSystem(generationResultSystem: system));
               }
               if (toolCall?.id == 'generation.node_update') {
-                if (updates.generation?.knowledge != null) {
-                  chatBloc.add(SetQueryResponse(queryResponse: updates.generation?.knowledge));
+                final knowledge = updates.generation?.knowledge;
+                if (knowledge != null) {
+                  chatBloc.add(SetQueryResponse(queryResponse: knowledge));
                 }
                 chatBloc.add(SetTraceId(traceId: arguments?.traceId));
               }
@@ -108,17 +105,10 @@ class ChatStartCompletionsStream implements UseCase<Either<Failure, void>, Compl
             chatBloc.add(SetIsInProcess(isInProcess: false));
             return Left(CommonFailure(message: err.toString(), type: CommonErrorType.badResponseData));
           },
-          onDone: () {
+          onDone: () async {
             if (_buffer.isNotEmpty && locator<TtsBloc>().state.isEnabled) {
               final sentences = addChunk('', withEnd: true);
-              for (final sentence in sentences) {
-                LoggerService.logDebug('🎤 Озвучиваем: "$sentence"');
-                ttsService.speak(sentence).then((value) {
-                  LoggerService.logDebug("Озвучиваем value end: $value");
-                  LoggerService.logDebug("Озвучиваем буфер end: $_buffer");
-                });
-                // await tts.speak(sentence);
-              }
+              await _speakSentences(sentences);
             }
             chatBloc.add(SetIsInProcess(isInProcess: false));
             chatBloc.add(SetChatId(chatId: chatId));
@@ -129,6 +119,19 @@ class ChatStartCompletionsStream implements UseCase<Either<Failure, void>, Compl
         );
     chatBloc.add(AddCompletionRequest(completionRequest: request));
     return Right(null);
+  }
+
+  Future<void> _speakSentences(List<String> sentences) async {
+    for (final sentence in sentences) {
+      await _speakSentence(sentence);
+    }
+  }
+
+  Future<void> _speakSentence(String sentence) async {
+    final awaitSpeakCompletion = await ttsService.awaitSpeakCompletion(true);
+    LoggerService.logDebug('🎤 $awaitSpeakCompletion Озвучиваем: "$sentence"');
+    final speak = await ttsService.speak(sentence);
+    LoggerService.logDebug("🎤 $speak Озвучиваем буфер: $_buffer");
   }
 
   List<String> addChunk(String chunk, {bool withEnd = false}) {

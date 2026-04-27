@@ -9,14 +9,14 @@ All URIs are relative to *http://localhost*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**loginApiLoginPost**](AuthApi.md#loginapiloginpost) | **POST** /api/login | Login
-[**logoutApiLogoutPost**](AuthApi.md#logoutapilogoutpost) | **POST** /api/logout | Logout
-[**refreshApiTokenRefreshPost**](AuthApi.md#refreshapitokenrefreshpost) | **POST** /api/token/refresh | Refresh
+[**loginApiLoginPost**](AuthApi.md#loginapiloginpost) | **POST** /api/v1/auth/login | Login
+[**logoutApiLogoutPost**](AuthApi.md#logoutapilogoutpost) | **POST** /api/v1/auth/logout | Logout
+[**refreshApiTokenRefreshPost**](AuthApi.md#refreshapitokenrefreshpost) | **POST** /api/v1/auth/refresh | Refresh
 [**tokenStatusApiTokenStatusGet**](AuthApi.md#tokenstatusapitokenstatusget) | **GET** /api/token/status | Token Status
 
 
 # **loginApiLoginPost**
-> UserToken loginApiLoginPost(username, password, grantType, scope, clientId, clientSecret)
+> UserToken loginApiLoginPost(bodyLoginApiLoginPost)
 
 Login
 
@@ -27,15 +27,10 @@ Handles user login. Accepts form data with `username` and `password`.
 import 'package:idocit_client/api.dart';
 
 final api_instance = AuthApi();
-final username = username_example; // String | 
-final password = password_example; // String | 
-final grantType = grantType_example; // String | 
-final scope = scope_example; // String | 
-final clientId = clientId_example; // String | 
-final clientSecret = clientSecret_example; // String | 
+final bodyLoginApiLoginPost = BodyLoginApiLoginPost(); // BodyLoginApiLoginPost | 
 
 try {
-    final result = api_instance.loginApiLoginPost(username, password, grantType, scope, clientId, clientSecret);
+    final result = api_instance.loginApiLoginPost(bodyLoginApiLoginPost);
     print(result);
 } catch (e) {
     print('Exception when calling AuthApi->loginApiLoginPost: $e\n');
@@ -46,12 +41,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **username** | **String**|  | 
- **password** | **String**|  | 
- **grantType** | **String**|  | [optional] 
- **scope** | **String**|  | [optional] [default to '']
- **clientId** | **String**|  | [optional] 
- **clientSecret** | **String**|  | [optional] 
+ **bodyLoginApiLoginPost** | [**BodyLoginApiLoginPost**](BodyLoginApiLoginPost.md)|  | 
 
 ### Return type
 
@@ -63,7 +53,7 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/x-www-form-urlencoded
+ - **Content-Type**: application/json
  - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

@@ -3,7 +3,6 @@ import 'package:idocit/common/services/firebase.dart';
 import 'package:idocit/features/authentication/domain/bloc/auth_bloc.dart';
 import 'package:idocit/features/authentication/domain/datasources/auth_remote_datasource.dart';
 import 'package:idocit/features/authentication/domain/datasources/auth_secure_storage.dart';
-import 'package:idocit/features/authentication/domain/models/login_data.dart';
 import 'package:idocit/common/models/service/failure.dart';
 import 'package:idocit/common/models/service/usecase.dart';
 import 'package:idocit/common/services/logger.dart';
@@ -13,7 +12,7 @@ import 'package:idocit/features/authentication/domain/usecases/user/auth_get_use
 import 'package:idocit/idocit/lib/api.dart';
 import 'package:idocit/injection_container.dart';
 
-class AuthSignIn implements UseCase<Either<Failure, void>, LoginData> {
+class AuthSignIn implements UseCase<Either<Failure, void>, BodyLoginApiLoginPost> {
   final NetworkListenerService networkListenerService;
   final AuthBloc authBloc;
   final AuthRemoteDataSource authRemoteDataSource;
@@ -51,7 +50,7 @@ class AuthSignIn implements UseCase<Either<Failure, void>, LoginData> {
   );
 
   @override
-  Future<Either<Failure, void>> call(LoginData data, {bool withStatusUpdate = true}) async {
+  Future<Either<Failure, void>> call(BodyLoginApiLoginPost data, {bool withStatusUpdate = true}) async {
     LoggerService.logDebug('AuthSignIn -> call()');
     if (!await networkListenerService.checkNetworkConnection(() => call(data, withStatusUpdate: withStatusUpdate))) {
       return const Left(NetworkFailure());

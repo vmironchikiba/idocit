@@ -16,8 +16,8 @@ import 'package:idocit/constants/errors.dart';
 import 'package:idocit/constants/image.dart';
 import 'package:idocit/constants/sizes.dart';
 import 'package:idocit/constants/style.dart';
-import 'package:idocit/features/authentication/domain/models/login_data.dart';
 import 'package:idocit/features/authentication/domain/usecases/sign/auth_sign_in.dart';
+import 'package:idocit/idocit/lib/api.dart';
 import 'package:idocit/injection_container.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -186,7 +186,8 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!_isValidUser() || !_isValidPassword()) return;
 
     final response = await locator<AuthSignIn>().call(
-      LoginData(email: _userController.value.text, password: _passwordController.value.text),
+      BodyLoginApiLoginPost(username: _userController.value.text, password: _passwordController.value.text),
+      // LoginData(email: _userController.value.text, password: _passwordController.value.text),
     );
 
     response.fold(

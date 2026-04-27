@@ -6,6 +6,7 @@ import 'package:idocit/common/models/service/usecase.dart';
 import 'package:idocit/common/providers/charles_provider.dart';
 import 'package:idocit/common/providers/theme_provider.dart';
 import 'package:idocit/common/services/logger.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 class CoreInit implements UseCase<void, NoParams> {
   final CoreBloc coreBloc;
@@ -25,13 +26,20 @@ class CoreInit implements UseCase<void, NoParams> {
     LoggerService.logDebug('CoreInit -> call()');
     final isRanBefore = await corePreferencesStorage.readAppRunConfigurationValue();
     if (!isRanBefore) {
-      await AbstractSecureDatasource.deleteStorage();
-      await AbstractSharedPreferencesDatasource.deletePreferences();
-      await corePreferencesStorage.writeAppRunConfigurationValue(true);
+      try {
+        await AbstractSecureDatasource.deleteStorage();
+        await AbstractSharedPreferencesDatasource.deletePreferences();
+        await corePreferencesStorage.writeAppRunConfigurationValue(true);
+      } catch (e) {
+        LoggerService.logDebug('AuthSecureStorage->readTokensData error: ${e.toString()}');
+      }
     }
 
     final settingsData = await corePreferencesStorage.readCoreSettings();
     themeProvider.update(type: settingsData.themeType);
     charlesProvider.update(isEnabled: settingsData.isCharlesProxyEnabled, proxyIP: settingsData.proxyIP);
+    final screenlockIsEnabled = settingsData.screenlockIsEnabled ?? false;
+    await WakelockPlus.toggle(enable: screenlockIsEnabled);
+    coreBloc.add(UpdateScreenLock(screenlockIsEnabled: screenlockIsEnabled));
   }
 }

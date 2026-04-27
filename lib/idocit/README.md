@@ -66,9 +66,9 @@ Class | Method | HTTP request | Description
 *ApiKeysApi* | [**revokeKeyApiKeysKeyIdDelete**](doc//ApiKeysApi.md#revokekeyapikeyskeyiddelete) | **DELETE** /api/keys/{key_id} | Revoke Key
 *AppStatusApi* | [**getProductionApiGetProductionGet**](doc//AppStatusApi.md#getproductionapigetproductionget) | **GET** /api/get_production | Get Production
 *AppStatusApi* | [**getStatusApiGetStatusGet**](doc//AppStatusApi.md#getstatusapigetstatusget) | **GET** /api/get_status | Get Status
-*AuthApi* | [**loginApiLoginPost**](doc//AuthApi.md#loginapiloginpost) | **POST** /api/login | Login
-*AuthApi* | [**logoutApiLogoutPost**](doc//AuthApi.md#logoutapilogoutpost) | **POST** /api/logout | Logout
-*AuthApi* | [**refreshApiTokenRefreshPost**](doc//AuthApi.md#refreshapitokenrefreshpost) | **POST** /api/token/refresh | Refresh
+*AuthApi* | [**loginApiLoginPost**](doc//AuthApi.md#loginapiloginpost) | **POST** /api/v1/auth/login | Login
+*AuthApi* | [**logoutApiLogoutPost**](doc//AuthApi.md#logoutapilogoutpost) | **POST** /api/v1/auth/logout | Logout
+*AuthApi* | [**refreshApiTokenRefreshPost**](doc//AuthApi.md#refreshapitokenrefreshpost) | **POST** /api/v1/auth/refresh | Refresh
 *AuthApi* | [**tokenStatusApiTokenStatusGet**](doc//AuthApi.md#tokenstatusapitokenstatusget) | **GET** /api/token/status | Token Status
 *CategoryApi* | [**createCategoryApiCategoriesPost**](doc//CategoryApi.md#createcategoryapicategoriespost) | **POST** /api/categories | Create Category
 *CategoryApi* | [**deleteCategoriesApiCategoriesDelete**](doc//CategoryApi.md#deletecategoriesapicategoriesdelete) | **DELETE** /api/categories | Delete Categories
@@ -129,6 +129,7 @@ Class | Method | HTTP request | Description
 
  - [AdminLoadPayload](doc//AdminLoadPayload.md)
  - [AdminQueryPayload](doc//AdminQueryPayload.md)
+ - [BodyLoginApiLoginPost](doc//BodyLoginApiLoginPost.md)
  - [ChatCompletionChoice](doc//ChatCompletionChoice.md)
  - [ChatCompletionChunk](doc//ChatCompletionChunk.md)
  - [ChatCompletionRequest](doc//ChatCompletionRequest.md)

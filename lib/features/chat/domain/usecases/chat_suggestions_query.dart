@@ -29,7 +29,7 @@ class ChatSuggestionsWithQuery implements UseCase<Either<Failure, void>, String>
     LoggerService.logDebug('IdocItLazyInitChats -> call()');
     final token = authBloc.state.userToken;
     if (token == null) return Left(AuthFailure(message: 'Token is empty', type: AuthErrorType.badTokensData));
-
+    chatBloc.add(SetSuggestionsInProcess(suggestionsInProcess: true));
     final chatsResult = await chatRemoteDataSource.getSuggestions(token, query);
     return chatsResult.fold(
       (failure) async {
@@ -37,11 +37,13 @@ class ChatSuggestionsWithQuery implements UseCase<Either<Failure, void>, String>
           return (await authAutoSignIn.call(NoParams())).fold((authFailure) => Left(authFailure), (_) => call(query));
         } else {
           chatBloc.add(SetIsInProcess(isInProcess: false));
+          chatBloc.add(SetSuggestionsInProcess(suggestionsInProcess: false));
           return Left(failure);
         }
       },
       (result) async {
         chatBloc.add(SetSuggestionsResponseEvent(suggestionsResponse: result));
+        chatBloc.add(SetSuggestionsInProcess(suggestionsInProcess: false));
         return Right(null);
       },
     );

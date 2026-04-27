@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:idocit/constants/image.dart';
 import 'package:idocit/features/document/domain/bloc/document_bloc.dart';
-import 'package:idocit/features/document/pages/markdown_web_view_page.dart';
-import 'package:idocit/features/document/pages/web_view_page.dart';
+import 'package:idocit/features/document/pages/markdown_in_app_web_view_page.dart';
 import 'package:idocit/injection_container.dart';
 import 'package:idocit/idocit/lib/api.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -20,15 +19,6 @@ class _DocumentScreenState extends State<DocumentScreen> {
   final String docType =
       locator<DocumentBloc>().state.documentResponse?.document.properties.docType ?? 'Unknown Document Type';
   final String? docLink = locator<DocumentBloc>().state.documentResponse?.document.properties.docLink;
-
-  Future<void> _openExternal(String? url) async {
-    if (url == null) return;
-    final uri = Uri.parse(url);
-
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      throw 'Could not launch $url';
-    }
-  }
 
   @override
   void initState() {
@@ -63,7 +53,7 @@ class _DocumentScreenState extends State<DocumentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return MarkdownWebViewPage(knowledge: widget.knowledge);
+    return MarkdownInAppWebViewPage(knowledge: widget.knowledge);
     // (docType == 'MD Format' || docType == 'HTML Documents' || docType == 'WEB documents' || docType == 'Confluence')
     //     ? MarkdownWebViewPage(knowledge: widget.knowledge)
     //     : docType == 'WEB documents' || docType == 'Confluence'

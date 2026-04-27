@@ -7,6 +7,7 @@ import 'package:idocit/common/services/in_app_failures/in_app_failure_provider.d
 import 'package:idocit/common/services/navigator.dart';
 import 'package:idocit/common/services/network_listener.dart';
 import 'package:idocit/common/usecases/core_update_in_app_toast.dart';
+import 'package:idocit/common/usecases/core_update_screenlock.dart';
 import 'package:idocit/features/authentication/domain/bloc/auth_bloc.dart';
 import 'package:idocit/common/providers/charles_provider.dart';
 import 'package:idocit/common/providers/theme_provider.dart';
@@ -66,6 +67,7 @@ import 'package:idocit/features/tts/domain/usecases/tts_get_is_current_language_
 import 'package:idocit/features/tts/domain/usecases/tts_get_languages.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_get_voices.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_lazy_init.dart';
+import 'package:idocit/features/tts/domain/usecases/tts_pause.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_set_current_engine.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_set_is_current_language_installed.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_set_language.dart';
@@ -73,6 +75,7 @@ import 'package:idocit/features/tts/domain/usecases/profile/tts_set_pitch.dart';
 import 'package:idocit/features/tts/domain/usecases/profile/tts_set_rate.dart';
 import 'package:idocit/features/tts/domain/usecases/tts_set_voice.dart';
 import 'package:idocit/features/tts/domain/usecases/profile/tts_set_volume.dart';
+import 'package:idocit/features/tts/domain/usecases/tts_stop.dart';
 import 'package:idocit/idocit/lib/api.dart';
 
 final locator = GetIt.instance;
@@ -102,6 +105,10 @@ void initLocator() {
       charlesProvider: locator<CharlesProvider>(),
     ),
   );
+  locator.registerLazySingleton(
+    () => CoreUpdateScreenlockIsEnabled(coreBloc: locator<CoreBloc>(), storage: locator<CorePreferencesStorage>()),
+  );
+
   locator.registerLazySingleton(() => IdocItBloc(IdocItState.initial()));
   locator.registerLazySingleton(() => ComponentsBloc(ComponentsState.initial()));
   locator.registerLazySingleton(() => PresetsBloc(PresetsState.initial()));
@@ -287,7 +294,10 @@ void initLocator() {
     ),
   );
 
-  // TtsGetSwfaultVoice
+  locator.registerLazySingleton(
+    () => TtsStop(ttsService: locator<TtsService>(), chatStartCompletionsStream: locator<ChatStartCompletionsStream>()),
+  );
+  locator.registerLazySingleton(() => TtsPause(ttsService: locator<TtsService>()));
 
   locator.registerLazySingleton(() => TtsPreferencesStorage());
   locator.registerLazySingleton(() => ApiClient(basePath: 'https://ai-assistant.ibagroupit.com/idocit'));

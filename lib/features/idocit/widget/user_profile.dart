@@ -1,19 +1,26 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:idocit/common/blocs/core_bloc.dart';
 import 'package:idocit/common/services/device.dart';
+import 'package:idocit/common/usecases/core_update_screenlock.dart';
 import 'package:idocit/constants/colors.dart';
 import 'package:idocit/constants/image.dart';
 import 'package:idocit/features/authentication/domain/bloc/auth_bloc.dart';
 import 'package:idocit/features/tts/screens/tts_settings_screen_s.dart';
 import 'package:idocit/injection_container.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 // ignore: must_be_immutable
 class UserProfile extends StatelessWidget {
+  final bool screenLock;
   Function()? onTap;
-  UserProfile({super.key, this.onTap});
+  UserProfile({super.key, this.onTap, required this.screenLock});
 
   Future<void> _handleTtsSettings(BuildContext context) async {
+    if (onTap != null) {
+      onTap!();
+    }
     Navigator.push(context, CupertinoPageRoute(builder: (_) => TtsSettingsScreen()));
   }
 
@@ -70,7 +77,7 @@ class UserProfile extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
             child: InkWell(
               onTap: () => _handleTtsSettings(context),
               child: RichText(
@@ -93,6 +100,56 @@ class UserProfile extends StatelessWidget {
                 ),
               ),
             ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 10),
+            child: SwitchListTile(
+              title: RichText(
+                text: TextSpan(
+                  children: [
+                    WidgetSpan(
+                      child: Icon(
+                        Icons.screen_lock_portrait,
+                        size: 22,
+                        color: screenLock ? ColorConstants.white500 : ColorConstants.black200,
+                      ),
+                    ),
+                    WidgetSpan(
+                      child: SizedBox(width: 10.0), // Отступ
+                    ),
+                    TextSpan(
+                      text: 'Screen locked',
+                      style: TextStyle(color: screenLock ? ColorConstants.white500 : ColorConstants.black200),
+                    ),
+                  ],
+                ),
+              ),
+              value: screenLock,
+              onChanged: (value) async => await locator<CoreUpdateScreenlockIsEnabled>().call(value),
+            ),
+
+            // InkWell(
+            //   onTap: () async {
+            //     await WakelockPlus.enabled ? await WakelockPlus.disable() : await WakelockPlus.enable();
+            //   },
+            //   child: RichText(
+            //     text: TextSpan(
+            //       children: [
+            //         WidgetSpan(
+            //           child: Icon(
+            //             Icons.screen_lock_portrait,
+            //             size: 22,
+            //             color: screenLock ? ColorConstants.white500 : ColorConstants.transparent,
+            //           ),
+            //         ),
+            //         WidgetSpan(
+            //           child: SizedBox(width: 10.0), // Отступ
+            //         ),
+            //         TextSpan(text: 'Screen locked'),
+            //       ],
+            //     ),
+            //   ),
+            // ),
           ),
           Padding(
             padding: const EdgeInsets.only(bottom: 20),

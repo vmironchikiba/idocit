@@ -2,12 +2,13 @@ part of 'core_bloc.dart';
 
 class CoreState {
   final InAppToastData? inAppToastData;
-  const CoreState({required this.inAppToastData});
+  final bool screenlockIsEnabled;
+  const CoreState({required this.inAppToastData, required this.screenlockIsEnabled});
   factory CoreState.initial() {
-    return const CoreState(inAppToastData: null);
+    return const CoreState(inAppToastData: null, screenlockIsEnabled: false);
   }
 
-  CoreState updateInfoMessage({InAppToastData? infoMessage}) {
-    return CoreState(inAppToastData: infoMessage);
+  CoreState updateInfoMessage({InAppToastData? infoMessage, bool? screenLock}) {
+    return CoreState(inAppToastData: infoMessage, screenlockIsEnabled: screenLock ?? this.screenlockIsEnabled);
   }
 }

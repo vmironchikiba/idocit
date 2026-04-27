@@ -58,6 +58,7 @@ class TtsService {
 
   Future<void> init() async {
     final _ = await tts.awaitSpeakCompletion(true);
+    if (isAndroid) final _ = await tts.setQueueMode(1);
     tts.setStartHandler(() => locator<TtsBloc>().add(UpdateTtsState(ttsState: TtsStateEnum.playing)));
     tts.setCompletionHandler(() => locator<TtsBloc>().add(UpdateTtsState(ttsState: TtsStateEnum.stopped)));
     tts.setCancelHandler(() => locator<TtsBloc>().add(UpdateTtsState(ttsState: TtsStateEnum.stopped)));
@@ -85,6 +86,7 @@ class TtsService {
 
   Future<dynamic> speak(String text, {bool focus = false}) => tts.speak(text, focus: focus);
   Future<dynamic> awaitSpeakCompletion(bool awaitCompletion) => tts.awaitSpeakCompletion(awaitCompletion);
+  Future<dynamic> setQueueMode(int queueMode) => tts.setQueueMode(queueMode);
   Future<dynamic> stop() => tts.stop();
   Future<dynamic> pause() => tts.pause();
   Future<dynamic> setEngine(String engine) => tts.setEngine(engine);

@@ -1,47 +1,58 @@
-import 'dart:io';
-
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'package:idocit/constants/strings.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:idocit/common/services/logger.dart';
+import 'package:idocit/common/widgets/indicators/loading_indicator.dart';
+import 'package:idocit/constants/colors.dart';
+import 'package:idocit/constants/image.dart';
 import 'package:idocit/features/document/domain/bloc/document_bloc.dart';
-import 'package:idocit/features/document/pages/markdown_web_view_page.dart';
+import 'package:idocit/features/document/models/extensions/string_path.dart';
 import 'package:idocit/idocit/lib/api.dart';
 import 'package:idocit/injection_container.dart';
 import 'package:markdown/markdown.dart' as md;
-import 'package:idocit/common/services/logger.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-// ignore: must_be_immutable
 class MarkdownInAppWebViewPage extends StatefulWidget {
   final KnowledgeData knowledge;
-  MarkdownInAppWebViewPage({super.key, required this.knowledge});
 
-  // Новые настройки (заменяют InAppWebViewGroupOptions)
-  late InAppWebViewSettings settings;
-  late PullToRefreshController pullToRefreshController;
+  const MarkdownInAppWebViewPage({super.key, required this.knowledge});
 
   @override
   State<MarkdownInAppWebViewPage> createState() => _MarkdownInAppWebViewPageState();
 }
 
 class _MarkdownInAppWebViewPageState extends State<MarkdownInAppWebViewPage> {
-  static const hasDebugInfo = false;
-  InAppWebViewController? webViewController;
-  final GlobalKey webViewKey = GlobalKey();
-  double progress = 0;
+  bool _snackBarIsProcessing = false;
+  late ScaffoldMessengerState _scaffoldMessenger;
+  InAppWebViewController? _controller;
+  bool canGoBack = false;
+  bool canGoForward = false;
+
+  bool _isLoading = true;
+  int progress = 0;
+
   String _htmlTemplate = '';
-  late String _textFromChunks;
-  late String _currentSearchQuery = '';
+  String _htmlPage = '';
+
   final List<DocumentChunk> _chunks = locator<DocumentBloc>().state.documentResponse?.chunks ?? [];
-  final List<SearchMatch> _matches = [];
-  // Новые настройки (заменяют InAppWebViewGroupOptions)
-  late InAppWebViewSettings settings;
-  late PullToRefreshController pullToRefreshController;
+  // late String _currentSearchQuery = '';
+  final String docType =
+      locator<DocumentBloc>().state.documentResponse?.document.properties.docType ?? 'Unknown Document Type';
+  late String _textFromChunks;
+  late WebUri? _docLink;
+  late WebUri? _currentUri;
 
   @override
   void initState() {
     super.initState();
-    _currentSearchQuery = widget.knowledge.text;
+    final url = locator<DocumentBloc>().state.documentResponse?.document.properties.docLink;
+    _docLink = url != null && url.trim().isNotEmpty ? WebUri(url) : null;
+    _currentUri = _docLink;
+
+    // _currentSearchQuery = widget.knowledge.text;
     final chunksList = _chunks.indexed.map((item) {
       final (index, chunk) = item;
       final id = 'match-${DateTime.now().millisecondsSinceEpoch}-$index';
@@ -49,149 +60,400 @@ class _MarkdownInAppWebViewPageState extends State<MarkdownInAppWebViewPage> {
         LoggerService.logDebug('STOP');
       }
 
-      return chunk.chunkId == widget.knowledge.chunkId
+      return chunk.chunkId == widget.knowledge.chunkId - 1
           ? '<mark class="search-match" id="$id" data-match-index="$index">${chunk.textNoOverlap}</mark>'
           : chunk.textNoOverlap;
     }).toList();
-
     _textFromChunks = chunksList.join('');
 
-    // Инициализация настроек
-    settings = InAppWebViewSettings(
-      // Общие (бывшие crossPlatform)
-      javaScriptEnabled: true,
-      useShouldOverrideUrlLoading: true,
-      clearCache: true,
-      cacheEnabled: true,
-      // Дополнительно: ограничение памяти (не решает проблему, но может помочь)
-      preferredContentMode: UserPreferredContentMode.MOBILE,
-      allowsBackForwardNavigationGestures: true,
-
-      // iOS специфичные
-      allowsInlineMediaPlayback: true,
-      isFraudulentWebsiteWarningEnabled: false,
-
-      // Android специфичные (если нужны)
-      // android: AndroidWebViewSettings(
-      //   mixedContentMode: AndroidMixedContentMode.MIXED_CONTENT_ALWAYS_ALLOW,
-      // ),
-    );
-
-    pullToRefreshController = PullToRefreshController(
-      settings: PullToRefreshSettings(color: Colors.blue),
-      onRefresh: () async {
-        if (Platform.isIOS) {
-          await webViewController?.loadUrl(urlRequest: URLRequest(url: await webViewController?.getUrl()));
-        } else {
-          await webViewController?.reload();
-        }
-      },
-    );
-
-    _setupInAppWebView();
+    _loadTemplatesAndProcess();
   }
 
-  void _setupInAppWebView() {
-    // Здесь будет загрузка HTML (вызов _loadTemplatesAndProcessSearchNew)
-    _loadTemplatesAndProcessSearchNew();
-  }
+  // =========================
+  // INIT
+  // =========================
 
-  Future<void> _loadTemplatesAndProcessSearchNew() async {
+  Future<void> _loadTemplatesAndProcess() async {
     try {
-      // Загружаем основной шаблон
       _htmlTemplate = await rootBundle.loadString('assets/templates/document_template.html');
-      LoggerService.logDebug('✅ Основной HTML шаблон загружен (${_htmlTemplate.length} символов)');
-    } catch (e) {
-      LoggerService.logDebug('⚠️ Ошибка загрузки основного шаблона: $e');
-      // Пробуем загрузить fallback шаблон
-      ///     await _loadFallbackTemplate();
+    } catch (_) {
+      _htmlTemplate = _fallbackTemplate();
     }
 
-    // Обрабатываем поисковый запрос
-    await _processSearchAndLoadNew(_textFromChunks);
+    _prepareHtml(_textFromChunks); // 👈 только генерим HTML
   }
 
-  Future<void> _processSearchAndLoadNew(String text) async {
-    await _loadMarkdownWithHighlights(text);
+  void _prepareHtml(String markdown) {
+    final html = md.markdownToHtml(markdown, extensionSet: md.ExtensionSet.gitHubFlavored);
+
+    _htmlPage = _htmlTemplate.replaceFirst('<!-- CONTENT_PLACEHOLDER -->', html);
   }
 
-  Future<void> _loadMarkdownWithHighlights(String markedMarkdown) async {
-    final htmlContent = md.markdownToHtml(markedMarkdown, extensionSet: md.ExtensionSet.gitHubFlavored);
-    final markCount = htmlContent.split('<mark').length - 1;
-    LoggerService.logDebug('🔍 Тегов <mark> в HTML: $markCount');
+  String _fallbackTemplate() {
+    return """
+    <html>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body>
+        <!-- CONTENT_PLACEHOLDER -->
+      </body>
+    </html>
+    """;
+  }
 
-    if (markCount == 0) {
-      LoggerService.logDebug('⚠️ ВНИМАНИЕ: Теги <mark> не обнаружены в HTML!');
+  // =========================
+  // MARKDOWN → HTML
+  // =========================
+
+  Future<void> _loadMarkdown(String markdown) async {
+    final html = md.markdownToHtml(markdown, extensionSet: md.ExtensionSet.gitHubFlavored);
+
+    _htmlPage = _htmlTemplate.replaceFirst('<!-- CONTENT_PLACEHOLDER -->', html);
+
+    if (_controller != null) {
+      await _controller!.loadData(data: _htmlPage, mimeType: "text/html", encoding: "utf-8", baseUrl: _docLink);
     }
-
-    await _loadHtmlToWebView(htmlContent, hasHighlights: markCount > 0);
   }
 
-  Future<void> _loadHtmlToWebView(String htmlContent, {bool hasHighlights = false}) async {
-    if (_htmlTemplate.isEmpty) {
-      LoggerService.logDebug('⚠️ HTML шаблон не загружен, загружаю fallback');
-      await _loadFallbackTemplate();
+  // =========================
+  // URL handling
+  // =========================
+
+  Future<void> _handleExternalUrl(BuildContext context) async {
+    LoggerService.logDebug("Open external: $_currentUri");
+
+    if (_currentUri == null) return;
+    final uri = _currentUri!.uriValue;
+    final canLaunch = await canLaunchUrl(uri);
+    if (!canLaunch) return;
+    if (!canLaunch || !await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      // ignore: use_build_context_synchronously
+      showSnackBar(context, 'Could not launch $uri', 5);
     }
-
-    final htmlPage = _buildHtmlFromTemplate(htmlContent, hasHighlights);
-    await webViewController?.loadData(data: htmlPage);
-
-    // await _webViewController.loadHtmlString(
-    //   htmlPage,
-    //   // baseUrl: _docLinkUri != null && _docLink.isNotEmpty && _docLink != 'about:blank' ? _docLink : null,
-    // );
-
-    // _setupJavaScriptChannel();
   }
 
-  String _buildHtmlFromTemplate(String htmlContent, bool hasHighlights) {
-    var result = _htmlTemplate.replaceFirst('<!-- CONTENT_PLACEHOLDER -->', htmlContent);
-
-    final navHtml = hasHighlights && hasDebugInfo
-        ? '<div id="matches-nav" class="matches-nav">Найдено: <span id="match-count">0</span></div>'
-        : '';
-
-    result = result.replaceFirst('<!-- NAVIGATION_PLACEHOLDER -->', navHtml);
-
-    // Добавляем отладочную информацию только если это не fallback шаблон
-    if (!_htmlTemplate.contains('<!-- NAVIGATION_PLACEHOLDER -->')) {
-      result = result.replaceFirst('</body>', '''
-        <div class="debug-info" id="page-info" style="display: none; position: fixed; top: 10px; left: 10px; background: rgba(0,0,0,0.8); color: white; padding: 10px; border-radius: 5px; font-size: 12px; z-index: 1000;">
-          Загружено: ${DateTime.now().toLocal()}<br>
-          Совпадений: ${_matches.length}<br>
-          Поиск: "${_currentSearchQuery.substring(0, 50)}"
-        </div>
-        <script>
-          document.addEventListener('dblclick', function() {
-            const info = document.getElementById('page-info');
-            if (info) {
-              info.style.display = info.style.display === 'none' ? 'block' : 'none';
-            }
-          });
-        </script>
-        </body>
-      ''');
-    }
-
-    return result;
+  bool _isHtml(Uri uri) {
+    final path = uri.path.toLowerCase();
+    return path.endsWith('.html') || path.endsWith('.htm') || path.isEmpty || path.endsWith('/');
   }
 
-  String _getBuiltInFallbackTemplate() => StringsConstants.fallbackHtmlTemplate;
-  Future<void> _loadFallbackTemplate() async {
+  // =========================
+  // UI
+  // =========================
+
+  Future<void> showSnackBar(BuildContext context, String text, int seconds) async {
+    if (_snackBarIsProcessing || !mounted) return;
+    setState(() {
+      _isLoading = false;
+      _snackBarIsProcessing = true;
+    });
+    _scaffoldMessenger.showSnackBar(
+      SnackBar(
+        key: UniqueKey(),
+        content: Text(text),
+        duration: Duration(seconds: seconds),
+      ),
+    );
+    await Future.delayed(Duration(seconds: seconds + 2));
+    setState(() {
+      _snackBarIsProcessing = false;
+    });
+  }
+
+  void _shareAsXFile(BuildContext context) async {
+    _scaffoldMessenger.clearSnackBars();
+    final box = context.findRenderObject() as RenderBox?;
+    final docName = widget.knowledge.docName.split('\n').firstOrNull ?? 'Документ';
+    final body = widget.knowledge.text;
+    final mdDocName = docName.withExtension('md');
+    final htmlDocName = docName.withExtension('html');
     try {
-      _htmlTemplate = await rootBundle.loadString('assets/templates/fallback_template.html');
-      LoggerService.logDebug('✅ Fallback шаблон загружен из файла');
+      final shareResult = await SharePlus.instance.share(
+        ShareParams(
+          text: body,
+          files: [
+            XFile.fromData(utf8.encode(_htmlPage), name: htmlDocName, mimeType: 'text/html'),
+            XFile.fromData(utf8.encode(_textFromChunks), name: mdDocName, mimeType: 'text/markdown'),
+          ],
+          subject: docName,
+          sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size,
+          fileNameOverrides: [htmlDocName, mdDocName],
+          downloadFallbackEnabled: true,
+          // excludedCupertinoActivities: excludedCupertinoActivityType,
+        ),
+      );
+      if (shareResult.status == ShareResultStatus.unavailable) {
+        // ignore: use_build_context_synchronously
+        await showSnackBar(context, shareResult.status.message, 3);
+      }
     } catch (e) {
-      LoggerService.logDebug('⚠️ Ошибка загрузки fallback шаблона из файла: $e');
-      // Используем встроенный fallback
-      _htmlTemplate = _getBuiltInFallbackTemplate();
-      LoggerService.logDebug('✅ Использован встроенный fallback шаблон');
+      // ignore: use_build_context_synchronously
+      showSnackBar(context, 'Error: $e', 5);
     }
   }
-  // ... остальные методы
+
+  void _refreshSearch() {
+    LoggerService.logDebug('🔄 Обновление поиска...');
+    _controller?.reload();
+    // _loadMarkdownWithHighlights(_textFromChunks);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Сохраняем ссылку на ScaffoldMessenger при первом построении
+    _scaffoldMessenger = ScaffoldMessenger.of(context);
+  }
+
+  @override
+  void dispose() {
+    // Используем сохраненную ссылку, а не context
+    _scaffoldMessenger.clearSnackBars();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return PopScope(
+      canPop: !_snackBarIsProcessing,
+      child: Scaffold(
+        appBar: AppBar(
+          leading: SvgPicture.asset(ImageConstants.igIdocIt, height: 8, width: 8),
+          title:
+              // MarqueePlus(text: widget.knowledge.docName.split('\n').firstOrNull ?? 'Документ', velocity: 50),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Text(
+                      widget.knowledge.docName.split('\n').firstOrNull ?? 'Документ',
+                      maxLines: 2,
+                      style: const TextStyle(
+                        color: ColorConstants.white500,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14.0,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+          actions: [
+            if (progress > 0 && progress < 100)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Center(
+                  child: Text('$progress%', style: const TextStyle(fontSize: 14, color: ColorConstants.white500)),
+                ),
+              ),
+          ],
+        ),
+        body: Stack(
+          children: [
+            Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 3.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 8.0),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8.0),
+                          color: Color.fromRGBO(255, 217, 39, 1.0),
+                        ),
+                        child: Text(
+                          docType,
+                          style: TextStyle(color: ColorConstants.black500, fontSize: 16, fontWeight: FontWeight.w900),
+                        ),
+                      ),
+
+                      Row(
+                        children: [
+                          IconButton(
+                            onPressed: () => _shareAsXFile(context),
+                            icon: Icon(Icons.ios_share, color: ColorConstants.white500, size: 30),
+                          ),
+                          if (_currentUri != null)
+                            IconButton(
+                              onPressed: () => _handleExternalUrl(context),
+                              icon: Icon(Icons.open_in_browser, color: ColorConstants.white500, size: 30),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: InAppWebView(
+                    initialSettings: InAppWebViewSettings(
+                      javaScriptEnabled: true,
+                      useShouldOverrideUrlLoading: true,
+                      mediaPlaybackRequiresUserGesture: false,
+                      transparentBackground: false,
+                    ),
+
+                    onWebViewCreated: (controller) async {
+                      _controller = controller;
+
+                      // JS Bridge
+                      controller.addJavaScriptHandler(
+                        handlerName: 'FlutterChannel',
+                        callback: (args) {
+                          try {
+                            final data = args.first;
+                            LoggerService.logDebug("JS message: $data");
+                          } catch (e) {
+                            LoggerService.logDebug("JS error: $e");
+                          }
+                          return null;
+                        },
+                      );
+
+                      // грузим HTML после создания
+                      await controller.loadData(data: _htmlPage, mimeType: "text/html", encoding: "utf-8");
+                    },
+
+                    shouldOverrideUrlLoading: (controller, navigationAction) async {
+                      final uri = navigationAction.request.url;
+                      if (uri.isBlank) {
+                        return NavigationActionPolicy.ALLOW;
+                      }
+                      setState(() {
+                        _currentUri = uri;
+                      });
+
+                      if (navigationAction.shouldPerformDownload == true) {
+                        return NavigationActionPolicy.DOWNLOAD;
+                      }
+
+                      return NavigationActionPolicy.ALLOW;
+                    },
+
+                    onLoadStart: (controller, url) {
+                      setState(() => _isLoading = true);
+                    },
+
+                    onLoadStop: (controller, url) async {
+                      setState(() {
+                        _currentUri = url.isBlank ? _docLink : url;
+                      });
+
+                      controller.canGoBack().then((canGoBack) {
+                        setState(() {
+                          this.canGoBack = canGoBack;
+                        });
+                      });
+                      controller.canGoForward().then((canGoForward) {
+                        setState(() {
+                          this.canGoForward = canGoForward;
+                        });
+                      });
+                      setState(() {
+                        _isLoading = false;
+                      });
+                    },
+
+                    onProgressChanged: (controller, p) {
+                      setState(() => progress = p);
+                    },
+
+                    onConsoleMessage: (controller, msg) {
+                      LoggerService.logDebug("Console: ${msg.message}");
+                    },
+
+                    onReceivedError: (controller, request, error) async => await showSnackBar(
+                      context,
+                      "onReceivedError: ${error.type.toString()}  ${error.description}",
+                      5,
+                    ),
+
+                    onReceivedHttpError: (controller, request, error) async =>
+                        await showSnackBar(context, "onReceivedError: ${error.statusCode}  ${error.toString()}", 5),
+                  ),
+                ),
+              ],
+            ),
+
+            // Loader
+            if (_isLoading)
+              Container(
+                color: ColorConstants.white500,
+                child: const Center(child: IdocItLoadingIndicator(size: 40.0, color: ColorConstants.loading)),
+              ),
+
+            // Progress bar
+            if (progress < 100) LinearProgressIndicator(value: progress / 100),
+          ],
+        ),
+        floatingActionButton: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            if (canGoBack)
+              AnimatedOpacity(
+                opacity: canGoBack ? 1.0 : 0.0,
+                duration: Duration(milliseconds: 500),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
+                  child: FloatingActionButton(
+                    elevation: 0,
+                    heroTag: "goback",
+                    onPressed: () async => await _controller?.goBack(),
+                    tooltip: 'Навигация назад',
+                    backgroundColor: ColorConstants.loading.withValues(alpha: 0.4),
+                    child: const Icon(Icons.arrow_back_ios_new, color: ColorConstants.black350),
+                  ),
+                ),
+              ),
+            if (canGoForward)
+              AnimatedOpacity(
+                opacity: canGoForward ? 1.0 : 0.0,
+                duration: Duration(milliseconds: 500),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
+                  child: FloatingActionButton(
+                    elevation: 0,
+                    heroTag: "goforward",
+                    onPressed: () async => await _controller?.goForward(),
+                    tooltip: 'Навигация вперёд',
+                    backgroundColor: ColorConstants.loading.withValues(alpha: 0.4),
+                    child: const Icon(Icons.arrow_forward_ios, color: ColorConstants.black350),
+                  ),
+                ),
+              ),
+            AnimatedOpacity(
+              opacity: 1.0,
+              duration: Duration(milliseconds: 500),
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 4.0),
+                child: FloatingActionButton(
+                  elevation: 0,
+                  heroTag: "refresh",
+                  onPressed: _refreshSearch,
+                  tooltip: 'Обновить поиск',
+                  backgroundColor: ColorConstants.loading.withValues(alpha: 0.4),
+                  child: const Icon(Icons.refresh, color: ColorConstants.black350),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
+}
+
+extension _ShareResultStatusString on ShareResultStatus {
+  String get message => switch (this) {
+    ShareResultStatus.success => 'Успешно',
+    ShareResultStatus.dismissed => 'Отмена',
+    ShareResultStatus.unavailable => 'Недоступно',
+  };
+}
+
+extension _WebUriBlank on WebUri? {
+  static String blank = 'about:blank';
+  bool get isBlank => this == null || toString() == blank;
 }

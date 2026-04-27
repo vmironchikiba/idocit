@@ -14,6 +14,8 @@ class ChatBloc extends Bloc<ChatBlocEvent, ChatState> {
 
     on<SetIsInProcess>((event, emit) => emit(state.update(isInProcess: event.isInProcess)));
 
+    on<SetSuggestionsInProcess>((event, emit) => emit(state.update(suggestionsInProcess: event.suggestionsInProcess)));
+
     on<SetSuggestionsResponseEvent>((event, emit) {
       LoggerService.logDebug('ChatBloc SetSuggestionsResponseEvent ${event.suggestionsResponse.toString()}');
       emit(state.update(suggestionsResponse: event.suggestionsResponse));
@@ -91,9 +93,7 @@ class ChatBloc extends Bloc<ChatBlocEvent, ChatState> {
               final Map generationResult = (generation['generation_result'] as Map?) ?? {};
               final system = generationResult['system'] as String?;
               if (system != null) {
-                LoggerService.logDebug('//////////////////////////////////////////');
                 LoggerService.logDebug(system);
-                LoggerService.logDebug('//////////////////////////////////////////');
               }
             }
           }

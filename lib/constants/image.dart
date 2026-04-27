@@ -8,6 +8,7 @@ class ImageConstants {
     precacheImage(Image.asset(ImageConstants.icLoading).image, context);
     precacheImage(Image.asset(ImageConstants.icUSFlag).image, context);
 
+    GifBuilder.precacheGIF(Image.asset(ImageConstants.chatPreviewGif).image, frameRate: 30);
     GifBuilder.precacheGIF(Image.asset(ImageConstants.igSplashLogoGIF).image, frameRate: 30);
     GifBuilder.precacheGIF(Image.asset(ImageConstants.igProgressGIF).image, frameRate: 30);
 
@@ -188,5 +189,6 @@ class ImageConstants {
   static const addSvg = 'assets/icons/add.svg';
   static const chatPreviewSvg = 'assets/icons/chatPreview.svg';
   static const chatPreviewPng = 'assets/icons/chatPreview.png';
+  static const chatPreviewGif = 'assets/icons/chatPreview.gif';
   static const microphoneSvg = 'assets/icons/microphone.svg';
 }
