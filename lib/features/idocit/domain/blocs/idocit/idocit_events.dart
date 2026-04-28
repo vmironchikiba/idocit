@@ -11,9 +11,18 @@ class SetSelectedDateEvent extends IdocItBlocEvent {
 }
 
 class SetChatsEvent extends IdocItBlocEvent {
-  List<ChatSummary> chats;
-
-  SetChatsEvent({required this.chats}) : super([chats]);
+  final List<ChatSummary> chats;
+  final int offset;
+  final int limit;
+  final bool canGoBack;
+  final bool canGoForward;
+  SetChatsEvent({
+    required this.chats,
+    required this.offset,
+    required this.limit,
+    required this.canGoBack,
+    required this.canGoForward,
+  }) : super([chats, offset, limit, canGoBack, canGoForward]);
 }
 
 class SignOutIdocItEvent extends IdocItBlocEvent {

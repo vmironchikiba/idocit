@@ -13,7 +13,15 @@ class IdocItBloc extends Bloc<IdocItBlocEvent, IdocItState> {
     });
 
     on<SetChatsEvent>((event, emit) {
-      emit(state.update(chats: event.chats));
+      emit(
+        state.update(
+          chats: event.chats,
+          canGoForward: event.canGoForward,
+          canGoBack: event.canGoBack,
+          offset: event.offset,
+          limit: event.limit,
+        ),
+      );
     });
 
     on<IdocItResetEvent>((event, emit) {
