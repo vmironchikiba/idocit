@@ -10,7 +10,8 @@ import 'package:idocit/features/chat/domain/bloc/chat_bloc.dart';
 import 'package:idocit/features/chat/domain/usecases/chat_history.dart';
 import 'package:idocit/features/chat/domain/usecases/chat_lazy_init_suggestions.dart';
 import 'package:idocit/features/chat/domain/usecases/chat_reset.dart';
-import 'package:idocit/features/idocit/domain/usecases/idocit_lazy_init_chats.dart';
+import 'package:idocit/features/idocit/domain/usecases/idocit_get_init_chats.dart';
+import 'package:idocit/features/idocit/domain/usecases/idocit_get_next_chats.dart';
 import 'package:idocit/injection_container.dart';
 import 'package:idocit/features/idocit/widget/idocit_chat.dart';
 import 'package:idocit/features/idocit/widget/slider_menu.dart';
@@ -117,7 +118,7 @@ class _IdocItScreenState extends State<IdocItScreen> {
                                 ),
                               ),
                               (_) async {
-                                final chats = await locator<IdocItLazyInitChats>().call(NoParams());
+                                final chats = await locator<IdocGetInitChats>().call(NoParams());
                                 chats.fold(
                                   (failure) => scaffoldMessenger.showSnackBar(
                                     SnackBar(

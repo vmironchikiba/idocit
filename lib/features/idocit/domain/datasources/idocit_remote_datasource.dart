@@ -7,7 +7,7 @@ import 'package:idocit/common/services/logger.dart';
 import 'package:idocit/idocit/lib/api.dart';
 
 class IdocItRemoteDataSource extends BaseRepository {
-  Future<Either<Failure, List<ChatSummary>>> getChats(UserToken? token) async {
+  Future<Either<Failure, List<ChatSummary>>> getChats(UserToken? token, {int? limit, int? offset}) async {
     LoggerService.logDebug('IdocItRemoteDataSource -> getChats()})');
     if (token == null) return Left(AuthFailure(message: 'No access token', type: AuthErrorType.badTokensData));
     final authentication = HttpBearerAuth();
@@ -15,7 +15,7 @@ class IdocItRemoteDataSource extends BaseRepository {
     final result = await makeRequest(
       () => ChatApi(
         ApiClient(basePath: StringsConstants.basePath, authentication: authentication),
-      ).listChatsApiChatsGet(limit: 500, offset: 0),
+      ).listChatsApiChatsGet(limit: limit, offset: offset),
     );
     return result.fold((failure) => Left(failure), (response) => Right(response?.items ?? []));
   }

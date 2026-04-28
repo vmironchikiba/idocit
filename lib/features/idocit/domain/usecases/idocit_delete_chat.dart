@@ -9,14 +9,15 @@ import 'package:idocit/features/authentication/domain/bloc/auth_bloc.dart';
 import 'package:idocit/features/authentication/domain/usecases/sign/auth_auto_sign_in.dart';
 import 'package:idocit/features/idocit/domain/blocs/idocit/idocit_bloc.dart';
 import 'package:idocit/features/idocit/domain/datasources/idocit_remote_datasource.dart';
-import 'package:idocit/features/idocit/domain/usecases/idocit_lazy_init_chats.dart';
+import 'package:idocit/features/idocit/domain/usecases/idocit_get_init_chats.dart';
+import 'package:idocit/features/idocit/domain/usecases/idocit_get_next_chats.dart';
 
 class IdocItDeleteChat implements UseCase<Either<Failure, void>, String> {
   final NetworkListenerService networkListenerService;
   final IdocItBloc idocItBloc;
   final AuthBloc authBloc;
   final IdocItRemoteDataSource idocItRemoteDataSource;
-  final IdocItLazyInitChats idocItLazyInitChats;
+  final IdocGetInitChats idocItInitChats;
   final AuthAutoSignIn authAutoSignIn;
 
   const IdocItDeleteChat({
@@ -24,7 +25,7 @@ class IdocItDeleteChat implements UseCase<Either<Failure, void>, String> {
     required this.idocItBloc,
     required this.authBloc,
     required this.idocItRemoteDataSource,
-    required this.idocItLazyInitChats,
+    required this.idocItInitChats,
     required this.authAutoSignIn,
   });
 
@@ -40,6 +41,6 @@ class IdocItDeleteChat implements UseCase<Either<Failure, void>, String> {
       } else {
         return Left(failure);
       }
-    }, (_) async => await idocItLazyInitChats.call(NoParams()));
+    }, (_) async => await idocItInitChats.call(NoParams()));
   }
 }

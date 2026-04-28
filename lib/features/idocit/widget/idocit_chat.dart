@@ -13,7 +13,8 @@ import 'package:idocit/common/widgets/input_fields/text_input_field.dart';
 import 'package:idocit/constants/image.dart';
 import 'package:idocit/features/components/domain/blocs/components_bloc.dart';
 import 'package:idocit/features/components/domain/usecases/components_init_components.dart';
-import 'package:idocit/features/idocit/domain/usecases/idocit_lazy_init_chats.dart';
+import 'package:idocit/features/idocit/domain/usecases/idocit_get_init_chats.dart';
+import 'package:idocit/features/idocit/domain/usecases/idocit_get_next_chats.dart';
 import 'package:idocit/features/idocit/domain/usecases/idocit_reset.dart';
 import 'package:idocit/features/idocit/widget/inline_expandable_list.dart';
 import 'package:idocit/constants/colors.dart';
@@ -485,7 +486,7 @@ class _IdocItChatState extends State<IdocItChat> {
                                                   (_) => null,
                                                 );
                                                 if (history.isLeft()) return;
-                                                final chats = await locator<IdocItLazyInitChats>().call(NoParams());
+                                                final chats = await locator<IdocGetInitChats>().call(NoParams());
                                                 chats.fold(
                                                   (failure) => ScaffoldMessenger.of(context).showSnackBar(
                                                     SnackBar(

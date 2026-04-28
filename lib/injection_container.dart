@@ -41,8 +41,11 @@ import 'package:idocit/features/document/domain/usecases/get_document_by_id.dart
 import 'package:idocit/features/idocit/domain/blocs/idocit/idocit_bloc.dart';
 import 'package:idocit/features/idocit/domain/datasources/idocit_remote_datasource.dart';
 import 'package:idocit/features/idocit/domain/usecases/idocit_delete_chat.dart';
+import 'package:idocit/features/idocit/domain/usecases/idocit_get_chats.dart';
+import 'package:idocit/features/idocit/domain/usecases/idocit_get_init_chats.dart';
+import 'package:idocit/features/idocit/domain/usecases/idocit_get_previous_chats.dart';
 import 'package:idocit/features/idocit/domain/usecases/idocit_reset.dart';
-import 'package:idocit/features/idocit/domain/usecases/idocit_lazy_init_chats.dart';
+import 'package:idocit/features/idocit/domain/usecases/idocit_get_next_chats.dart';
 import 'package:idocit/features/presets/domain/blocs/presets_bloc.dart';
 import 'package:idocit/features/presets/domain/datasources/presets_remote_datasource.dart';
 import 'package:idocit/features/presets/domain/usecases/get_all_presets.dart';
@@ -346,13 +349,24 @@ void initLocator() {
 
   locator.registerLazySingleton(() => DocumentRemoteDataSource());
   locator.registerLazySingleton(
-    () => IdocItLazyInitChats(
+    () => IdocGetChats(
       networkListenerService: locator<NetworkListenerService>(),
-      idocItBloc: locator<IdocItBloc>(),
       authBloc: locator<AuthBloc>(),
       idocItRemoteDataSource: locator<IdocItRemoteDataSource>(),
       authAutoSignIn: locator<AuthAutoSignIn>(),
     ),
+  );
+
+  locator.registerLazySingleton(
+    () => IdocGetInitChats(idocItBloc: locator<IdocItBloc>(), getChats: locator<IdocGetChats>()),
+  );
+
+  locator.registerLazySingleton(
+    () => IdocGetNextChats(idocItBloc: locator<IdocItBloc>(), getChats: locator<IdocGetChats>()),
+  );
+
+  locator.registerLazySingleton(
+    () => IdocGetPreviousChats(idocItBloc: locator<IdocItBloc>(), getChats: locator<IdocGetChats>()),
   );
 
   locator.registerLazySingleton(
@@ -361,7 +375,7 @@ void initLocator() {
       idocItBloc: locator<IdocItBloc>(),
       authBloc: locator<AuthBloc>(),
       idocItRemoteDataSource: locator<IdocItRemoteDataSource>(),
-      idocItLazyInitChats: locator<IdocItLazyInitChats>(),
+      idocItInitChats: locator<IdocGetInitChats>(),
       authAutoSignIn: locator<AuthAutoSignIn>(),
     ),
   );

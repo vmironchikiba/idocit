@@ -12,7 +12,9 @@ import 'package:idocit/features/authentication/domain/bloc/auth_bloc.dart';
 import 'package:idocit/features/chat/domain/bloc/chat_bloc.dart';
 import 'package:idocit/features/idocit/domain/blocs/idocit/idocit_bloc.dart';
 import 'package:idocit/features/idocit/domain/usecases/idocit_delete_chat.dart';
-import 'package:idocit/features/idocit/domain/usecases/idocit_lazy_init_chats.dart';
+import 'package:idocit/features/idocit/domain/usecases/idocit_get_init_chats.dart';
+import 'package:idocit/features/idocit/domain/usecases/idocit_get_next_chats.dart';
+import 'package:idocit/features/idocit/domain/usecases/idocit_get_previous_chats.dart';
 import 'package:idocit/features/idocit/widget/profile_logout_dialog.dart';
 import 'package:idocit/features/idocit/widget/user_profile.dart';
 import 'package:idocit/injection_container.dart';
@@ -56,7 +58,7 @@ class _SliderMenuState extends State<SliderMenu> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkScrollNeeded();
     });
-    locator<IdocItLazyInitChats>().call(NoParams()).then((chats) {
+    locator<IdocGetInitChats>().call(NoParams()).then((chats) {
       if (!mounted) return;
       final scaffoldMessenger = ScaffoldMessenger.of(context);
       chats.fold(
@@ -86,7 +88,7 @@ class _SliderMenuState extends State<SliderMenu> {
     setState(() {
       _isRequestInProgress = true;
     });
-    final chats = await locator<IdocItLazyInitChats>().call(NoParams());
+    final chats = await locator<IdocGetInitChats>().call(NoParams());
     chats.fold((failure) {}, (_) => null);
 
     setState(() {
@@ -185,7 +187,7 @@ class _SliderMenuState extends State<SliderMenu> {
                                       (_) => null,
                                     );
 
-                                    final chats = await locator<IdocItLazyInitChats>().call(NoParams());
+                                    final chats = await locator<IdocGetInitChats>().call(NoParams());
                                     chats.fold(
                                       (failure) => ScaffoldMessenger.of(iDocItContext).showSnackBar(
                                         SnackBar(
@@ -296,6 +298,27 @@ class _SliderMenuState extends State<SliderMenu> {
                                       ),
                                     ],
                                   ),
+                                  AnimatedSwitcher(
+                                    duration: const Duration(milliseconds: 300),
+                                    child: iDocItState.canGoBack
+                                        ? IconButton(
+                                            onPressed: () => locator<IdocGetPreviousChats>().call(NoParams()),
+                                            icon: Icon(Icons.arrow_back_ios_new, color: ColorConstants.white500),
+                                            color: ColorConstants.white500,
+                                          )
+                                        : const SizedBox(key: ValueKey('empty_back')),
+                                  ),
+                                  AnimatedSwitcher(
+                                    duration: const Duration(milliseconds: 300),
+                                    child: iDocItState.canGoForward
+                                        ? IconButton(
+                                            onPressed: () => locator<IdocGetNextChats>().call(NoParams()),
+                                            icon: Icon(Icons.arrow_forward_ios, color: ColorConstants.white500),
+                                            color: ColorConstants.white500,
+                                          )
+                                        : const SizedBox(key: ValueKey('empty_forward')),
+                                  ),
+
                                   IconButton(
                                     onPressed: () {
                                       setState(() {
